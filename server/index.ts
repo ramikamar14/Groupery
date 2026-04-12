@@ -31,7 +31,9 @@ app.use(
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 const CAPACITOR_ORIGINS = ["capacitor://localhost", "http://localhost", "ionic://localhost"];
-const ALLOWED_ORIGINS = [...CAPACITOR_ORIGINS, env.APP_ORIGIN];
+// Automatically allow www variant of APP_ORIGIN (e.g. https://www.grouperry.com)
+const wwwOrigin = env.APP_ORIGIN.replace("://", "://www.");
+const ALLOWED_ORIGINS = [...CAPACITOR_ORIGINS, env.APP_ORIGIN, wwwOrigin];
 
 // Support comma-separated extra origins via EXTRA_ORIGINS env var (useful for staging/preview URLs)
 const extraOrigins = process.env.EXTRA_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) ?? [];
