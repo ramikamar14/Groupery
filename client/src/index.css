@@ -125,7 +125,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   body {
     @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-foreground;
@@ -147,9 +147,62 @@
 }
 
 @layer components {
+  /* Landing page — shared container, section rhythm, cards, type */
+  .landing-container {
+    @apply mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-6;
+  }
+
+  .landing-section {
+    @apply py-16 sm:py-20 lg:py-24;
+  }
+
+  .landing-heading-section {
+    @apply text-pretty text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-4xl lg:leading-tight;
+  }
+
+  .landing-section-intro {
+    @apply text-pretty text-[15px] leading-relaxed text-muted-foreground sm:text-base lg:text-lg;
+  }
+
+  .landing-lead {
+    @apply text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg;
+  }
+
+  .landing-card {
+    @apply rounded-xl border bg-card shadow-sm
+      transition-[transform,box-shadow] duration-200 ease-out;
+    border-color: hsl(var(--border));
+  }
+  .landing-card:hover {
+    @apply shadow-md;
+    transform: translateY(-2px);
+  }
+
+  .landing-card-content {
+    @apply p-5 sm:p-6;
+  }
+
+  .landing-btn-motion {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .landing-link-motion {
+    @apply transition-colors duration-200 ease-out;
+  }
+
+  .landing-eyebrow {
+    @apply mb-3 inline-flex max-w-full items-center gap-1.5 rounded-md border bg-muted/50 px-2.5 py-1 text-xs font-medium text-muted-foreground;
+    border-color: hsl(var(--border));
+  }
+
+  .landing-touch-target {
+    @apply inline-flex min-h-11 min-w-[44px] items-center justify-center;
+  }
+
   /* Premium card with subtle depth */
   .card-premium {
-    @apply bg-card border border-border/60 rounded-xl shadow-sm hover:shadow-md transition-all duration-200;
+    @apply bg-card border rounded-xl shadow-sm hover:shadow-md transition-all duration-200;
+    border-color: hsl(var(--border) / 0.6);
   }
 
   /* Gradient text — Navy → Teal brand */
@@ -159,7 +212,8 @@
 
   /* Glass morphism */
   .glass {
-    @apply bg-background/80 backdrop-blur-xl border border-border/50;
+    @apply bg-background/80 backdrop-blur-xl border;
+    border-color: hsl(var(--border) / 0.5);
   }
 
   /* Premium button base */
