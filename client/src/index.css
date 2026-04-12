@@ -1,126 +1,166 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Grouperry design system (global)
+ * Primary = Navy #001F3F · Accent = Teal #008080 · Poppins 400–700 · Cards 0.75rem radius
+ * Dark: deep navy field; teal stays vivid for progress, rings, and accents.
+ */
+
 :root {
   --font-body: 'Poppins', sans-serif;
   --font-display: 'Poppins', sans-serif;
 
-  /* Grouperry brand palette — Navy + Teal */
-  --background: 0 0% 100%;
-  --foreground: 210 100% 12%;          /* Deep Navy #001F3F */
+  /*
+   * Grouperry design system — Navy (#001F3F) primary, Teal (#008080) accent
+   * (HSL channels for Tailwind hsl(var(--token) / <alpha>))
+   */
+  --background: 248 18% 98%; /* ~ oklch(0.98 0.005 250) warm white */
+  --foreground: 250 35% 12%; /* ~ oklch(0.15 0.03 250) body / headings */
 
-  /* Primary: Bright Teal — CTAs, links, interactive */
-  --primary: 180 100% 25%;             /* #008080 */
+  /* Primary: Navy — brand, main buttons, nav emphasis */
+  --primary: 210 100% 12%; /* #001F3F */
   --primary-foreground: 0 0% 100%;
-  --primary-border: hsl(180 100% 20%);
+  --primary-border: hsl(210 100% 9%);
 
-  /* Secondary: Very light blue-gray — subtle bg */
-  --secondary: 210 30% 96%;
+  /* Secondary: light blue-gray surfaces */
+  --secondary: 248 20% 96%;
   --secondary-foreground: 210 100% 12%;
-  --secondary-border: hsl(210 20% 88%);
+  --secondary-border: hsl(248 14% 88%);
 
-  /* Accent: Teal variant — icon highlights */
-  --accent: 180 55% 38%;               /* Visible teal for icon colours */
+  /* Accent: Teal — progress, focus ring, highlights, secondary CTAs */
+  --accent: 180 100% 25%; /* #008080 */
   --accent-foreground: 0 0% 100%;
-  --accent-border: hsl(180 55% 30%);
+  --accent-border: hsl(180 100% 20%);
 
-  /* Destructive */
-  --destructive: 4 86% 58%;
+  /* Destructive — ~ oklch(0.577 0.245 27.325) */
+  --destructive: 27 86% 56%;
   --destructive-foreground: 0 0% 100%;
-  --destructive-border: hsl(4 86% 50%);
+  --destructive-border: hsl(27 86% 46%);
 
-  --muted: 210 20% 96%;
-  --muted-foreground: 210 15% 48%;
-  --muted-border: hsl(210 14% 88%);
+  --muted: 248 16% 94%;
+  --muted-foreground: 250 12% 45%; /* ~ oklch(0.5 0.02 250) */
+  --muted-border: hsl(248 12% 88%);
 
-  --card: 0 0% 100%;
-  --card-foreground: 210 100% 12%;
-  --card-border: hsl(210 20% 91%);
+  --card: 0 0% 100%; /* oklch(1 0 0) */
+  --card-foreground: 250 35% 12%;
+  --card-border: hsl(248 14% 90%);
 
   --popover: 0 0% 100%;
-  --popover-foreground: 210 100% 12%;
-  --popover-border: hsl(210 20% 91%);
+  --popover-foreground: 250 35% 12%;
+  --popover-border: hsl(248 14% 90%);
 
-  --border: 210 20% 90%;
-  --input: 210 20% 90%;
-  --ring: 180 100% 25%;
+  --border: 248 14% 90%; /* subtle blue-gray */
+  --input: 248 14% 90%;
+  --ring: 180 100% 32%; /* teal focus ring */
 
-  /* Button outline border */
-  --button-outline: hsl(210 14% 84%);
+  --button-outline: hsl(248 12% 82%);
 
-  /* Sidebar tokens */
-  --sidebar: 210 30% 98%;
+  /* Sidebar */
+  --sidebar: 248 22% 97%;
   --sidebar-foreground: 210 100% 12%;
-  --sidebar-border: 210 20% 90%;
-  --sidebar-ring: 180 100% 25%;
-  --sidebar-primary: 180 100% 25%;
+  --sidebar-border: 248 14% 90%;
+  --sidebar-ring: 180 100% 32%;
+  --sidebar-primary: 210 100% 12%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-primary-border: hsl(180 100% 20%);
-  --sidebar-accent: 210 20% 94%;
+  --sidebar-primary-border: hsl(210 100% 9%);
+  --sidebar-accent: 248 18% 93%;
   --sidebar-accent-foreground: 210 100% 12%;
-  --sidebar-accent-border: hsl(210 14% 86%);
+  --sidebar-accent-border: hsl(248 12% 86%);
 
-  /* Chart colors */
-  --chart-1: 180 100% 25%;    /* Teal */
-  --chart-2: 210 100% 12%;    /* Navy */
-  --chart-3: 187 60% 55%;     /* Mid aqua */
-  --chart-4: 4 86% 58%;
-  --chart-5: 30 90% 55%;
+  /* Charts: teal first, navy second */
+  --chart-1: 180 100% 32%;
+  --chart-2: 210 100% 12%;
+  --chart-3: 187 55% 48%;
+  --chart-4: 27 86% 56%;
+  --chart-5: 38 92% 50%;
 
-  --radius: 0.625rem;
+  --radius: 0.75rem;
+  --badge-outline: hsl(248 12% 82%);
 }
 
 .dark {
-  --background: 210 40% 8%;
-  --foreground: 187 20% 92%;
+  /* ~ oklch(0.14 0.025 250) deep navy field */
+  --background: 248 32% 9%;
+  --foreground: 248 25% 94%;
 
-  --primary: 180 80% 38%;              /* Brighter teal for dark bg */
-  --primary-foreground: 0 0% 100%;
-  --primary-border: hsl(180 80% 30%);
+  /* Navy stays readable; slightly lifted for dark UI */
+  --primary: 210 85% 42%;
+  --primary-foreground: 248 25% 98%;
+  --primary-border: hsl(210 85% 34%);
 
-  --secondary: 210 25% 15%;
-  --secondary-foreground: 187 20% 90%;
-  --secondary-border: hsl(210 20% 22%);
+  --secondary: 248 22% 16%;
+  --secondary-foreground: 248 20% 92%;
+  --secondary-border: hsl(248 18% 24%);
 
-  --accent: 180 60% 45%;
-  --accent-foreground: 0 0% 100%;
-  --accent-border: hsl(180 60% 36%);
+  /* Teal stays bright for contrast */
+  --accent: 180 70% 42%;
+  --accent-foreground: 248 25% 98%;
+  --accent-border: hsl(180 70% 34%);
 
-  --destructive: 4 74% 52%;
+  --destructive: 22 78% 52%;
   --destructive-foreground: 0 0% 100%;
-  --destructive-border: hsl(4 74% 44%);
+  --destructive-border: hsl(22 78% 42%);
 
-  --muted: 210 25% 14%;
-  --muted-foreground: 210 15% 55%;
-  --muted-border: hsl(210 20% 22%);
+  --muted: 248 22% 14%;
+  --muted-foreground: 248 12% 58%;
+  --muted-border: hsl(248 18% 22%);
 
-  --card: 210 35% 10%;
-  --card-foreground: 187 20% 92%;
-  --card-border: hsl(210 25% 18%);
+  /* ~ oklch(0.18 0.025 250) cards */
+  --card: 248 28% 12%;
+  --card-foreground: 248 25% 94%;
+  --card-border: hsl(248 22% 20%);
 
-  --popover: 210 35% 10%;
-  --popover-foreground: 187 20% 92%;
-  --popover-border: hsl(210 25% 18%);
+  --popover: 248 28% 12%;
+  --popover-foreground: 248 25% 94%;
+  --popover-border: hsl(248 22% 20%);
 
-  --border: 210 25% 18%;
-  --input: 210 25% 18%;
-  --ring: 180 80% 38%;
+  --border: 248 22% 20%;
+  --input: 248 22% 20%;
+  --ring: 180 75% 45%;
 
-  --button-outline: hsl(210 20% 24%);
+  --button-outline: hsl(248 16% 28%);
 
-  --sidebar: 210 35% 8%;
-  --sidebar-foreground: 187 20% 90%;
-  --sidebar-border: 210 25% 18%;
-  --sidebar-ring: 180 80% 38%;
-  --sidebar-primary: 180 80% 38%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-primary-border: hsl(180 80% 30%);
-  --sidebar-accent: 210 25% 13%;
-  --sidebar-accent-foreground: 187 20% 88%;
-  --sidebar-accent-border: hsl(210 20% 20%);
+  --sidebar: 248 30% 8%;
+  --sidebar-foreground: 248 22% 90%;
+  --sidebar-border: 248 22% 18%;
+  --sidebar-ring: 180 75% 45%;
+  --sidebar-primary: 210 85% 48%;
+  --sidebar-primary-foreground: 248 25% 98%;
+  --sidebar-primary-border: hsl(210 85% 38%);
+  --sidebar-accent: 248 22% 14%;
+  --sidebar-accent-foreground: 248 20% 90%;
+  --sidebar-accent-border: hsl(248 18% 22%);
+
+  --badge-outline: hsl(248 16% 28%);
+}
+
+/* Landing v2 — warm cream background, same Navy + Teal brand as app */
+.theme-v2 {
+  --background: 48 38% 97%;
+  --foreground: 250 35% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 250 35% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 250 35% 14%;
+  --primary: 210 100% 12%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 248 22% 94%;
+  --secondary-foreground: 210 100% 12%;
+  --muted: 45 28% 94%;
+  --muted-foreground: 250 12% 42%;
+  --accent: 180 100% 25%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 27 86% 56%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 40 20% 88%;
+  --input: 40 20% 88%;
+  --ring: 180 100% 32%;
+  --radius: 0.75rem;
+  --badge-outline: hsl(40 18% 82%);
 }
 
 @layer base {
@@ -128,8 +168,10 @@
     border-color: hsl(var(--border));
   }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-foreground;
+    @apply bg-background text-foreground antialiased selection:bg-accent/25 selection:text-foreground;
     font-family: var(--font-body);
+    font-weight: 400;
+    line-height: 1.5;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -138,6 +180,7 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     @apply font-semibold tracking-tight;
+    line-height: 1.35;
   }
 
   /* Smooth scroll */
@@ -199,10 +242,30 @@
     @apply inline-flex min-h-11 min-w-[44px] items-center justify-center;
   }
 
-  /* Premium card with subtle depth */
+  /* Premium card — design system: 0.75rem radius, hover lift */
   .card-premium {
-    @apply bg-card border rounded-xl shadow-sm hover:shadow-md transition-all duration-200;
-    border-color: hsl(var(--border) / 0.6);
+    @apply bg-card border rounded-xl shadow-sm hover:shadow-md transition-[transform,box-shadow] duration-200 ease-out;
+    border-color: hsl(var(--border) / 0.65);
+  }
+  .card-premium:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Semantic status badges (listing / dashboard) */
+  .badge-status-active {
+    @apply border-transparent bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300;
+  }
+  .badge-status-expired {
+    @apply border-transparent bg-destructive/15 text-destructive dark:bg-destructive/25 dark:text-red-200;
+  }
+  .badge-status-completed {
+    @apply border-transparent bg-muted text-muted-foreground;
+  }
+  .badge-role-organiser {
+    @apply border-transparent bg-primary/12 text-primary dark:bg-primary/20 dark:text-primary;
+  }
+  .badge-next-action {
+    @apply border-transparent bg-accent/20 text-accent-foreground dark:bg-accent/30;
   }
 
   /* Gradient text — Navy → Teal brand */

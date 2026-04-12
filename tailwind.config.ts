@@ -6,9 +6,9 @@ export default {
   theme: {
     extend: {
       borderRadius: {
-        lg: ".5625rem", /* 9px */
-        md: ".375rem", /* 6px */
-        sm: ".1875rem", /* 3px */
+        lg: "var(--radius)", /* 0.75rem — design system cards */
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       colors: {
         // Flat / base colors (regular buttons)
@@ -98,10 +98,15 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "gradient-shift": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        gradient: "gradient-shift 3s ease infinite",
       },
     },
   },

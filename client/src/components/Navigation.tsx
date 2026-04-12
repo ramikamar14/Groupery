@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, PlusSquare, Users, User, LogOut, Bell, Bookmark, ShieldAlert, Clock, CheckCircle, ChevronRight } from "lucide-react";
+import { Home, LayoutDashboard, PlusSquare, Users, User, LogOut, Bell, Bookmark, ShieldAlert, Clock, CheckCircle, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -23,6 +23,7 @@ export function BottomNav() {
 
   const navItems = [
     { href: "/", icon: Home, label: t("nav.explore") },
+    { href: "/dashboard", icon: LayoutDashboard, label: t("nav.dashboard") },
     { href: "/my-groups", icon: Users, label: t("nav.myGroups") },
     { href: "/create", icon: PlusSquare, label: t("nav.create") },
     { href: "/saved", icon: Bookmark, label: t("nav.saved") },
@@ -85,6 +86,7 @@ export function Sidebar() {
 
   const navItems = [
     { href: "/", icon: Home, label: t("nav.explore") },
+    { href: "/dashboard", icon: LayoutDashboard, label: t("nav.dashboard") },
     { href: "/my-groups", icon: Users, label: t("nav.myGroups") },
     { href: "/create", icon: PlusSquare, label: t("nav.create") },
     { href: "/saved", icon: Bookmark, label: t("nav.saved") },

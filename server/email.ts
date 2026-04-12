@@ -34,9 +34,7 @@ async function sendViaResend(to: string, subject: string, html: string): Promise
 function buildEmailTemplate(emailType: string, payload: any): { subject: string; html: string } | null {
   const listingTitle = payload?.listingTitle || "your group deal";
   const listingId = payload?.listingId;
-  const baseUrl = process.env.REPLIT_DOMAINS?.split(",")[0]
-    ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}`
-    : "https://grouperry.replit.app";
+  const baseUrl = process.env.APP_ORIGIN ?? "https://grouperry.com";
   const listingUrl = listingId ? `${baseUrl}/listings/${listingId}` : baseUrl;
 
   const wrapHtml = (title: string, body: string) => `

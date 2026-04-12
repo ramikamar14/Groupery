@@ -17,6 +17,16 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-destructive-foreground shadow-xs",
 
         outline: " border [border-color:var(--badge-outline)] shadow-xs",
+
+        /* Design system semantic variants */
+        success:
+          "border-transparent bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/18 dark:text-emerald-300",
+        warning:
+          "border-transparent bg-amber-500/15 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200",
+        organiser:
+          "border-transparent bg-primary/12 text-primary dark:bg-primary/20",
+        nextAction:
+          "border-transparent bg-accent/15 text-foreground dark:bg-accent/22 dark:text-foreground",
       },
     },
     defaultVariants: {

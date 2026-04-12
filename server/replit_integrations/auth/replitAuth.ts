@@ -2,6 +2,7 @@ import passport from "passport";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
+import { authStorage } from "./storage";
 
 export function getSession() {
   if (!process.env.SESSION_SECRET) {
@@ -42,8 +43,24 @@ export async function setupAuth(app: Express): Promise<void> {
   app.use(getSession());
   app.use(passport.initialize());
   app.use(passport.session());
-  passport.serializeUser((user: any, cb) => cb(null, user));
-  passport.deserializeUser((user: any, cb) => cb(null, user));
+
+  // Store only the user's sub/id in the session — never the full object.
+  // This prevents session bloat and ensures roles/fields are always fresh from DB.
+  passport.serializeUser((user: any, cb) => {
+    const id = user?.claims?.sub ?? user?.id ?? user;
+    cb(null, id);
+  });
+
+  passport.deserializeUser(async (id: string, cb) => {
+    try {
+      const user = await authStorage.getUser(id);
+      if (!user) return cb(null, false);
+      // Re-hydrate into the shape routes expect: { claims: { sub } }
+      cb(null, { claims: { sub: user.id }, ...user });
+    } catch (err) {
+      cb(err);
+    }
+  });
 }
 
 export const isAuthenticated: RequestHandler = (req, res, next) => {

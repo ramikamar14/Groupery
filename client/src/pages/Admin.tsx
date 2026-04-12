@@ -11,10 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, CheckCircle, XCircle, Users, FileText, AlertTriangle, BarChart3, Activity, Database, Clock, Mail, Server, ShieldAlert, Ban, ScrollText, ChevronLeft, ChevronRight, ToggleLeft, History, Brain, ShoppingBag, UserCog, Search, Crown, Shield, ShieldOff, Trash2, RotateCcw, Eye, Settings, Palette, Sliders } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Users, AlertTriangle, Activity, Database, Clock, Mail, Server, ShieldAlert, Ban, ScrollText, ChevronLeft, ChevronRight, ToggleLeft, History, Brain, ShoppingBag, UserCog, Search, Crown, Shield, ShieldOff, Trash2, RotateCcw, Eye, Settings, Palette, Sliders, CheckSquare, Flag, Cpu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 export default function Admin() {
   const { t } = useTranslation();
@@ -335,6 +336,8 @@ export default function Admin() {
     enabled: !!activityUserId,
   });
 
+  const headerHealthy = !loadingHealth && healthData?.status === "healthy";
+
   if (!user?.isAdmin) {
     return (
       <Layout>
@@ -350,91 +353,198 @@ export default function Admin() {
   }
 
   return (
-    <Layout>
+    <Layout mainClassName="max-w-[1400px]">
       <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-display font-bold">{t("admin.title")}</h1>
-          <p className="text-muted-foreground">{t("admin.subtitle")}</p>
+        <div className="rounded-xl border border-border bg-card px-4 py-4 sm:px-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0" aria-hidden>
+              <span className="text-primary-foreground font-bold text-sm">G</span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <span className="font-semibold text-foreground text-lg truncate">{t("landing.brandName")}</span>
+              <span className="text-muted-foreground text-sm shrink-0">{t("admin.adminToolbarContext")}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span
+              className={cn(
+                "w-2 h-2 rounded-full shrink-0",
+                loadingHealth ? "bg-slate-400 animate-pulse" : headerHealthy ? "bg-emerald-500" : "bg-amber-500"
+              )}
+              aria-hidden
+            />
+            {loadingHealth ? t("admin.systemChecking") : headerHealthy ? t("admin.systemOperational") : t("admin.systemDegraded")}
+          </div>
         </div>
 
-        {/* Stats Cards */}
+        <div>
+          <h1 className="text-3xl font-bold font-display text-foreground text-balance">{t("admin.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("admin.subtitle")}</p>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{t("admin.totalUsers")}</CardTitle>
-              <Users className="w-4 h-4 text-muted-foreground" />
+          <Card className="border-border transition-shadow hover:shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t("admin.totalUsers")}</CardTitle>
+              <Users className="w-5 h-5 text-accent" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats?.totalUsers || 0}</div>
+              <div className="text-3xl font-bold tabular-nums text-foreground">
+                {(stats?.totalUsers ?? 0).toLocaleString()}
+              </div>
             </CardContent>
           </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{t("admin.activeListings")}</CardTitle>
-              <FileText className="w-4 h-4 text-muted-foreground" />
+
+          <Card className="border-border transition-shadow hover:shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t("admin.activeListings")}</CardTitle>
+              <ShoppingBag className="w-5 h-5 text-accent" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats?.activeListings || 0}</div>
+              <div className="text-3xl font-bold tabular-nums text-foreground">{stats?.activeListings ?? 0}</div>
             </CardContent>
           </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{t("admin.pendingVerifications")}</CardTitle>
-              <AlertTriangle className="w-4 h-4 text-muted-foreground" />
+
+          <Card
+            className={cn(
+              "transition-shadow hover:shadow-md",
+              pendingUsers.length > 0 ? "border-amber-200 dark:border-amber-900/50" : "border-border"
+            )}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t("admin.pendingVerifications")}</CardTitle>
+              <AlertTriangle
+                className={cn("w-5 h-5", pendingUsers.length > 0 ? "text-amber-500" : "text-accent")}
+              />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{pendingUsers.length}</div>
+              <div
+                className={cn(
+                  "text-3xl font-bold tabular-nums",
+                  pendingUsers.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-foreground"
+                )}
+              >
+                {pendingUsers.length}
+              </div>
             </CardContent>
           </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{t("admin.openReports")}</CardTitle>
-              <BarChart3 className="w-4 h-4 text-muted-foreground" />
+
+          <Card
+            className={cn(
+              "transition-shadow hover:shadow-md",
+              reports.length > 0 ? "border-red-200 dark:border-red-900/50" : "border-border"
+            )}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t("admin.openReports")}</CardTitle>
+              <Flag className={cn("w-5 h-5", reports.length > 0 ? "text-destructive" : "text-accent")} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{reports.length}</div>
+              <div
+                className={cn(
+                  "text-3xl font-bold tabular-nums",
+                  reports.length > 0 ? "text-destructive" : "text-foreground"
+                )}
+              >
+                {reports.length}
+              </div>
             </CardContent>
           </Card>
         </div>
 
         <Tabs defaultValue="verifications">
-          <TabsList>
-            <TabsTrigger value="verifications" data-testid="tab-verifications">
-              {t("admin.verifications")} ({pendingUsers.length})
+          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-muted/50 p-1 border-0">
+            <TabsTrigger
+              value="verifications"
+              data-testid="tab-verifications"
+              className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent"
+            >
+              <CheckSquare className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.verifications")}</span>
+              <span
+                className={cn(
+                  "ml-0.5 text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums",
+                  pendingUsers.length > 0
+                    ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {pendingUsers.length}
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="reports" data-testid="tab-reports">
-              {t("admin.reports")} ({reports.length})
+            <TabsTrigger
+              value="reports"
+              data-testid="tab-reports"
+              className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent"
+            >
+              <Flag className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.reports")}</span>
+              <span
+                className={cn(
+                  "ml-0.5 text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums",
+                  reports.length > 0
+                    ? "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {reports.length}
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="suspicious" data-testid="tab-suspicious">
-              {t("admin.flagged")} ({suspiciousFlags.length})
+            <TabsTrigger
+              value="suspicious"
+              data-testid="tab-suspicious"
+              className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent"
+            >
+              <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.flagged")}</span>
+              <span
+                className={cn(
+                  "ml-0.5 text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums",
+                  suspiciousFlags.length > 0
+                    ? "bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {suspiciousFlags.length}
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="health" data-testid="tab-health">
-              {t("admin.health")}
+            <TabsTrigger value="health" data-testid="tab-health" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
+              <Activity className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.health")}</span>
             </TabsTrigger>
-            <TabsTrigger value="system-events" data-testid="tab-system-events">
-              {t("admin.events")}
+            <TabsTrigger value="system-events" data-testid="tab-system-events" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
+              <Cpu className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.events")}</span>
             </TabsTrigger>
-            <TabsTrigger value="feature-flags" data-testid="tab-feature-flags">
-              {t("admin.featureFlags")}
+            <TabsTrigger value="feature-flags" data-testid="tab-feature-flags" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
+              <ToggleLeft className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.featureFlags")}</span>
             </TabsTrigger>
-            <TabsTrigger value="edit-history" data-testid="tab-edit-history">
-              {t("admin.editHistory")}
+            <TabsTrigger value="edit-history" data-testid="tab-edit-history" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
+              <History className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.editHistory")}</span>
             </TabsTrigger>
-            <TabsTrigger value="users" data-testid="tab-users">
-              {t("admin.usersTab")} ({allUsers.length})
+            <TabsTrigger value="users" data-testid="tab-users" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
+              <Users className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.usersTab")}</span>
+              <span className="ml-0.5 bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">
+                {allUsers.length}
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="orders" data-testid="tab-orders">
-              {t("admin.ordersTab")} ({orders.length})
+            <TabsTrigger value="orders" data-testid="tab-orders" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
+              <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.ordersTab")}</span>
+              <span className="ml-0.5 bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">
+                {orders.length}
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" data-testid="tab-analytics">
-              {t("admin.aiAnalytics")}
+            <TabsTrigger value="analytics" data-testid="tab-analytics" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
+              <Brain className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.aiAnalytics")}</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" data-testid="tab-settings">
-              <Settings className="w-4 h-4 mr-1" />
-              {t("admin.settingsTab")}
+            <TabsTrigger value="settings" data-testid="tab-settings" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
+              <Settings className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.settingsTab")}</span>
             </TabsTrigger>
           </TabsList>
           

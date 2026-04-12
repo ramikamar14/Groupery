@@ -11,7 +11,7 @@ import { requireAuth, preloadListing, requireListingOwner, requireParticipantOrO
 import { toPublicListing, toParticipantListing, toPublicUser, toPublicParticipation, toPublicMessage } from "./dto";
 import { cache } from "./cache";
 import { pool, db } from "./db";
-import { listings as listingsTable, listingImages as listingImagesTable, listingTags as listingTagsTable } from "@shared/schema";
+import { listings as listingsTable, listingImages as listingImagesTable, listingTags as listingTagsTable, emailQueue } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { callAI } from "./ai";
 import { logger } from "./logger";
@@ -25,6 +25,7 @@ const publicLimiter = rateLimit({ windowMs: 60_000, max: 120, standardHeaders: t
 const authLimiter = rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false, message: { message: "Too many requests, please slow down." } });
 const aiLimiter = rateLimit({ windowMs: 60_000, max: 20, standardHeaders: true, legacyHeaders: false, message: { message: "AI rate limit reached. Try again in a minute." } });
 const joinLimiter = rateLimit({ windowMs: 60_000, max: 10, standardHeaders: true, legacyHeaders: false, message: { message: "Too many join attempts. Please wait a minute." } });
+const contactLimiter = rateLimit({ windowMs: 15 * 60_000, max: 5, standardHeaders: true, legacyHeaders: false, message: { message: "Too many contact requests. Please wait 15 minutes." } });
 
 const serverStartTime = Date.now();
 const otpLimiter = rateLimit({ windowMs: 5 * 60_000, max: 3, standardHeaders: true, legacyHeaders: false, message: { message: "Too many OTP requests. Wait 5 minutes." } });
@@ -128,8 +129,10 @@ export async function registerRoutes(
       cache.invalidatePrefix("discover:");
     }
 
-    const [participants, messages, images, updates, viewCount, tags, joinedToday, viewsToday] = await Promise.all([
-      storage.getParticipationsByListing(id),
+    // Reuse participants already loaded by getListing() — avoids a duplicate DB round-trip.
+    const alreadyLoaded = Array.isArray((listing as any).participants) ? (listing as any).participants : null;
+
+    const [messages, images, updates, viewCount, tags, joinedToday, viewsToday, participants] = await Promise.all([
       storage.getMessages(id),
       storage.getListingImages(id),
       storage.getListingUpdates(id),
@@ -137,8 +140,9 @@ export async function registerRoutes(
       storage.getTagsForListing(id),
       storage.getJoinedTodayCount(id),
       storage.getViewsTodayCount(id),
+      alreadyLoaded ? Promise.resolve(alreadyLoaded) : storage.getParticipationsByListing(id),
     ]);
-    
+
     const result = toPublicListing({ ...listing, participants, messages, images, updates, viewCount, tags, joinedToday, viewsToday });
     cache.set(cacheKey, result, 15_000); // 15-second TTL — invalidated on join/leave/update
     res.json(result);
@@ -964,11 +968,24 @@ export async function registerRoutes(
   });
 
   // Vendor Details
+  const vendorDetailsSchema = z.object({
+    businessName:    z.string().min(1).max(200),
+    businessType:    z.string().min(1).max(100),
+    website:         z.string().url().max(500).optional(),
+    description:     z.string().max(2000).optional(),
+    contactEmail:    z.string().email().max(254).optional(),
+    contactPhone:    z.string().max(30).optional(),
+    country:         z.string().max(100).optional(),
+    city:            z.string().max(100).optional(),
+  });
+
   app.post("/api/user/vendor-details", requireAuth, async (req, res) => {
+    const parsed = vendorDetailsSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ code: "VALIDATION_ERROR", message: "Invalid vendor details", details: parsed.error.flatten() });
+    }
     const userId = (req.user as any).claims.sub;
-    const details = req.body;
-    
-    const vendorDetails = await authStorage.createVendorDetails({ ...details, userId });
+    const vendorDetails = await authStorage.createVendorDetails({ ...parsed.data, userId });
     res.status(201).json(vendorDetails);
   });
 
@@ -992,18 +1009,35 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
-  // Contact form endpoint
-  app.post("/api/contact", async (req, res) => {
-    const { name, email, subject, message } = req.body;
+  // ── Contact form ─────────────────────────────────────────────────────────
+  const contactSchema = z.object({
+    name:    z.string().min(1).max(100),
+    email:   z.string().email().max(254),
+    subject: z.string().min(1).max(200),
+    message: z.string().min(10).max(5000),
+  });
 
-    if (!name || !email || !subject || !message) {
-      return res.status(400).json({ error: "Missing required fields" });
+  app.post("/api/contact", contactLimiter, async (req, res) => {
+    const parsed = contactSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ code: "VALIDATION_ERROR", message: "Invalid contact form data", details: parsed.error.flatten() });
     }
+    const { name, email, subject, message } = parsed.data;
 
-    // In a real app, this would send an email or store in a database
-    // For now, we just log and return success
-    console.log(`[CONTACT] New message from ${name} (${email}): ${subject}`);
-    console.log(`Message: ${message}`);
+    try {
+      // Queue the contact email — never log the message body (PII)
+      const contactEmail = process.env.CONTACT_EMAIL ?? process.env.PRIMARY_ADMIN_EMAIL ?? "support@grouperry.com";
+      await db.insert(emailQueue).values({
+        toEmail: contactEmail,
+        emailType: "contact_form",
+        payload: JSON.stringify({ name, email, subject, message }),
+        status: "pending",
+      });
+      logger.info("contact_form_queued", { email: email.replace(/(?<=.{2}).(?=.*@)/g, "*") });
+    } catch (e: any) {
+      logger.error("contact_form_queue_error", e);
+      // Still return success to user — we don't expose internal errors
+    }
 
     res.json({ success: true, message: "Thank you for contacting us!" });
   });
@@ -1027,8 +1061,8 @@ export async function registerRoutes(
 
   // ── Primary Admin (Owner) ──────────────────────────────────────────────────
   const PRIMARY_ADMIN_EMAIL = process.env.PRIMARY_ADMIN_EMAIL;
-  if (!PRIMARY_ADMIN_EMAIL) {
-    throw new Error("PRIMARY_ADMIN_EMAIL environment variable is required");
+  if (!PRIMARY_ADMIN_EMAIL && process.env.NODE_ENV === "production") {
+    throw new Error("PRIMARY_ADMIN_EMAIL environment variable is required in production");
   }
 
   // Ensure primary admin has admin access on startup

@@ -1,8 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { env } from "./env";
+import { pool } from "./db";
 
 const app = express();
 const httpServer = createServer(app);
@@ -16,17 +19,27 @@ declare module "http" {
 // Trust the first proxy hop so req.ip is the real client IP — critical for rate limiting.
 app.set("trust proxy", 1);
 
-// Allow requests from Capacitor native apps (iOS: capacitor://localhost,
-// Android: http://localhost) and the production web origin.
+// ── Security headers ──────────────────────────────────────────────────────────
+// Helmet sets X-Content-Type-Options, X-Frame-Options, HSTS, etc.
+// Content-Security-Policy is relaxed so the SPA + Capacitor work correctly.
+app.use(
+  helmet({
+    contentSecurityPolicy: false,   // SPA with inline scripts; tighten once CSP is mapped
+    crossOriginEmbedderPolicy: false, // Required for Capacitor WebView
+  }),
+);
+
+// ── CORS ─────────────────────────────────────────────────────────────────────
 const CAPACITOR_ORIGINS = ["capacitor://localhost", "http://localhost", "ionic://localhost"];
-const ALLOWED_ORIGINS = [
-  ...CAPACITOR_ORIGINS,
-  process.env.APP_ORIGIN ?? "https://grouperry.com",
-];
+const ALLOWED_ORIGINS = [...CAPACITOR_ORIGINS, env.APP_ORIGIN];
+
+// Support comma-separated extra origins via EXTRA_ORIGINS env var (useful for staging/preview URLs)
+const extraOrigins = process.env.EXTRA_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) ?? [];
+ALLOWED_ORIGINS.push(...extraOrigins);
+
 app.use(
   cors({
     origin: (origin, cb) => {
-      // Allow same-origin browser requests (no Origin header) and known origins.
       if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
       cb(new Error(`CORS: origin ${origin} not allowed`));
     },
@@ -41,9 +54,9 @@ app.use(
     },
   }),
 );
-
 app.use(express.urlencoded({ extended: false }));
 
+// ── Request logging ───────────────────────────────────────────────────────────
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -51,75 +64,71 @@ export function log(message: string, source = "express") {
     second: "2-digit",
     hour12: true,
   });
-
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      // SECURITY: never log response bodies — they may contain PII, phone numbers,
-      // OTP codes, auth tokens, or moderation data. Log only routing metadata.
+      // SECURITY: never log response bodies — may contain PII / OTP / tokens.
       log(`${req.method} ${path} ${res.statusCode} in ${duration}ms`);
     }
   });
-
   next();
 });
 
+// ── Health check (before auth/routes so it's always reachable) ───────────────
+app.get("/health", async (_req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({ status: "ok", db: "ok", uptime: process.uptime() });
+  } catch {
+    res.status(503).json({ status: "error", db: "unreachable" });
+  }
+});
+
 (async () => {
-  // NOTE: /api/ai is registered in server/routes.ts with requireAuth + aiLimiter + Zod validation.
-  // Do NOT register any /api/* routes here — they bypass auth and rate limiting.
   await registerRoutes(httpServer, app);
 
+  // ── Global error handler ──────────────────────────────────────────────────
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    // In production never expose raw DB/internal error messages (column names, constraint
-    // violations, stack traces). Only pass through messages from known "safe" errors that
-    // set an explicit status code < 500.
     const safeMessage =
       status < 500
         ? err.message || "Request error"
-        : process.env.NODE_ENV === "production"
+        : env.NODE_ENV === "production"
           ? "Internal Server Error"
           : err.message || "Internal Server Error";
 
-    console.error("Internal Server Error:", err);
+    // Log with request id when available
+    console.error(`[error] ${status} ${safeMessage}`, err.stack ?? "");
 
-    if (res.headersSent) {
-      return next(err);
-    }
+    if (res.headersSent) return next(err);
 
-    return res.status(status).json({ message: safeMessage });
+    // Uniform error shape: { code, message }
+    const code =
+      status === 400 ? "BAD_REQUEST"
+      : status === 401 ? "UNAUTHORIZED"
+      : status === 403 ? "FORBIDDEN"
+      : status === 404 ? "NOT_FOUND"
+      : status === 429 ? "RATE_LIMITED"
+      : "INTERNAL_ERROR";
+
+    return res.status(status).json({ code, message: safeMessage });
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (process.env.NODE_ENV === "production") {
+  if (env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`serving on port ${port}`);
-    },
-  );
+  const port = parseInt(env.PORT, 10);
+  httpServer.listen({ port, host: "0.0.0.0", reusePort: true }, () => {
+    log(`serving on port ${port}`);
+  });
 })();

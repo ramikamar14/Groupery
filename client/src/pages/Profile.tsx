@@ -3,7 +3,7 @@ import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,13 +12,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
-import { Mail, Calendar, User as UserIcon, Store, CheckCircle, Clock, XCircle, Settings, FileText, Loader2, Edit, Camera, Shield, Star, Award, Trophy, TrendingUp, Upload, Image, Phone, MapPin, ShieldCheck, Gift, Copy, Users } from "lucide-react";
+import { Calendar, User as UserIcon, Store, CheckCircle, Clock, XCircle, Settings, Loader2, Edit, Camera, Shield, Star, Award, Trophy, TrendingUp, Upload, Image, MapPin, Gift, Copy, Users, Zap, Phone } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { Link } from "wouter";
 import type { Listing } from "@shared/schema";
 import { RankBadge, computeRank } from "@/components/RankBadge";
 import { CountrySelect } from "@/components/CountrySelect";
+import { ProfileContactInfo } from "@/components/profile/ProfileContactInfo";
+import { ProfileListingsSection } from "@/components/profile/ProfileListingsSection";
+import { ProfileReviewsSection } from "@/components/profile/ProfileReviewsSection";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -338,11 +341,13 @@ export default function Profile() {
           </div>
         )}
 
-        <Card className="border-border/50 shadow-sm overflow-hidden">
-          <div className="h-32 bg-gradient-to-r from-primary/20 to-accent/20" />
-          <div className="px-8 pb-8">
-            <div className="relative -mt-16 mb-6">
-              <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
+        <Card className="border-border/50 shadow-lg overflow-hidden">
+          <div className="h-36 bg-gradient-to-r from-primary/30 via-primary/10 to-accent/25 relative">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent" />
+          </div>
+          <div className="px-6 sm:px-8 pb-8">
+            <div className="relative -mt-16 mb-6 w-fit">
+              <Avatar className="w-28 h-28 sm:w-32 sm:h-32 border-4 border-card shadow-xl ring-2 ring-accent/30">
                 <AvatarImage src={user.profileImageUrl || undefined} />
                 <AvatarFallback className="text-4xl bg-muted text-muted-foreground">
                   {user.firstName?.[0]}{user.lastName?.[0]}
@@ -358,12 +363,12 @@ export default function Profile() {
               <Button 
                 size="icon" 
                 variant="secondary"
-                className="absolute bottom-0 right-0 rounded-full shadow-md"
+                className="absolute bottom-1 right-1 w-8 h-8 rounded-full shadow-md border border-border hover:bg-accent hover:text-accent-foreground transition-colors"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingPicture}
                 data-testid="button-change-picture"
               >
-                {uploadingPicture ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                {uploadingPicture ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
               </Button>
             </div>
 
@@ -416,9 +421,23 @@ export default function Profile() {
                     {t("profile.topOrganizer")}
                   </Badge>
                 )}
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground ml-auto" data-testid="text-reliability-score">
-                  <Shield className="w-4 h-4" />
-                  <span>{t("profile.reliability")} <strong className="text-foreground">{reliability.score}/100</strong></span>
+              </div>
+            )}
+
+            {reliability && (
+              <div className="mb-4" data-testid="text-reliability-score">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm font-medium flex items-center gap-1.5">
+                    <Zap className="w-4 h-4 text-accent" />
+                    {t("profile.reliabilityScoreTitle")}
+                  </span>
+                  <span className="text-sm font-bold text-accent">{reliability.score}/100</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-accent to-accent/70 rounded-full transition-all duration-700"
+                    style={{ width: `${Math.min(100, Math.max(0, reliability.score))}%` }}
+                  />
                 </div>
               </div>
             )}
@@ -484,45 +503,18 @@ export default function Profile() {
             )}
 
             <div className="grid gap-4">
-              <div className="flex items-center text-sm p-3 bg-secondary/50 rounded-xl">
-                <Mail className="w-4 h-4 mr-3 text-muted-foreground" />
-                <span>{user.email}</span>
-              </div>
-
-              {(user as any).phone && (
-                <div className="flex items-center justify-between text-sm p-3 bg-secondary/50 rounded-xl">
-                  <div className="flex items-center">
-                    <Phone className="w-4 h-4 mr-3 text-muted-foreground" />
-                    <span>{(user as any).phone}</span>
-                  </div>
-                  {(user as any).phoneVerified ? (
-                    <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/50 text-xs">
-                      <ShieldCheck className="w-3 h-3 mr-1" />{t("profile.verified")}
-                    </Badge>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-amber-600 hover:text-amber-700 text-xs h-7"
-                      onClick={() => { setEditPhone((user as any).phone || ""); setIsPhoneDialogOpen(true); }}
-                      data-testid="button-verify-phone"
-                    >
-                      {t("profile.verifyPhoneBtn")}
-                    </Button>
-                  )}
-                </div>
-              )}
-
-              {!(user as any).phone && (
-                <button
-                  className="flex items-center text-sm p-3 bg-secondary/50 rounded-xl hover:bg-secondary/80 transition-colors text-muted-foreground"
-                  onClick={() => setIsPhoneDialogOpen(true)}
-                  data-testid="button-add-phone"
-                >
-                  <Phone className="w-4 h-4 mr-3" />
-                  <span>{t("profile.addPhone")}</span>
-                </button>
-              )}
+              <ProfileContactInfo
+                email={user.email || ""}
+                phone={(user as any).phone}
+                phoneVerified={!!(user as any).phoneVerified}
+                country={user.country || ""}
+                languageCode={user.language || "en"}
+                onVerifyPhone={() => {
+                  setEditPhone((user as any).phone || "");
+                  setIsPhoneDialogOpen(true);
+                }}
+                onAddPhone={() => setIsPhoneDialogOpen(true)}
+              />
 
               {(user as any).city && (
                 <div className="flex items-center text-sm p-3 bg-secondary/50 rounded-xl">
@@ -653,121 +645,12 @@ export default function Profile() {
           </div>
         </Card>
 
-        <Card className="border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              {t("profile.myListings")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingListings ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : myListings.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>{t("profile.noListings")}</p>
-                <Link href="/create">
-                  <Button variant="ghost" className="mt-2" data-testid="link-create-listing">
-                    {t("profile.createFirstListing")}
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {myListings.map((listing) => (
-                  <Link key={listing.id} href={`/listings/${listing.id}`}>
-                    <div className="flex items-center justify-between p-3 rounded-xl hover-elevate cursor-pointer border border-border/50">
-                      <div className="flex items-center gap-3">
-                        {listing.imageUrl && (
-                          <img 
-                            src={listing.imageUrl} 
-                            alt={listing.title}
-                            className="w-12 h-12 rounded-lg object-cover"
-                          />
-                        )}
-                        <div>
-                          <h3 className="font-medium">{listing.title}</h3>
-                          <p className="text-xs text-muted-foreground">
-                            {t("profile.slotsFilled", { filled: listing.filledSlots, total: listing.totalSlots })}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge variant={listing.status === "active" ? "default" : "secondary"} className="capitalize">
-                        {listing.status}
-                      </Badge>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        <Card className="border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Star className="w-5 h-5" />
-              {t("profile.reviewsReceived")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingReviews ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : reviews.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>{t("profile.noReviews")}</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {reviews.map((review: any) => (
-                  <div key={review.id} className="p-4 rounded-xl border border-border/50" data-testid={`review-item-${review.id}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={review.reviewer?.profileImageUrl || undefined} />
-                          <AvatarFallback className="text-xs">
-                            {review.reviewer?.firstName?.[0] || "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium text-sm">
-                          {review.reviewer?.firstName} {review.reviewer?.lastName}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-0.5">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3 h-3 ${
-                              i < review.rating
-                                ? "fill-amber-400 text-amber-400"
-                                : "text-muted-foreground/30"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    {review.comment && (
-                      <p className="text-sm text-muted-foreground mb-2">{review.comment}</p>
-                    )}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      {review.listing && (
-                        <Link href={`/listings/${review.listing.id}`}>
-                          <span className="hover:underline">{review.listing.title}</span>
-                        </Link>
-                      )}
-                      {review.createdAt && (
-                        <span>{format(new Date(review.createdAt), "MMM d, yyyy")}</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <ProfileListingsSection listings={myListings} loading={loadingListings} />
+        <ProfileReviewsSection
+          reviews={reviews}
+          loading={loadingReviews}
+          avgRating={(user as any).rating ?? 0}
+        />
       </div>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

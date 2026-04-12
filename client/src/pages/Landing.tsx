@@ -1,14 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  LandingHeader,
-  LandingHero,
-  LandingStats,
-  LandingHowItWorks,
-  LandingCategories,
-  LandingTrust,
-  LandingCTA,
-  LandingFooter,
-} from "@/components/landing";
+import { Header, Hero, Stats, HowItWorks, Categories, Trust, CTA, Footer } from "@/components/landing-v2";
 
 export default function Landing() {
   const { data: platformStats } = useQuery<{ activeListings: number; totalMembers: number }>({
@@ -17,15 +8,17 @@ export default function Landing() {
   });
 
   return (
-    <div className="min-h-screen bg-background flex flex-col" data-testid="landing-page">
-      <LandingHeader />
-      <LandingHero totalMembers={platformStats?.totalMembers} activeListings={platformStats?.activeListings} />
-      <LandingStats activeListings={platformStats?.activeListings} totalMembers={platformStats?.totalMembers} />
-      <LandingHowItWorks />
-      <LandingCategories />
-      <LandingTrust activeListings={platformStats?.activeListings} totalMembers={platformStats?.totalMembers} />
-      <LandingCTA />
-      <LandingFooter />
+    <div className="theme-v2 min-h-screen bg-background text-foreground flex flex-col" data-testid="landing-page">
+      <Header />
+      <main className="flex-1">
+        <Hero />
+        <Stats activeListings={platformStats?.activeListings} totalMembers={platformStats?.totalMembers} />
+        <HowItWorks />
+        <Categories />
+        <Trust />
+        <CTA />
+      </main>
+      <Footer />
     </div>
   );
 }

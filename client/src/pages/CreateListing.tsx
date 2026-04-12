@@ -11,27 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MapPin, Upload, X, Plus, Tag, Sparkles, DollarSign, FileText, Globe, Image as ImageIcon, Truck, Package, Monitor, CheckCheck, Zap, ShoppingCart, Dumbbell, BookOpen, Cpu, ShieldAlert } from "lucide-react";
+import { Loader2, MapPin, Upload, X, Plus, Tag, Sparkles, DollarSign, FileText, Globe, Image as ImageIcon, Truck, Monitor, CheckCheck, Zap, ShoppingCart, Dumbbell, BookOpen, Cpu, ShieldAlert, TrendingDown } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
-
-function SectionDivider({ step, icon: Icon, title, desc }: { step: number; icon: any; title: string; desc?: string }) {
-  return (
-    <div className="flex items-start gap-3 pt-2 pb-1 border-t border-border/60 mt-2">
-      <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">
-        {step}
-      </div>
-      <div>
-        <div className="flex items-center gap-1.5">
-          <Icon className="w-4 h-4 text-primary" />
-          <span className="font-semibold text-sm">{title}</span>
-        </div>
-        {desc && <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>}
-      </div>
-    </div>
-  );
-}
+import { CreateSectionDivider } from "@/components/create-listing/CreateSectionDivider";
+import { CreateListingPageHeader } from "@/components/create-listing/CreateListingPageHeader";
+import { CreateListingDistributionSelector } from "@/components/create-listing/CreateListingDistributionSelector";
 
 const COUNTRIES = [
   { value: "US", label: "United States" },
@@ -454,17 +440,13 @@ export default function CreateListing() {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-3xl font-bold font-display">{t("create.title")}</h1>
-            {draftSaved && (
-              <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1 animate-in fade-in duration-300" data-testid="text-draft-saved">
-                <CheckCheck className="w-3.5 h-3.5" /> Draft saved
-              </span>
-            )}
-          </div>
-          <p className="text-muted-foreground">{t("create.subtitle")}</p>
-        </div>
+        <CreateListingPageHeader
+          brandLabel={t("landing.brandName")}
+          title={t("create.title")}
+          subtitle={t("create.subtitle")}
+          draftSaved={draftSaved}
+          draftLabel={t("create.draftSaved")}
+        />
 
         {needsVerification && (
           <div
@@ -534,7 +516,7 @@ export default function CreateListing() {
                 )}
               </div>
 
-              <SectionDivider step={1} icon={FileText} title={t("create.sectionAbout")} desc={t("create.sectionAboutDesc")} />
+              <CreateSectionDivider step={1} icon={FileText} title={t("create.sectionAbout")} description={t("create.sectionAboutDesc")} />
 
               <FormField
                 control={form.control}
@@ -667,7 +649,7 @@ export default function CreateListing() {
                 )}
               />
 
-              <SectionDivider step={2} icon={Tag} title={t("create.sectionDetails")} desc={t("create.sectionDetailsDesc")} />
+              <CreateSectionDivider step={2} icon={Tag} title={t("create.sectionDetails")} description={t("create.sectionDetailsDesc")} />
 
               <div className="space-y-3">
                 <FormLabel className="flex items-center gap-1">
@@ -719,7 +701,7 @@ export default function CreateListing() {
                 )}
               </div>
 
-              <SectionDivider step={3} icon={Globe} title={t("create.sectionLocation")} desc={t("create.sectionLocationDesc")} />
+              <CreateSectionDivider step={3} icon={Globe} title={t("create.sectionLocation")} description={t("create.sectionLocationDesc")} />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
@@ -809,11 +791,29 @@ export default function CreateListing() {
                     </div>
                   </div>
                 </div>
-                {pricePerSlotDollars && marketPriceDollars && parseFloat(pricePerSlotDollars) > 0 && parseFloat(marketPriceDollars) > parseFloat(pricePerSlotDollars) && (
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                    Members save {Math.round((1 - parseFloat(pricePerSlotDollars) / parseFloat(marketPriceDollars)) * 100)}% vs. retail
-                  </p>
-                )}
+                {pricePerSlotDollars &&
+                  marketPriceDollars &&
+                  parseFloat(pricePerSlotDollars) > 0 &&
+                  parseFloat(marketPriceDollars) > 0 &&
+                  (() => {
+                    const pct = Math.round((1 - parseFloat(pricePerSlotDollars) / parseFloat(marketPriceDollars)) * 100);
+                    if (pct > 0) {
+                      return (
+                        <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                          <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                            {t("create.pricingSavings", { pct })}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+                        <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                        <p className="text-sm font-medium text-amber-700 dark:text-amber-300">{t("create.pricingWarning")}</p>
+                      </div>
+                    );
+                  })()}
               </div>
 
               {/* Distribution Method */}
@@ -822,25 +822,15 @@ export default function CreateListing() {
                   <Truck className="w-4 h-4" />
                   Distribution Method <span className="text-rose-500">*</span>
                 </FormLabel>
-                <div className="grid grid-cols-3 gap-3">
-                  {([
-                    { value: "pickup", label: "Pickup", icon: MapPin, desc: "Members pick up in person" },
-                    { value: "delivery", label: "Delivery", icon: Truck, desc: "Organiser ships to members" },
-                    { value: "digital", label: "Digital", icon: Monitor, desc: "Download or access code" },
-                  ] as const).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setDistributionType(opt.value)}
-                      className={`p-3 rounded-xl border-2 text-left transition-all ${distributionType === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
-                      data-testid={`button-distribution-${opt.value}`}
-                    >
-                      <opt.icon className={`w-4 h-4 mb-1.5 ${distributionType === opt.value ? "text-primary" : "text-muted-foreground"}`} />
-                      <div className={`text-sm font-semibold ${distributionType === opt.value ? "text-primary" : ""}`}>{opt.label}</div>
-                      <div className="text-[11px] text-muted-foreground leading-tight mt-0.5">{opt.desc}</div>
-                    </button>
-                  ))}
-                </div>
+                <CreateListingDistributionSelector
+                  value={distributionType}
+                  onChange={setDistributionType}
+                  labels={{
+                    pickup: { label: t("create.distPickup"), description: t("create.distPickupDesc") },
+                    delivery: { label: t("create.distDelivery"), description: t("create.distDeliveryDesc") },
+                    digital: { label: t("create.distDigital"), description: t("create.distDigitalDesc") },
+                  }}
+                />
                 <div className="space-y-1.5">
                   <label className="text-sm text-muted-foreground">
                     {distributionType === "pickup" ? "Pickup location and time (required)" : distributionType === "delivery" ? "Delivery notes (shipping method, timeline)" : "Access instructions (download link, code, etc.)"}
@@ -895,7 +885,12 @@ export default function CreateListing() {
                 <p className="text-xs text-muted-foreground" data-testid="text-gps-help">{t("create.gpsHelp")}</p>
               </div>
 
-              <SectionDivider step={4} icon={ImageIcon} title={t("create.sectionPhotos")} desc={t("create.sectionPhotosDesc", { max: MAX_IMAGES })} />
+              <CreateSectionDivider
+                step={4}
+                icon={ImageIcon}
+                title={t("create.sectionPhotos")}
+                description={t("create.sectionPhotosDesc", { max: MAX_IMAGES })}
+              />
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">

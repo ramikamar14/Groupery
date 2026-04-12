@@ -8,7 +8,7 @@ import type { InsertListing, Listing } from "@shared/schema";
 // but the prompt says to use routes manifest. 
 // Since routes manifest uses z.custom, we rely on the schema types.
 
-const PAGE_SIZE = 20;
+export const LISTINGS_PAGE_SIZE = 20;
 
 export function useListings(filters?: { 
   category?: "physical" | "digital" | "offer"; 
@@ -39,7 +39,7 @@ export function useListings(filters?: {
       if (filters?.fillingFast) url.searchParams.append("fillingFast", "true");
       if (filters?.tag) url.searchParams.append("tag", filters.tag);
       url.searchParams.append("page", String(page));
-      url.searchParams.append("limit", String(PAGE_SIZE));
+      url.searchParams.append("limit", String(LISTINGS_PAGE_SIZE));
       
       const res = await fetch(url.toString(), { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch listings");

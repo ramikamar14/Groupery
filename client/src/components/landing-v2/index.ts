@@ -1,0 +1,9 @@
+export { Logo } from "./logo";
+export { Header } from "./header";
+export { Hero } from "./hero";
+export { Stats } from "./stats";
+export { HowItWorks } from "./how-it-works";
+export { Categories } from "./categories";
+export { Trust } from "./trust";
+export { CTA } from "./cta";
+export { Footer } from "./footer";

@@ -4,12 +4,15 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Footer } from "./Footer";
 import { LogoIcon } from "./Logo";
 import { Link } from "wouter";
+import { cn } from "@/lib/utils";
 
 interface LayoutProps {
   children: ReactNode;
+  /** Override main inner max-width (default: max-w-5xl). Use e.g. max-w-[1400px] for admin. */
+  mainClassName?: string;
 }
 
-export function Layout({ children }: LayoutProps) {
+export function Layout({ children, mainClassName }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Sidebar />
@@ -30,7 +33,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Main content wrapper */}
       <div className="flex flex-col flex-1 md:pl-60 xl:pl-64 pt-14 md:pt-0">
         <main className="flex-1 pb-20 md:pb-0">
-          <div className="max-w-5xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+          <div className={cn("mx-auto px-4 py-6 sm:px-6 lg:px-8", mainClassName ?? "max-w-5xl")}>
             {children}
           </div>
         </main>
