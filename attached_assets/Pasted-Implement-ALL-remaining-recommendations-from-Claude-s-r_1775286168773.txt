@@ -1,0 +1,88 @@
+Implement ALL remaining recommendations from Claude’s review and extend the platform with advanced trust, ranking, and admin capabilities.
+	1.	Security & Stability:
+
+	•	Add rate limiting to all public API endpoints (use express-rate-limit)
+	•	Protect all admin routes with strict middleware (role-based access)
+	•	Add request validation (sanitize inputs)
+	•	Ensure no sensitive data is exposed in responses
+
+	2.	Performance:
+
+	•	Add caching layer for heavy endpoints (start with in-memory or Redis-ready structure)
+	•	Optimize listing queries and reuse batched fetching approach everywhere
+	•	Add pagination to all list endpoints (users, orders, listings)
+
+	3.	Data & UX Improvements:
+
+	•	Implement expired listings history page
+	•	Ensure home page always shows active listings (seed demo data if needed)
+	•	Improve empty states with helpful UI
+
+	4.	User Ranking System:
+
+	•	Add user ranking score based on:
+	•	successful transactions
+	•	participation rate
+	•	reviews rating
+	•	account age
+	•	Display rank badge on user profile and listings
+	•	Categories:
+	•	New
+	•	Trusted
+	•	Top Seller
+	•	Verified
+
+	5.	Reviews System (Buyer & Seller):
+
+	•	Allow users to review each other after a completed transaction
+	•	Store:
+	•	rating (1–5)
+	•	comment
+	•	Show:
+	•	average rating
+	•	number of reviews
+	•	Prevent duplicate reviews per transaction
+
+	6.	Admin CRM Enhancements:
+
+	•	Add full CRM tools:
+	•	user activity history
+	•	flags / reports
+	•	user status (active, disabled)
+	•	Add ability to:
+	•	ban user
+	•	promote to admin
+	•	reset user status
+
+	7.	AI Enhancements:
+
+	•	Improve AI analysis endpoint:
+	•	detect risky users
+	•	detect low-performing deals
+	•	suggest pricing improvements
+	•	Add AI-generated trust score insights
+
+	8.	Admin Dashboard Access:
+
+	•	Ensure admin dashboard exists at a secure route:
+/admin-secret-dashboard
+	•	Confirm authentication middleware protects it
+	•	Return the exact URL path and how to access it as an admin
+
+	9.	Logging & Monitoring:
+
+	•	Add structured logs for:
+	•	admin actions
+	•	AI usage
+	•	errors
+	•	Make logs readable and useful for debugging
+
+	10.	Final Step:
+
+	•	Do not break existing functionality
+	•	Keep clean architecture
+	•	Ensure everything works end-to-end
+
+Also:
+	•	If any additional improvements are possible, implement them proactively.
+	•	After finishing, provide a summary and confirm the admin dashboard URL and access instructio

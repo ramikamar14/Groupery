@@ -1,0 +1,192 @@
+Extend the current Grouperry implementation plan with additional high-impact features after T010.
+
+These new tasks must integrate cleanly with the existing architecture and not break T001–T010.
+
+Maintain the current stack:
+
+React + Vite frontend
+Node.js + Express backend
+PostgreSQL + Drizzle ORM
+JWT authentication
+Mobile-first UI
+
+Follow existing coding style and schema patterns.
+
+------------------------------------------------
+
+T011: Participant Reliability Tracking
+
+Blocked By: [T001]
+
+Details:
+
+Track participant reliability behavior.
+
+Add fields:
+
+joinCount
+completedParticipations
+cancelledParticipations
+noShowFlags
+
+Update reliability score calculation to include participation reliability.
+
+Display reliability indicators in:
+
+Profile page
+Participant list in listing
+Listing creator card
+
+Add visual indicator for reliable participants.
+
+Acceptance:
+Users can see which participants are historically reliable.
+
+------------------------------------------------
+
+T012: Listing Completion Celebration
+
+Blocked By: []
+
+Details:
+
+When a listing reaches 100% slots:
+
+Trigger completion celebration.
+
+Add:
+
+confetti animation
+completion banner
+notification to all participants
+completion badge on listing
+
+Update ListingDetails UI.
+
+Acceptance:
+Users see visual confirmation when a group successfully completes.
+
+------------------------------------------------
+
+T013: Saved Search Alerts Optimization
+
+Blocked By: [T003]
+
+Details:
+
+Optimize saved search matching.
+
+Add background check when new listing created.
+
+Match against:
+
+query text
+tags
+category
+location radius
+
+Batch notifications to avoid spam.
+
+Acceptance:
+Users receive relevant notifications when new listings match saved searches.
+
+------------------------------------------------
+
+T014: Listing Popularity Score
+
+Blocked By: [T005]
+
+Details:
+
+Create popularity score using:
+
+views
+joins
+watchlist saves
+recent activity
+
+Add popularityScore field (computed).
+
+Use score for:
+
+Trending listings
+Category pages
+Home discovery
+
+Acceptance:
+Trending sections reflect real user engagement.
+
+------------------------------------------------
+
+T015: Invite Participants Feature
+
+Blocked By: [T004]
+
+Details:
+
+Allow hosts and co-organizers to invite users to a listing.
+
+Add invitations table:
+
+id
+listingId
+inviterId
+invitedUserId
+status
+createdAt
+
+Add API:
+
+POST /api/listings/:id/invite
+
+Users receive notification with quick join option.
+
+Acceptance:
+Hosts can invite specific users to join listings.
+
+------------------------------------------------
+
+T016: User Activity Feed
+
+Blocked By: []
+
+Details:
+
+Add activity feed showing relevant platform activity.
+
+Examples:
+
+User joined listing
+Listing created nearby
+Group completed
+Announcement posted
+
+Create activityFeed table:
+
+id
+type
+actorId
+listingId
+metadata
+createdAt
+
+Add "Activity" section on Home page.
+
+Acceptance:
+Users can see recent activity to improve engagement and discovery.
+
+------------------------------------------------
+
+Implementation Requirements
+
+Ensure:
+
+proper validation
+database indexes
+mobile responsive UI
+full i18n coverage
+no console errors
+
+Update replit.md with these additional features.
+
+These tasks should be implemented after T010.

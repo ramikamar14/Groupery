@@ -1,0 +1,267 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-body: 'Poppins', sans-serif;
+  --font-display: 'Poppins', sans-serif;
+
+  /* Grouperry brand palette — Navy + Teal */
+  --background: 0 0% 100%;
+  --foreground: 210 100% 12%;          /* Deep Navy #001F3F */
+
+  /* Primary: Bright Teal — CTAs, links, interactive */
+  --primary: 180 100% 25%;             /* #008080 */
+  --primary-foreground: 0 0% 100%;
+  --primary-border: hsl(180 100% 20%);
+
+  /* Secondary: Very light blue-gray — subtle bg */
+  --secondary: 210 30% 96%;
+  --secondary-foreground: 210 100% 12%;
+  --secondary-border: hsl(210 20% 88%);
+
+  /* Accent: Teal variant — icon highlights */
+  --accent: 180 55% 38%;               /* Visible teal for icon colours */
+  --accent-foreground: 0 0% 100%;
+  --accent-border: hsl(180 55% 30%);
+
+  /* Destructive */
+  --destructive: 4 86% 58%;
+  --destructive-foreground: 0 0% 100%;
+  --destructive-border: hsl(4 86% 50%);
+
+  --muted: 210 20% 96%;
+  --muted-foreground: 210 15% 48%;
+  --muted-border: hsl(210 14% 88%);
+
+  --card: 0 0% 100%;
+  --card-foreground: 210 100% 12%;
+  --card-border: hsl(210 20% 91%);
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 210 100% 12%;
+  --popover-border: hsl(210 20% 91%);
+
+  --border: 210 20% 90%;
+  --input: 210 20% 90%;
+  --ring: 180 100% 25%;
+
+  /* Button outline border */
+  --button-outline: hsl(210 14% 84%);
+
+  /* Sidebar tokens */
+  --sidebar: 210 30% 98%;
+  --sidebar-foreground: 210 100% 12%;
+  --sidebar-border: 210 20% 90%;
+  --sidebar-ring: 180 100% 25%;
+  --sidebar-primary: 180 100% 25%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-primary-border: hsl(180 100% 20%);
+  --sidebar-accent: 210 20% 94%;
+  --sidebar-accent-foreground: 210 100% 12%;
+  --sidebar-accent-border: hsl(210 14% 86%);
+
+  /* Chart colors */
+  --chart-1: 180 100% 25%;    /* Teal */
+  --chart-2: 210 100% 12%;    /* Navy */
+  --chart-3: 187 60% 55%;     /* Mid aqua */
+  --chart-4: 4 86% 58%;
+  --chart-5: 30 90% 55%;
+
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: 210 40% 8%;
+  --foreground: 187 20% 92%;
+
+  --primary: 180 80% 38%;              /* Brighter teal for dark bg */
+  --primary-foreground: 0 0% 100%;
+  --primary-border: hsl(180 80% 30%);
+
+  --secondary: 210 25% 15%;
+  --secondary-foreground: 187 20% 90%;
+  --secondary-border: hsl(210 20% 22%);
+
+  --accent: 180 60% 45%;
+  --accent-foreground: 0 0% 100%;
+  --accent-border: hsl(180 60% 36%);
+
+  --destructive: 4 74% 52%;
+  --destructive-foreground: 0 0% 100%;
+  --destructive-border: hsl(4 74% 44%);
+
+  --muted: 210 25% 14%;
+  --muted-foreground: 210 15% 55%;
+  --muted-border: hsl(210 20% 22%);
+
+  --card: 210 35% 10%;
+  --card-foreground: 187 20% 92%;
+  --card-border: hsl(210 25% 18%);
+
+  --popover: 210 35% 10%;
+  --popover-foreground: 187 20% 92%;
+  --popover-border: hsl(210 25% 18%);
+
+  --border: 210 25% 18%;
+  --input: 210 25% 18%;
+  --ring: 180 80% 38%;
+
+  --button-outline: hsl(210 20% 24%);
+
+  --sidebar: 210 35% 8%;
+  --sidebar-foreground: 187 20% 90%;
+  --sidebar-border: 210 25% 18%;
+  --sidebar-ring: 180 80% 38%;
+  --sidebar-primary: 180 80% 38%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-primary-border: hsl(180 80% 30%);
+  --sidebar-accent: 210 25% 13%;
+  --sidebar-accent-foreground: 187 20% 88%;
+  --sidebar-accent-border: hsl(210 20% 20%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-foreground;
+    font-family: var(--font-body);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply font-semibold tracking-tight;
+  }
+
+  /* Smooth scroll */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Premium card with subtle depth */
+  .card-premium {
+    @apply bg-card border border-border/60 rounded-xl shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  /* Gradient text — Navy → Teal brand */
+  .gradient-text {
+    @apply bg-gradient-to-r from-[#001F3F] to-[#008080] bg-clip-text text-transparent;
+  }
+
+  /* Glass morphism */
+  .glass {
+    @apply bg-background/80 backdrop-blur-xl border border-border/50;
+  }
+
+  /* Premium button base */
+  .btn-premium {
+    @apply inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  /* Subtle glow on primary elements */
+  .glow-primary {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2), 0 4px 16px hsl(var(--primary) / 0.15);
+  }
+
+  /* Stat counter style */
+  .stat-number {
+    @apply font-display font-bold text-foreground tabular-nums;
+  }
+
+  /* Tag pill */
+  .tag-pill {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground;
+  }
+}
+
+@layer utilities {
+  /* Hover elevation — subtle bg tint + gentle shadow lift on hover */
+  .hover-elevate {
+    transition: background-color 150ms ease, box-shadow 150ms ease, transform 120ms ease;
+  }
+  .hover-elevate:hover {
+    background-color: hsl(var(--muted) / 0.6);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+  }
+  /* Active elevation — pressed-in feel (inverse of hover) */
+  .active-elevate-2 {
+    transition: box-shadow 80ms ease, transform 80ms ease;
+  }
+  .active-elevate-2:active {
+    box-shadow: none;
+    transform: translateY(1px);
+  }
+
+  /* Hide scrollbar but keep scroll */
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Thin custom scrollbar */
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; height: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
+
+  /* Text balance */
+  .text-balance { text-wrap: balance; }
+
+  /* Safe area padding */
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0); }
+
+  /* Animation utilities */
+  .animate-in {
+    animation: fade-in 0.2s ease-out;
+  }
+  .slide-in-from-bottom {
+    animation: slide-up 0.3s ease-out;
+  }
+}
+
+/* Premium animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to { background-position: 200% center; }
+}
+
+/* Shimmer for loading skeletons */
+.shimmer {
+  background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted-foreground) / 0.1) 50%, hsl(var(--muted)) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Pulse dot for live indicators */
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.7; }
+}
+.pulse-dot {
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* Floating animation for decorative elements */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}

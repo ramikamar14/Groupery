@@ -1,0 +1,159 @@
+Use Claude Sonnet ONLY.
+
+Implement ONLY the critical P0 fixes and features to make the platform usable, trustworthy, and ready for early users.
+
+Do NOT add extra features. Focus only on the items below.
+
+---
+
+1. Disable Commit on Expired Listings (Critical Bug)
+
+---
+
+* Prevent users from clicking "Commit to Buy" if listing is expired
+* Show clear UI:
+  "This deal has expired"
+* Disable button visually
+
+---
+
+2. Payment Coordination Panel (Most Important Feature)
+
+---
+
+* Add a section in listing details:
+  "Payment Instructions"
+
+* Allow organiser to input:
+
+  * payment method (PayPal / Venmo / Cash / Other)
+  * payment details (text field)
+  * optional notes
+
+* Show for users after they commit:
+
+  * copy button
+  * clear instructions
+
+* Add status per user:
+
+  * pending
+  * marked as paid (by organiser)
+
+---
+
+3. Distribution Method System
+
+---
+
+* In listing creation:
+
+  * require organiser to select:
+
+    * Pickup
+    * Delivery
+    * Digital
+
+* Add fields:
+
+  * pickup location / delivery notes
+
+* During commit:
+
+  * user selects preferred method
+
+* Display clearly in listing page
+
+---
+
+4. Fix Verification Upload (Critical Trust Issue)
+
+---
+
+* Replace URL input with file upload
+* Accept:
+
+  * images
+  * PDF
+* Store properly
+* Add status:
+
+  * pending
+  * verified
+  * rejected
+
+---
+
+5. Fix Gallery Crash (0 Images)
+
+---
+
+* If no images:
+
+  * show placeholder image
+* Prevent any crash
+
+---
+
+6. AI Loading State (UX Fix)
+
+---
+
+* When generating description:
+
+  * show loading state:
+    "AI is generating description..."
+* Prevent blank UI
+
+---
+
+7. Expiry Date Validation
+
+---
+
+* Prevent selecting past dates
+* Minimum date = today
+
+---
+
+8. Basic Empty States
+
+---
+
+Add UI for:
+
+* no listings
+* no notifications
+* no activity
+
+Show helpful message instead of empty blank page
+
+---
+
+9. Add “Next Action” in My Groups
+
+---
+
+For each group show:
+
+* what user should do next:
+
+  * pay
+  * wait
+  * confirm delivery
+  * review
+
+---
+
+## Execution Rules:
+
+* Do NOT refactor everything
+* Do NOT add new complex systems
+* Keep code clean
+* Ensure everything works end-to-end
+
+---
+
+## GOAL:
+
+Make the platform usable, trustworthy, and ready for real users without adding unnecessary complexity.

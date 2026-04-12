@@ -1,0 +1,399 @@
+Core Concept
+
+Grouperry is a classifieds-style group sharing and group-buy coordination platform.
+
+The platform allows multiple users to commit to buying or sharing one item, offer, or digital license together, similar to crowdfunding or group-buying.
+
+Example:
+
+Buy One Get One offer → Two users split it
+
+Software license for 5 users → Five users share the cost
+
+Bulk purchase discount → Group commits to reach quantity
+
+The platform tracks:
+
+Participation
+
+Commitment progress
+
+Communication
+
+Location coordination
+
+Critical Platform Rules (Strict – Must Enforce)
+
+Grouperry DOES NOT process or handle payments between users
+
+Grouperry is only a coordination and listing platform
+
+All posts are free in Phase 1
+
+The app tracks commit-to-buy intent only
+
+Future monetization must be feature-flagged OFF
+
+Users handle money externally
+
+User Types (Selected During Registration)
+
+When creating an account, the system MUST ask:
+
+Select Account Type:
+
+Individual User
+
+Vendor / Shop
+
+Identity Verification (Mandatory)
+
+Both Users and Vendors must verify identity.
+
+Individual User Verification
+
+Upload ID or passport
+
+Upload selfie or profile photo
+
+Verification status:
+
+Pending
+
+Verified
+
+Rejected
+
+Vendor / Shop Verification
+
+Business name
+
+Business license upload
+
+Store address
+
+Contact details
+
+Verification status
+
+Admin must approve verification before full platform usage.
+
+Main Features
+1. Listings (Group Buy / Sharing Posts)
+
+Each listing represents one shared purchase or offer.
+
+Listing Required Fields:
+
+Title
+
+Description
+
+Category:
+
+Physical Item Sharing
+
+Digital Access Sharing
+
+Promotion / Offer
+
+Total slots required
+
+Slots already committed
+
+Commitment progress bar (crowdfunding style)
+
+Images (required for physical items)
+
+Location (required for physical items)
+
+Expiry date / deadline
+
+Meetup option or Digital sharing option
+
+Listing creator profile
+
+Listing status:
+
+Active
+
+About to Complete (80%+ slots filled)
+
+Completed
+
+Expired
+
+When slots are full → Automatically mark listing Completed.
+
+2. Commit-to-Buy System
+
+Users can:
+
+Join listing (commit to slot)
+
+Leave listing (before completion)
+
+View participant list (optional privacy control)
+
+Commitment is:
+
+Intent only
+
+No payment required
+
+System must:
+
+Update progress percentage
+
+Notify participants when listing is near completion
+
+3. Map & Location Discovery (Required)
+
+Implement interactive map functionality.
+
+Map Features:
+
+Show nearby listings as map pins
+
+Show vendor/shop promotions as map pins
+
+Distance radius filter
+
+Toggle between:
+
+List View
+
+Map View
+
+Each listing must store:
+
+Latitude
+
+Longitude
+
+Optional meetup location
+
+4. Search & Filters
+
+Users must be able to search listings by:
+
+Keyword
+
+Category
+
+Distance
+
+Expiring soon
+
+Slots remaining
+
+Listing type (Physical / Digital / Promotion)
+
+5. Chat System
+
+Each listing must include:
+
+Group chat for all participants
+
+Optional 1-to-1 chat with listing creator
+
+Support:
+
+Text messages
+
+Image sharing
+
+Reporting and blocking users
+
+6. Vendor / Shop Features
+
+Vendors can:
+
+Create promotional listings
+
+Add store location
+
+Upload branding logo
+
+Appear in map discovery
+
+Vendor sales or payments must NOT exist.
+
+7. User Profiles
+
+Each user profile must show:
+
+Profile picture
+
+Verification badge
+
+Active listings
+
+Completed listings
+
+Reputation / rating (simple star system)
+
+8. Notifications
+
+Send notifications for:
+
+New participant joined listing
+
+Listing about to complete
+
+New chat message
+
+Listing expired or completed
+
+Verification status update
+
+9. Reporting & Safety
+
+Users must be able to:
+
+Report listing
+
+Report user
+
+Block user
+
+10. Admin Dashboard (Web Panel)
+
+Admin must be able to:
+
+Approve or reject identity verification
+
+Approve or remove listings
+
+Review reports
+
+Suspend or ban users
+
+View basic analytics:
+
+Active listings
+
+Active users
+
+Verification queue
+
+Report logs
+
+Technical Requirements
+Backend
+
+REST or GraphQL API
+
+Role-based access control
+
+Secure authentication
+
+Soft deletes for listings and users
+
+Basic spam protection
+
+Notification system
+
+Database (Design First)
+
+Required tables:
+
+Users
+
+Profiles
+
+VerificationRequests
+
+Listings
+
+GroupParticipants
+
+Categories
+
+Messages
+
+Reports
+
+VendorDetails
+
+Notifications
+
+Frontend (Mobile-First)
+
+Main navigation tabs:
+
+Home
+
+Search / Map
+
+Create Listing
+
+Messages
+
+Profile
+
+UI must be clean and optimized for mobile devices.
+
+Explicitly Excluded Features (Do NOT Build)
+
+Payment gateway
+
+Wallet system
+
+Escrow
+
+Refund handling
+
+Subscription billing
+
+Vendor checkout
+
+Future Features (Design with Feature Flags Disabled)
+
+Paid listing categories
+
+Boosted listings
+
+Vendor voucher system
+
+Commitment fee system
+
+Development Order
+
+Database schema
+
+Authentication & user roles
+
+Verification workflow
+
+Listings & commit system
+
+Map integration
+
+Chat system
+
+Search & filters
+
+Admin dashboard
+
+Notifications
+
+Success Criteria
+
+Users can:
+
+Register as user or vendor
+
+Verify identity
+
+Create group-buy listings
+
+Discover listings using search and map
+
+Commit to join listings
+
+Chat and coordinate externally
+
+Safely report abuse
+
+The system must fully function without handling money.

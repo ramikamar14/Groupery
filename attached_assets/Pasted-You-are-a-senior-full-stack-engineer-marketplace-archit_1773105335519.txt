@@ -1,0 +1,565 @@
+You are a senior full-stack engineer, marketplace architect, and product strategist.
+
+Review and refactor the entire project to build a production-ready mobile-first platform called Grouperry.
+
+Grouperry is a classifieds-style group coordination marketplace where multiple users collaborate to split the cost of a product, service, or digital offer.
+
+The platform tracks participation progress and communication but NEVER processes payments.
+
+------------------------------------------------
+
+STRICT PLATFORM RULES
+
+The system must NEVER implement:
+
+payments
+wallets
+escrow
+checkout
+refunds
+subscriptions
+financial transactions
+
+Users coordinate payment outside the platform.
+
+All listings are free in phase 1.
+
+Future monetization must be feature-flagged OFF.
+
+------------------------------------------------
+
+PRIMARY PRODUCT GOAL
+
+Help users:
+
+discover nearby group deals
+create listings
+join listings
+track participation progress
+communicate with participants
+coordinate purchases outside the platform
+
+Focus on:
+
+trust
+simplicity
+speed
+mobile-first design
+viral growth
+moderation
+scalability
+security
+
+------------------------------------------------
+
+TECH STACK
+
+Frontend
+
+React
+Vite
+TailwindCSS
+Mobile-first responsive UI
+
+Backend
+
+Node.js
+Express
+REST API
+
+Database
+
+PostgreSQL
+Drizzle ORM
+
+Security & infrastructure
+
+JWT authentication
+Role-based access
+Rate limiting
+Soft deletes
+Server validation
+Efficient database queries
+
+------------------------------------------------
+
+PROJECT STRUCTURE
+
+client/
+server/
+shared/
+
+Maintain clean architecture and reusable components.
+
+------------------------------------------------
+
+DATABASE SCHEMA
+
+Create or refactor the following tables:
+
+Users
+Profiles
+Listings
+ListingImages
+Categories
+GroupParticipants
+Messages
+Reports
+Reviews
+Notifications
+UserRoles
+UserVerification
+ActivityLogs
+ListingViews
+SearchHistory
+SavedListings
+Invitations
+UserPreferences
+DeviceTokens
+ListingUpdates
+ListingTags
+TrendingStats
+
+Listings table fields
+
+id
+title
+description
+category_id
+host_user_id
+slot_count
+slots_joined
+progress_percent
+status
+latitude
+longitude
+city
+country
+expires_at
+created_at
+updated_at
+
+Statuses
+
+Active
+AlmostFull
+Completed
+Expired
+
+Automatically mark listing Completed when slots_joined equals slot_count.
+
+------------------------------------------------
+
+LOCATION SYSTEM
+
+Each listing stores
+
+latitude
+longitude
+city
+country
+
+Features
+
+search listings by distance
+map view for listings
+nearby deals section
+map on listing page
+location-based recommendations
+
+------------------------------------------------
+
+AUTHENTICATION
+
+Email login
+Phone login
+JWT tokens
+Password reset
+Account verification
+
+User profile includes
+
+name
+profile photo
+city
+rating
+completed_groups
+verification_status
+bio
+
+------------------------------------------------
+
+LISTINGS
+
+Users can
+
+create listing
+upload images
+set slot count
+set expiry date
+set location
+select category
+add tags
+edit listing
+delete listing
+
+Listing page displays
+
+images
+description
+progress bar
+slots remaining
+participants
+expiry timer
+location map
+join button
+chat button
+share button
+
+------------------------------------------------
+
+JOIN SYSTEM
+
+Users can
+
+join listing
+leave listing
+view participant list
+
+Optional host approval for joining.
+
+------------------------------------------------
+
+CHAT SYSTEM
+
+Group chat per listing
+Direct user messaging
+
+Messages table includes
+
+sender_id
+receiver_id
+listing_id
+message_text
+timestamp
+read_status
+
+Add typing indicator and message notifications.
+
+------------------------------------------------
+
+NOTIFICATIONS
+
+Trigger notifications for
+
+someone joins listing
+listing almost full
+listing completed
+new message
+listing expiring soon
+listing updated
+invite received
+
+------------------------------------------------
+
+TRUST SYSTEM
+
+Add strong trust signals
+
+user ratings
+user reviews
+completed groups counter
+verified badge
+profile history
+report count
+join reliability score
+
+Display trust indicators on listings and profiles.
+
+------------------------------------------------
+
+REPORT SYSTEM
+
+Users can report
+
+scam
+fake listing
+abuse
+spam
+
+Reports table
+
+reporter_id
+target_user_id
+listing_id
+reason
+status
+created_at
+
+------------------------------------------------
+
+ADMIN DASHBOARD
+
+Secure admin panel.
+
+Roles
+
+Admin
+Moderator
+
+Admin features
+
+dashboard analytics
+user management
+listing moderation
+reports management
+activity monitoring
+
+Dashboard metrics
+
+total users
+active listings
+completed listings
+reports
+growth trends
+daily activity
+
+Admin actions
+
+suspend users
+verify users
+reset accounts
+edit listings
+delete listings
+resolve reports
+ban users
+
+------------------------------------------------
+
+ANTI-SPAM & SECURITY
+
+Implement
+
+rate limiting
+listing creation limits
+message spam filtering
+input validation
+JWT expiration
+IP tracking
+shadow banning for spammers
+
+------------------------------------------------
+
+SEARCH AND DISCOVERY
+
+Home page sections
+
+Nearby listings
+Trending listings
+Expiring soon
+Recently added
+Recommended for you
+
+Filters
+
+category
+distance
+availability
+popularity
+time remaining
+
+Global search bar with autocomplete.
+
+------------------------------------------------
+
+USER EXPERIENCE
+
+Mobile-first UI.
+
+Home sections
+
+Nearby deals
+Trending groups
+Ending soon
+Recommended groups
+
+Listing page must highlight
+
+progress bar
+slots remaining
+join button
+chat button
+share button
+
+Add skeleton loaders and smooth transitions.
+
+------------------------------------------------
+
+PERFORMANCE
+
+Pagination for listings
+Query optimization
+Lazy loading images
+Minimize API calls
+Optimize for slow mobile networks
+
+------------------------------------------------
+
+VIRAL FEATURES
+
+Listing sharing
+
+WhatsApp
+Telegram
+Copy link
+
+Invite friends
+
+Urgency indicators
+
+slots remaining
+time remaining
+
+Trending listings algorithm.
+
+------------------------------------------------
+
+NETWORK EFFECT FEATURES
+
+Participant counter
+
+Group milestones
+
+50%
+75%
+100%
+
+Social proof
+
+display completed groups
+
+recent activity feed
+
+------------------------------------------------
+
+SMART MARKETPLACE FEATURES
+
+Auto match buyers
+
+Detect users interested in similar items and suggest forming a group.
+
+Demand detection
+
+Suggest listings for trending products.
+
+Recommendation engine
+
+Based on
+
+location
+search history
+interests
+previous joins
+
+Smart alerts
+
+Notify users when relevant listings appear nearby.
+
+------------------------------------------------
+
+GROWTH FEATURES
+
+Personalized feed
+
+Saved listings
+
+Watchlist notifications
+
+Referral invitations
+
+Trending categories
+
+Search suggestions
+
+Invite friends system
+
+Activity feed
+
+------------------------------------------------
+
+COMMUNITY FEATURES
+
+User reputation levels
+
+community badges
+
+leaderboards for active organizers
+
+community highlights
+
+------------------------------------------------
+
+HOST FEATURES
+
+Hosts can
+
+edit listing
+post group updates
+extend expiry
+close listing early
+send announcements
+pin messages in chat
+
+------------------------------------------------
+
+ENGAGEMENT FEATURES
+
+Countdown timers
+
+participant avatars
+
+progress celebration animations
+
+reminders before expiry
+
+------------------------------------------------
+
+ANALYTICS
+
+Track
+
+listing views
+join rate
+completion rate
+user engagement
+popular categories
+
+------------------------------------------------
+
+BUG FIXING
+
+Audit entire codebase and fix
+
+broken API routes
+database schema mismatches
+missing validation
+UI errors
+security vulnerabilities
+performance issues
+
+Ensure project builds and deploys successfully.
+
+------------------------------------------------
+
+FINAL PRODUCT GOAL
+
+Deliver a modern marketplace where users can
+
+discover nearby group deals
+create listings
+join groups
+track participation
+chat with participants
+coordinate purchases safely outside the platform
+
+The system must feel trustworthy, professional, scalable, and easy to moderate.

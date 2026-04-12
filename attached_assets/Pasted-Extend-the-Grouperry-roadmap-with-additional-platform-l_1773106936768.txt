@@ -1,0 +1,192 @@
+Extend the Grouperry roadmap with additional platform-level improvements after T017.
+
+These tasks must integrate cleanly with the current architecture and must not modify existing tasks T001–T017 unless necessary.
+
+Stack remains:
+
+React + Vite frontend
+Node.js + Express backend
+PostgreSQL + Drizzle ORM
+JWT authentication
+Mobile-first UI
+
+------------------------------------------------
+
+T018: Feature Flags System
+
+Blocked By: []
+
+Details:
+
+Add featureFlags table:
+
+id
+key
+enabled
+createdAt
+
+Create backend utility to check if a feature is enabled.
+
+Use flags for optional features such as:
+
+activity feed
+invitations
+saved search alerts
+future monetization features
+
+Add admin UI to toggle feature flags.
+
+Files:
+shared/schema.ts
+server/storage.ts
+server/routes.ts
+client/src/pages/Admin.tsx
+
+Acceptance:
+Admins can enable/disable features without code deployment.
+
+------------------------------------------------
+
+T019: System Event Logging
+
+Blocked By: []
+
+Details:
+
+Add systemEvents table:
+
+id
+eventType
+actorId
+metadata JSON
+createdAt
+
+Record important events:
+
+user banned
+listing removed
+admin actions
+verification changes
+listing completion
+
+Add admin page to view event logs.
+
+Files:
+shared/schema.ts
+server/storage.ts
+server/routes.ts
+client/src/pages/Admin.tsx
+
+Acceptance:
+Admins can audit major system events.
+
+------------------------------------------------
+
+T020: Email Notification Infrastructure
+
+Blocked By: []
+
+Details:
+
+Prepare infrastructure for email notifications.
+
+Add emailQueue table:
+
+id
+userId
+emailType
+payload JSON
+status
+createdAt
+
+Create worker function to send email events for:
+
+listing invitations
+saved search alerts
+verification updates
+group completion
+
+Actual email provider integration can be stubbed.
+
+Files:
+shared/schema.ts
+server/storage.ts
+server/routes.ts
+
+Acceptance:
+Email notification system is ready for integration.
+
+------------------------------------------------
+
+T021: Platform Health Monitoring
+
+Blocked By: []
+
+Details:
+
+Add systemHealth endpoint:
+
+GET /api/system/health
+
+Return metrics:
+
+database connection
+API latency
+active users
+recent errors
+
+Add admin health panel showing:
+
+API uptime
+recent errors
+queue status
+
+Files:
+server/routes.ts
+client/src/pages/Admin.tsx
+
+Acceptance:
+Admins can monitor platform health in real time.
+
+------------------------------------------------
+
+T022: Performance Caching Layer
+
+Blocked By: []
+
+Details:
+
+Introduce lightweight caching for high-traffic queries.
+
+Cache endpoints:
+
+homepage discovery
+trending listings
+category pages
+activity feed
+
+Use in-memory cache with TTL.
+
+Invalidate cache when relevant listings change.
+
+Files:
+server/storage.ts
+server/routes.ts
+
+Acceptance:
+Frequent discovery queries are cached to reduce database load.
+
+------------------------------------------------
+
+Implementation Requirements
+
+Ensure:
+
+proper validation
+consistent schema design
+database indexes
+mobile responsiveness
+full i18n compatibility
+no console errors
+
+Update replit.md with these platform-level improvements.

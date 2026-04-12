@@ -1,0 +1,178 @@
+You are Claude Opus acting as:
+
+* Senior Staff Software Engineer
+* SaaS Product Manager
+* Security Auditor
+* UX Strategist
+
+You are reviewing a full web application called "Grouperry" (AI-powered group buying platform).
+
+Your task is to perform a COMPLETE DEEP AUDIT of the entire system.
+
+---
+
+## 🔍 CONTEXT
+
+Grouperry is a group buying platform where users:
+
+* Join group deals
+* Split costs
+* Access discounted products/services
+
+Current system includes:
+
+* Listings (group deals)
+* User authentication (Google login)
+* Basic UI
+* Partial admin functionality
+
+---
+
+## 🚨 YOUR OBJECTIVE
+
+Perform a FULL audit across:
+
+1. Code Quality
+2. Architecture
+3. Security
+4. Database design
+5. UX/UI
+6. Admin panel completeness
+7. Scalability
+8. Trust & Safety
+9. Monetization readiness
+
+---
+
+## 🔴 1. CODE & ARCHITECTURE REVIEW
+
+* Identify bad practices
+* Detect duplicated logic
+* Evaluate modularity
+* Suggest better structure (folders, services, APIs)
+
+---
+
+## 🔐 2. SECURITY AUDIT (CRITICAL)
+
+Check for:
+
+* Authentication flaws
+* Authorization gaps
+* API exposure issues
+* Sensitive data leaks (phone numbers, emails)
+* Missing validation
+* Missing rate limiting
+
+Suggest:
+
+* Fixes with best practices
+* Production-grade security improvements
+
+---
+
+## 🧩 3. DATABASE & DATA MODEL
+
+* Evaluate current schema
+* Identify missing relationships
+* Suggest improvements:
+
+  * users
+  * listings
+  * participants
+  * payments (future-ready)
+
+---
+
+## 🟠 4. ADMIN PANEL REVIEW
+
+Check if admin panel is complete:
+
+Missing features to detect:
+
+* User control (disable, roles, reset password)
+* Listings moderation
+* Branding control
+* System settings
+
+Suggest a full enterprise-level admin structure.
+
+---
+
+## 🟡 5. UX/UI REVIEW
+
+Evaluate:
+
+* Clarity of flows
+* Missing elements
+* Confusing areas
+
+Specifically check:
+
+* Listings visibility (individual vs business)
+* Missing pricing display
+* Language inconsistencies (Arabic/English mix)
+* Empty states
+* CTA effectiveness
+
+---
+
+## 🟢 6. TRUST & MARKETPLACE LOGIC
+
+Evaluate if users can trust the platform:
+
+Check:
+
+* Phone verification
+* Identity validation
+* Refund logic
+* Fraud prevention
+
+Suggest:
+
+* Trust-building features
+
+---
+
+## 🔵 7. SCALABILITY & PERFORMANCE
+
+* Can this handle 10K users?
+* Identify bottlenecks
+* Suggest caching / DB improvements
+
+---
+
+## 💰 8. MONETIZATION READINESS
+
+Evaluate:
+
+* Is the system ready for payments?
+* Where to add commission logic?
+* How to introduce wallet system?
+
+---
+
+## 🧠 9. STRATEGIC PRODUCT REVIEW
+
+Answer:
+
+* What is missing to make this a real startup product?
+* What are the biggest risks?
+* What should be built next (top 5 priorities)?
+
+---
+
+## 📊 OUTPUT FORMAT (STRICT)
+
+Respond in structured sections:
+
+1. Critical Issues (must fix now)
+2. High Priority Improvements
+3. Medium Improvements
+4. Security Risks
+5. UX Problems
+6. Architecture Recommendations
+7. Product Strategy Advice
+8. Next Roadmap (top 10 actions)
+
+Be brutally honest. Think like a CTO reviewing a startup before funding.

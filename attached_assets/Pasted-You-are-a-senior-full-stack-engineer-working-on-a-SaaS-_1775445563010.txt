@@ -1,0 +1,202 @@
+You are a senior full-stack engineer working on a SaaS platform called "Grouperry".
+
+Your task is to implement a COMPLETE production-grade OTP system with dynamic SMS provider configuration from the admin panel.
+
+DO NOT break existing functionality. Build clean, scalable, and secure architecture.
+
+---
+
+# 🔴 PART 1: OTP SYSTEM (SECURE IMPLEMENTATION)
+
+## 🧩 DATABASE
+
+Create table: otp_codes
+
+Fields:
+
+* id
+* user_id (nullable)
+* phone_number
+* otp_hash (NOT plain OTP)
+* expires_at
+* attempts
+* created_at
+
+---
+
+## 🔐 OTP GENERATION
+
+* Generate 6-digit OTP
+* Hash OTP using SHA-256 before storing
+* NEVER store or log plain OTP
+
+---
+
+## 📲 SEND OTP ENDPOINT
+
+POST /api/otp/send
+
+Logic:
+
+* Validate phone format (use libphonenumber)
+* Rate limit: max 3 requests per hour per phone/IP
+* Generate OTP
+* Hash OTP
+* Store in DB with 5-minute expiry
+* Send SMS via configured provider
+
+---
+
+## 🔒 VERIFY OTP ENDPOINT
+
+POST /api/otp/verify
+
+Logic:
+
+* Fetch latest OTP record
+* Check expiry
+* Max attempts = 5
+* Compare hash
+* If valid:
+
+  * mark user.phone_verified = true
+  * delete OTP record
+
+---
+
+## 🟠 SECURITY RULES
+
+* DO NOT log OTP anywhere
+* DO NOT return OTP in API responses
+* Add rate limiting to send + verify
+* Prevent brute force attempts
+
+---
+
+# 🟠 PART 2: SMS CONFIGURATION (ADMIN CONTROL)
+
+## 🧩 DATABASE
+
+Create table: system_settings
+
+Fields:
+
+* key (string, unique)
+* value (string or JSON)
+
+Store:
+
+* sms_provider (plivo, twilio, telnyx)
+* sms_api_key
+* sms_api_secret
+* sms_sender
+* sms_enabled (boolean)
+
+---
+
+## 🔐 ENCRYPTION
+
+* Encrypt API keys before storing in DB
+* Decrypt only when used
+* Never expose full keys in API
+
+---
+
+## ⚙️ SMS SERVICE LAYER
+
+Create abstraction:
+
+class SMSService {
+async sendOTP(phone, message) {
+const config = await getSMSConfig();
+
+```
+if (!config.sms_enabled) {
+  throw new Error("SMS service disabled");
+}
+
+switch (config.sms_provider) {
+  case "plivo":
+    return sendWithPlivo(config, phone, message);
+  case "twilio":
+    return sendWithTwilio(config, phone, message);
+  case "telnyx":
+    return sendWithTelnyx(config, phone, message);
+}
+```
+
+}
+}
+
+---
+
+## 🟡 PROVIDER IMPLEMENTATIONS
+
+Implement:
+
+* sendWithPlivo()
+* sendWithTwilio()
+* sendWithTelnyx()
+
+Each must:
+
+* Handle errors properly
+* Return success/failure
+* NOT log sensitive data
+
+---
+
+# 🔵 PART 3: ADMIN PANEL (SMS SETTINGS UI)
+
+Create page: Admin → SMS Settings
+
+Fields:
+
+* Provider dropdown (plivo / twilio / telnyx)
+* API Key (masked)
+* API Secret (masked)
+* Sender ID
+* Enable/Disable toggle
+
+Buttons:
+
+* Save Settings
+* Test SMS
+
+---
+
+## 🧪 TEST SMS
+
+* Allow admin to input test phone
+* Send test message
+* Show success/failure result
+
+---
+
+## 🔒 ADMIN SECURITY
+
+* Protect all endpoints with admin auth
+* Mask API keys in UI:
+  Example: ****ABCD
+
+---
+
+# 🟡 PART 4: VALIDATION & FAILSAFE
+
+* If SMS config missing → block OTP sending
+* Return clear error message
+* If provider fails → return controlled error (no crash)
+
+---
+
+# 🧠 FINAL CHECK
+
+Ensure:
+
+* No OTP leakage anywhere
+* No credentials exposed
+* Switching providers works without restart
+* OTP system is secure and scalable
+* Admin panel fully controls SMS config
+
+Act like you are building a fintech-grade secure verification system with dynamic infrastructure.

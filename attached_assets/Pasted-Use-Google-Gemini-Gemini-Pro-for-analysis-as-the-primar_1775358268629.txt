@@ -1,0 +1,147 @@
+Use Google Gemini (Gemini Pro for analysis) as the primary AI model.
+
+Perform a deep, full audit of the application and implement improvements.
+
+Act as a senior product manager, UX expert, and software architect.
+
+---
+
+1. Full Product Audit
+
+---
+
+* Analyze the group buying concept
+* Identify missing features
+* Suggest improvements for conversion, trust, and retention
+
+---
+
+2. UX & UI Audit
+
+---
+
+* Identify confusing flows
+* Fix friction points
+* Improve layout, spacing, and usability
+* Ensure mobile-first experience
+
+---
+
+3. Functionality Audit
+
+---
+
+* Fix issues:
+
+  * logout not working
+  * profile editing issues
+  * document upload issues
+  * language switching problems
+* Ensure all buttons and actions work
+
+---
+
+4. Trust System Review
+
+---
+
+* Evaluate trust level
+* Improve:
+
+  * badges
+  * ratings
+  * verification
+  * social proof
+
+---
+
+5. Commit to Buy System Review
+
+---
+
+* Ensure the flow is clear and intuitive
+* Improve messaging and UX
+* Add urgency and clarity
+
+---
+
+6. Listings & Filters
+
+---
+
+* Improve listing structure:
+
+  * individual vs commercial
+* Improve filtering:
+
+  * location
+  * nearby
+  * country
+* Ensure full country support
+
+---
+
+7. Admin Dashboard Audit
+
+---
+
+* Evaluate admin capabilities
+* Add missing controls:
+
+  * search
+  * filters
+  * bulk actions
+* Improve usability
+
+---
+
+8. AI Usage
+
+---
+
+* Ensure AI is visible to users
+* Add:
+
+  * smart suggestions
+  * savings insights
+  * trending deals
+
+---
+
+9. Performance & Stability
+
+---
+
+* Identify slow areas
+* Optimize frontend and backend
+* Fix console errors
+
+---
+
+10. Missing Features
+
+---
+
+Add if missing:
+
+* notifications
+* activity feed
+* favorites
+* report system
+* help/support page
+
+---
+
+11. Execution
+
+---
+
+* Implement improvements directly
+* Do not break existing functionality
+* Keep code clean and scalable
+
+---
+
+## GOAL:
+
+Turn the platform into a modern, high-trust, AI-powered marketplace with excellent UX and strong user engagement.

@@ -1,0 +1,165 @@
+Use Claude Opus ONLY. Do not use Sonnet or Haiku.
+
+Perform a deep design, UX, and feature audit of the entire application and implement improvements.
+
+Act as:
+
+* Senior Product Designer
+* UX/UI Expert
+* Branding Specialist
+* Marketplace Product Strategist
+
+Do NOT give generic feedback — provide specific improvements and implement them where possible.
+
+---
+
+1. UI/UX Audit (Critical)
+
+---
+
+* Analyze the entire user interface
+* Identify:
+
+  * poor layout
+  * confusing flows
+  * bad spacing or alignment
+  * inconsistent components
+* Improve:
+
+  * clarity
+  * simplicity
+  * usability
+* Make the app modern, clean, and highly user-friendly
+
+---
+
+2. Logo & Branding Review
+
+---
+
+* Evaluate current logo:
+
+  * is it modern?
+  * does it match the app concept (group buying)?
+  * is it memorable?
+
+* Improve or redesign logo if needed:
+
+  * simple
+  * modern
+  * recognizable
+  * startup-level quality
+
+---
+
+3. Color System (Important)
+
+---
+
+* Review current color palette
+* Improve:
+
+  * contrast
+  * consistency
+  * accessibility
+* Suggest a modern color system:
+
+  * primary
+  * secondary
+  * accent
+* Ensure colors match trust, commerce, and engagement
+
+---
+
+4. Layout & Components
+
+---
+
+* Fix:
+
+  * buttons
+  * cards
+  * spacing
+  * typography
+* Ensure consistency across all pages
+
+---
+
+5. Navigation & Flow
+
+---
+
+* Improve navigation clarity
+* Ensure:
+
+  * logo → home works
+  * smooth transitions
+* Reduce user friction
+
+---
+
+6. Core Fixes
+
+---
+
+* Fix:
+
+  * logout button
+  * profile editing
+  * document upload
+  * language switching
+  * footer layout and links
+
+---
+
+7. Marketplace UX
+
+---
+
+* Improve:
+
+  * deal discovery
+  * commit to buy flow
+  * listing browsing
+* Add:
+
+  * urgency indicators
+  * social proof
+
+---
+
+8. Mobile Experience
+
+---
+
+* Ensure full responsiveness
+* Optimize mobile layout
+
+---
+
+9. Trust & Visual Signals
+
+---
+
+* Add:
+
+  * badges
+  * ratings
+  * verified indicators
+* Make trust visible in UI
+
+---
+
+10. Execution
+
+---
+
+* Apply improvements directly
+* Do not break existing functionality
+* Keep clean and scalable code
+
+---
+
+## GOAL:
+
+Transform the app into a visually stunning, modern, user-friendly marketplace with strong branding and excellent UX.

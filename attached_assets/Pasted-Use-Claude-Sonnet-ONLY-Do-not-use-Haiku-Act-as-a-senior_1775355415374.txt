@@ -1,0 +1,247 @@
+Use Claude Sonnet ONLY. Do not use Haiku.
+
+Act as a senior product architect, UX expert, and full-stack engineer.
+
+Upgrade and fix the entire application to be a modern, AI-powered, trust-driven marketplace with a “Commit to Buy” system (no real payments yet).
+
+---
+
+1. Commit to Buy System (Core)
+
+---
+
+* Replace all "Pay Now" or "Join Deal" buttons with:
+  "Commit to Buy"
+
+* When user clicks:
+
+  * create order
+  * set:
+    payment_status = "held"
+    order_status = "committed"
+
+* Show message:
+  "You have committed to this deal. You will only be charged after the deal is completed."
+
+---
+
+2. Escrow Simulation (No Real Payments)
+
+---
+
+* Implement full flow:
+  committed → confirmed → released → refunded
+
+* Logic:
+
+  * committed = user reserved spot
+  * confirmed = deal reached required users
+  * released = admin approves (simulate payment release)
+  * refunded = deal failed or rejected
+
+* Add feature flag:
+  ENABLE_PAYMENTS = false
+
+---
+
+3. User Profile Fixes
+
+---
+
+* Fix profile editing (must work correctly)
+* Replace:
+
+  * country → dropdown (all countries)
+  * language → dropdown
+* Ensure saving and UI update instantly
+
+---
+
+4. Verification System
+
+---
+
+* Add document upload (images/pdf)
+* Add status:
+
+  * pending
+  * verified
+  * rejected
+* Show verified badge on user
+
+---
+
+5. User Type System
+
+---
+
+* During registration:
+
+  * require user to choose:
+
+    * Individual
+    * Commercial (business/shop)
+* Store in database
+* Restrict behavior based on type
+
+---
+
+6. Listings System
+
+---
+
+* Split listings into:
+
+  * Individual listings
+  * Commercial listings
+* Ensure users can only post based on type
+* Add filters:
+
+  * nearby (geo-based)
+  * country
+  * city
+* Ensure full country list exists
+
+---
+
+7. Trust System
+
+---
+
+* Add:
+
+  * verified badge
+  * star rating system
+  * popularity indicator
+* Show on:
+
+  * profiles
+  * listings
+
+---
+
+8. Logout Fix
+
+---
+
+* Add visible logout button
+* Ensure session clears correctly
+* UI updates immediately
+
+---
+
+9. Navigation Fix
+
+---
+
+* Clicking logo must redirect to home page
+
+---
+
+10. Footer Fix
+
+---
+
+* Footer must be horizontal (not vertical)
+* Include:
+  Contact Us | FAQ | Terms & Conditions
+* No text like "footer.xxx"
+* Clean modern layout
+
+---
+
+11. AI Integration
+
+---
+
+* Use Claude Sonnet for:
+
+  * suggestions
+  * platform analysis
+* Add:
+
+  * "You can save $X"
+  * "Trending deals"
+* Make AI visible in UI
+
+---
+
+12. Admin Dashboard
+
+---
+
+* Secure admin page
+* Manage:
+
+  * users
+  * listings
+  * orders
+* Approve / reject
+* Simulate:
+
+  * release
+  * refund
+
+---
+
+13. UX & UI Improvements
+
+---
+
+* Modern, clean, trendy design
+* Mobile responsive
+* Smooth experience
+* Add:
+
+  * "Only X spots left"
+  * "X users committed"
+
+---
+
+14. Core Fixes
+
+---
+
+* Fix broken buttons
+* Fix API connections
+* Ensure no console errors
+* Ensure all flows work
+
+---
+
+15. Missing Features (Add if not exist)
+
+---
+
+* notifications
+* activity feed
+* favorites/saved deals
+* report/flag system
+* help/support page
+
+---
+
+16. Branding & Design
+
+---
+
+* Ensure logo matches modern UI
+* Improve overall visual identity
+* Make it eye-catching and user-friendly
+
+---
+
+17. Execution Rules
+
+---
+
+* Do not break existing functionality
+* Keep clean architecture
+* Ensure production-ready code
+* Test everything end-to-end
+
+---
+
+## GOAL:
+
+Build a high-trust, modern, AI-powered marketplace with a strong “Commit to Buy” experience similar to eBay, but more advanced and user-friendly.

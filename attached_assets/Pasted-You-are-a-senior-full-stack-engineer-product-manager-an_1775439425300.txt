@@ -1,0 +1,186 @@
+You are a senior full-stack engineer, product manager, and UX architect.
+
+We are building a SaaS web app called "Grouperry" (AI-powered group buying platform).
+
+Your task is to refactor, fix, and upgrade the entire system to production-grade quality with a strong admin panel, clean UX, and scalable architecture.
+
+Work step by step. Do NOT break existing functionality.
+
+---
+
+## 🔴 PRIORITY 1: FIX LANGUAGE & LOCALIZATION (CRITICAL)
+
+1. Implement a full i18n system:
+
+   * Support Arabic (RTL) and English (LTR)
+   * Use structured translation files (JSON)
+   * Move ALL text into translation keys (no hardcoded text)
+
+2. Add:
+
+   * Language switcher (AR / EN)
+   * Auto-detect browser language
+   * RTL layout support
+
+3. Fix Arabic issues:
+
+   * Replace incorrect word "وسوم" with "رسوم"
+   * Ensure all Arabic is clean, professional, and consistent
+
+---
+
+## 🟠 PRIORITY 2: ADMIN PANEL (FULL CONTROL SYSTEM)
+
+Build a professional admin dashboard with the following modules:
+
+### 1. Dashboard Overview
+
+* Total users
+* Active listings
+* Expired listings
+* Growth stats (basic)
+
+---
+
+### 2. User Management (CRITICAL)
+
+Create full control over users:
+
+Fields:
+
+* Name
+* Email
+* Role (admin / user / vendor)
+* Status (active / disabled)
+* Created date
+
+Actions:
+
+* Enable / Disable user
+* Reset password (admin-triggered)
+* Change role
+* Delete user
+* Force logout
+
+---
+
+### 3. Listings Management
+
+Admin can:
+
+* View all listings
+* Edit any listing
+* Delete listing
+* Approve / Reject listing
+* Mark as featured
+
+---
+
+### 4. Categories Management
+
+* Add / edit / delete categories
+* Assign icons
+* Control display order
+
+---
+
+### 5. Branding Settings (IMPORTANT)
+
+Admin can:
+
+* Upload/change logo
+* Change primary & secondary colors
+* Change app name
+* Upload favicon
+
+These settings must reflect instantly across the app.
+
+---
+
+### 6. System Settings
+
+* Commission percentage
+* Default expiry duration
+* Max users per listing
+* Currency settings
+
+---
+
+### 7. Content Management
+
+Editable from admin panel:
+
+* Homepage hero text
+* Buttons text
+* Terms & Conditions
+* Privacy Policy
+
+---
+
+## 🟡 PRIORITY 3: LISTINGS UX IMPROVEMENT
+
+Currently filtering is not enough.
+
+Implement visible segmentation on main UI:
+
+Add top tabs:
+
+* "Individuals" (personal listings)
+* "Businesses" (commercial offers)
+
+Backend:
+
+* Add field: type = "individual" | "business"
+
+UI:
+
+* Show badge on each listing:
+
+  * "Individual"
+  * "Business"
+
+---
+
+## 🟢 PRIORITY 4: TRUST & SAFETY LAYER
+
+Improve user trust:
+
+* Add "Money Protected" badge (UI)
+* Add clear refund message
+* Show listing status clearly (active / expired / full)
+
+---
+
+## 🔵 PRIORITY 5: GENERAL UI/UX IMPROVEMENTS
+
+* Fix inconsistent spacing and typography
+* Improve CTA buttons visibility
+* Add empty states:
+
+  * No listings
+  * No users
+* Improve cards readability (add price, status, clearer progress)
+
+---
+
+## ⚙️ TECH REQUIREMENTS
+
+* Keep code clean and modular
+* Use reusable components
+* Do not duplicate logic
+* Follow best practices for scalability
+
+---
+
+## 🧠 FINAL TASK
+
+After implementation:
+
+1. Review the system
+2. Suggest additional improvements
+3. Optimize performance
+4. Ensure mobile responsiveness
+
+---
+
+Work like a senior engineer in a real startup environment. Prioritize stability, clarity, and scalability.

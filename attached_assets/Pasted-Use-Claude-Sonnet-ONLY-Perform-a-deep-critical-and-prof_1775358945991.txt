@@ -1,0 +1,153 @@
+Use Claude Sonnet ONLY.
+
+Perform a deep, critical, and professional audit of the entire application.
+
+Act as:
+
+* Senior Product Manager
+* UX/UI Expert
+* Marketplace Strategist
+* Growth Expert
+
+Do NOT give generic feedback — provide specific, actionable insights and improvements.
+
+---
+
+1. Product Evaluation
+
+---
+
+* Analyze the group buying concept
+* Identify strengths and weaknesses
+* Identify missing core features
+* Suggest how to make it competitive with top platforms
+
+---
+
+2. User Journey Analysis
+
+---
+
+Analyze full flow:
+
+* signup
+* onboarding
+* browsing deals
+* commit to buy
+* completion
+
+Identify:
+
+* friction points
+* drop-off areas
+* confusion
+
+Provide improvements for each step
+
+---
+
+3. UX/UI Review
+
+---
+
+* Evaluate clarity, simplicity, and usability
+* Identify bad layout or confusing design
+* Suggest improvements to make it modern and intuitive
+
+---
+
+4. Trust & Safety
+
+---
+
+* Evaluate trust level of the platform
+* Identify risks (scam, low quality sellers)
+* Suggest improvements:
+
+  * escrow
+  * verification
+  * ratings
+  * social proof
+
+---
+
+5. Conversion Optimization
+
+---
+
+* Identify what reduces user conversion
+* Suggest:
+
+  * better CTAs
+  * urgency triggers
+  * messaging improvements
+
+---
+
+6. Listings & Marketplace Logic
+
+---
+
+* Evaluate listing structure (individual vs commercial)
+* Evaluate filtering system
+* Suggest improvements
+
+---
+
+7. AI Integration Review
+
+---
+
+* Evaluate how AI is used
+* Suggest how to make AI more visible and useful
+* Improve AI-driven experience
+
+---
+
+8. Admin & Operations
+
+---
+
+* Evaluate admin dashboard
+* Identify missing tools
+* Suggest CRM improvements
+
+---
+
+9. Monetization
+
+---
+
+* Suggest revenue models:
+
+  * commission
+  * premium listings
+  * subscriptions
+
+---
+
+10. Growth & Viral Potential
+
+---
+
+* Suggest ways to make the app grow faster
+* Add viral loops
+* Improve retention
+
+---
+
+11. PRIORITIZATION (Very Important)
+
+---
+
+Divide recommendations into:
+
+* High Impact (do first)
+* Medium Impact
+* Low Impact
+
+---
+
+## GOAL:
+
+Turn this platform into a high-conversion, high-trust, modern marketplace that can scale and compete with major platforms.

@@ -1,0 +1,214 @@
+You are continuing the implementation of the Grouperry platform.
+
+The current system already includes listings CRUD, join/leave, chat, moderation tools, reports, notifications, admin dashboard, verification, location search, filtering, and profile management.
+
+Tasks T001–T010 are currently being implemented.
+
+Do NOT modify the existing tasks or architecture unless required.
+
+Instead, extend the project by adding the following high-impact features that improve trust, safety, discovery, and platform scalability.
+
+All features must follow the existing stack:
+
+React + Vite frontend
+Node.js + Express backend
+PostgreSQL + Drizzle ORM
+JWT authentication
+Mobile-first UI
+
+Keep database schema consistent with current patterns.
+
+------------------------------------
+
+FEATURE GROUP 1: USER SAFETY
+
+User Blocking System
+
+Allow users to block other users.
+
+Blocked users cannot:
+send messages
+join listings created by the blocker
+interact with each other's listings
+
+Create table:
+
+blockedUsers
+id
+blockerId
+blockedUserId
+createdAt
+
+Add API endpoints to block/unblock users.
+
+------------------------------------
+
+FEATURE GROUP 2: TRUST & RELIABILITY
+
+Add a reliability score to user profiles.
+
+Score should consider:
+
+completed groups
+ratings
+reports received
+join cancellations
+
+Add field to profiles:
+
+reliabilityScore
+
+Display reliability score and badges on profiles and listing cards.
+
+Add trust badges:
+
+Email Verified
+Phone Verified
+Trusted Member
+Top Organizer
+
+------------------------------------
+
+FEATURE GROUP 3: SAVED SEARCHES
+
+Allow users to save searches.
+
+Create table:
+
+savedSearches
+id
+userId
+query
+filters
+createdAt
+
+Users should receive notifications when new listings match saved searches.
+
+------------------------------------
+
+FEATURE GROUP 4: TAG SYSTEM
+
+Add a tag system for listings.
+
+Create table:
+
+listingTags
+id
+listingId
+tag
+
+Tags help with search and discovery.
+
+Examples:
+
+bulk
+electronics
+subscriptions
+travel
+food
+
+Allow filtering listings by tags.
+
+------------------------------------
+
+FEATURE GROUP 5: HOST MANAGEMENT TOOLS
+
+Hosts should have more control over their listings.
+
+Add features:
+
+Kick participant from group
+Close listing early
+Extend expiry
+Post announcements (already planned)
+Assign optional co-organizer role
+
+Update APIs accordingly.
+
+------------------------------------
+
+FEATURE GROUP 6: LISTING HISTORY
+
+Track edits to listings.
+
+Create table:
+
+listingHistory
+id
+listingId
+editorId
+changes
+timestamp
+
+Used for moderation and audit purposes.
+
+------------------------------------
+
+FEATURE GROUP 7: DISCOVERY IMPROVEMENTS
+
+Add category pages for browsing listings.
+
+Example categories:
+
+Electronics
+Food
+Travel
+Subscriptions
+Bulk Deals
+
+Each category page shows:
+
+nearby listings
+trending listings
+recent listings
+
+------------------------------------
+
+FEATURE GROUP 8: WATCHLIST NOTIFICATIONS
+
+Users can watch a listing and receive notifications when:
+
+slots change
+listing updated
+listing almost full
+listing completed
+
+Integrate with existing notification system.
+
+------------------------------------
+
+FEATURE GROUP 9: ADMIN ANALYTICS
+
+Extend admin dashboard with analytics metrics:
+
+daily active users
+listings created per day
+join rate
+completion rate
+most popular categories
+
+Add backend queries and dashboard charts.
+
+------------------------------------
+
+FEATURE GROUP 10: SUSPICIOUS BEHAVIOR DETECTION
+
+Detect and flag suspicious activity:
+
+users joining too many listings quickly
+users receiving many reports
+message spam
+
+Flag accounts for admin review.
+
+------------------------------------
+
+IMPLEMENTATION REQUIREMENTS
+
+Follow existing coding style.
+Ensure proper validation and error handling.
+Add database indexes where appropriate.
+Ensure mobile responsiveness.
+Update API documentation if needed.
+
+These additions must integrate cleanly with the current architecture and existing tasks.

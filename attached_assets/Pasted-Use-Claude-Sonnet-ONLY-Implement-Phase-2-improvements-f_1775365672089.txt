@@ -1,0 +1,149 @@
+Use Claude Sonnet ONLY.
+
+Implement Phase 2 improvements focused on UX, conversion optimization, and user clarity.
+
+Do NOT rebuild the system. Improve existing flows.
+
+---
+
+1. Multi-Step Commit Flow (Critical)
+
+---
+
+Replace current single-click commit with a structured multi-step flow:
+
+Step 1:
+
+* Select quantity (if applicable)
+
+Step 2:
+
+* Select distribution method:
+
+  * Pickup / Delivery / Digital
+
+Step 3:
+
+* Show payment instructions clearly
+* Require user acknowledgment checkbox:
+  "I understand this is a commitment and payment will be arranged with the organizer"
+
+Step 4:
+
+* Final confirmation screen:
+
+  * deal summary
+  * user selections
+  * confirm button
+
+---
+
+2. Draft Auto-Save (Create Listing)
+
+---
+
+* Auto-save form data in localStorage
+* Restore data when user returns
+* Show message:
+  "Draft saved automatically"
+
+---
+
+3. Reliability Score Explanation
+
+---
+
+* Add tooltip or modal:
+  Explain:
+
+  * completion rate
+  * reviews
+  * activity
+* Make trust transparent
+
+---
+
+4. Waitlist Position Display
+
+---
+
+* Show:
+  "You are #3 on the waitlist"
+* Update dynamically
+
+---
+
+5. Empty State UX Improvement
+
+---
+
+For empty pages:
+
+* show friendly message
+* add CTA button:
+
+  * "Browse Deals"
+  * "Create Deal"
+
+---
+
+6. Smart Search UX
+
+---
+
+* Add:
+
+  * "No results found" message
+  * suggestions:
+
+    * "Try different keywords"
+* Add recent searches dropdown
+
+---
+
+7. Filter Improvements
+
+---
+
+* Sync filters with URL
+* Allow sharing filtered links
+* Improve usability
+
+---
+
+8. "Next Action" Enhancement
+
+---
+
+In My Groups:
+
+* Show actionable labels:
+
+  * "Waiting for payment"
+  * "Confirm delivery"
+  * "Leave review"
+* Make them clickable
+
+---
+
+9. UX Polish
+
+---
+
+* Improve spacing and readability
+* Add loading states
+* Ensure mobile responsiveness
+
+---
+
+## Execution Rules:
+
+* Do NOT break existing functionality
+* Improve clarity and usability
+* Keep clean and scalable code
+
+---
+
+## GOAL:
+
+Make the platform easy to understand, smooth to use, and optimized for conversion.

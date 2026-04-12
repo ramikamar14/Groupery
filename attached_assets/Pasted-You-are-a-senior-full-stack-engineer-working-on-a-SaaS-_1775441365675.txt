@@ -1,0 +1,125 @@
+You are a senior full-stack engineer working on a SaaS platform called "Grouperry" (group buying platform).
+
+Your task is to implement a complete user profile system with verification, privacy, and trust features.
+
+Do NOT break existing authentication (Google login etc). Extend it.
+
+---
+
+## 🔴 1. PROFILE COMPLETION (MANDATORY)
+
+After signup/login, force users to complete their profile before using the platform.
+
+Required fields:
+
+* Full name
+* Phone number (required)
+* Country (full global list)
+* City
+* Account type: "individual" or "business"
+
+Optional:
+
+* Profile picture
+* Short bio
+
+Users cannot create or join listings until profile is complete.
+
+---
+
+## 🔐 2. PHONE VERIFICATION (OTP)
+
+Implement phone verification:
+
+Flow:
+
+1. User enters phone number
+2. Send OTP via SMS
+3. User verifies code
+4. Mark phone as VERIFIED
+
+Store:
+
+* phone_number
+* phone_verified = true/false
+
+---
+
+## 🔵 3. COUNTRY SYSTEM
+
+* Use full ISO country list (ALL countries, not limited)
+* Dropdown must be searchable
+* Support Arabic and English names
+
+---
+
+## 🟠 4. PROFILE PAGE
+
+Create user profile page where user can:
+
+* Edit name
+* Change phone (requires re-verification)
+* Update country & city
+* Upload profile picture
+
+Display:
+
+* Verification status
+* Joined listings
+
+---
+
+## 🟡 5. CONTROLLED PHONE SHARING (IMPORTANT)
+
+Phone number must NOT be public.
+
+Only reveal phone number IF:
+
+* Users are in the SAME listing
+* AND listing is:
+
+  * confirmed OR
+  * reached at least 80% capacity
+
+Add button:
+"Reveal Contact Info"
+
+Before revealing, show message:
+"Your phone number will be shared only with participants in this deal"
+
+---
+
+## 🟢 6. PRIVACY & SECURITY
+
+* Do NOT expose phone in APIs publicly
+* Protect endpoints (auth required)
+* Add rate limiting for phone reveal
+* Log access to phone numbers
+
+---
+
+## ⚙️ 7. DATABASE UPDATE
+
+Extend user model:
+
+Fields:
+
+* full_name
+* phone_number
+* phone_verified
+* country
+* city
+* account_type
+* profile_completed (boolean)
+
+---
+
+## 🧠 FINAL STEP
+
+After implementation:
+
+* Review UX flow
+* Suggest improvements
+* Ensure mobile responsiveness
+
+Act like a production-level engineer building a trusted marketplace.
