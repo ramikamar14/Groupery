@@ -27,3 +27,4 @@ android/build
 ios/App/Pods
 ios/App/App.xcworkspace/xcuserdata
 *.xcuserstate
+v0/
