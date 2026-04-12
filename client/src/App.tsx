@@ -26,8 +26,9 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import { useAuth } from "@/hooks/use-auth";
 import { LoginModal } from "@/components/LoginModal";
 import { Loader2 } from "lucide-react";
-import { AIChatWidget } from "@/components/AIChatWidget";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ListingContextProvider } from "@/hooks/use-listing-context";
+import { AIChatWidget } from "@/components/AIChatWidget";
 
 function PrivateRoute({ component: Component }: { component: React.ComponentType }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -172,9 +173,11 @@ function App() {
       <TooltipProvider>
         <ListingContextProvider>
           <RTLProvider>
-            <Toaster />
-            <Router />
-            <AIChatWidget />
+            <ErrorBoundary>
+              <Toaster />
+              <Router />
+              <AIChatWidget />
+            </ErrorBoundary>
           </RTLProvider>
         </ListingContextProvider>
       </TooltipProvider>

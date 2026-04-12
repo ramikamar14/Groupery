@@ -90,10 +90,16 @@ export function AIChatWidget() {
         ...prev,
         { role: "assistant", content: data.answer, model: data.model, provider: data.provider },
       ]);
-    } catch {
+    } catch (err) {
+      let message = t("ai.error");
+      if (err instanceof Error) {
+        if (err.message.includes("401")) message = "Please log in to use AI chat";
+        else if (err.message.includes("429")) message = "AI chat is temporarily unavailable due to high demand";
+        else if (err.message.includes("500")) message = "AI service is currently unavailable";
+      }
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: t("ai.error") },
+        { role: "assistant", content: message },
       ]);
     } finally {
       setLoading(false);

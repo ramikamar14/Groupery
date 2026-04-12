@@ -121,7 +121,9 @@ export async function registerRoutes(
     if (!listing) return res.status(404).json({ message: "Listing not found" });
 
     if (listing.status === "active" && listing.expiresAt && new Date(listing.expiresAt) < new Date()) {
-      await storage.transitionListing(id, "expired").catch(() => {});
+      await storage.transitionListing(id, "expired").catch(err => {
+        logger.warn("Failed to auto-expire listing", { listingId: id, error: err.message });
+      });
       listing = { ...listing, status: "expired" };
       cache.invalidatePrefix("discover:");
     }
@@ -144,7 +146,10 @@ export async function registerRoutes(
 
   app.post(api.listings.create.path, requireAuth, async (req, res) => {
     try {
-      const userId = (req.user as any).claims.sub;
+      const userId = (req as any).user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
 
       // Enforce profile completion and phone verification before listing creation
       const creator = await authStorage.getUser(userId);
@@ -215,7 +220,9 @@ export async function registerRoutes(
           });
           try {
             await storage.enqueueEmail(savedSearch.userId, "saved_search_alert", { listingId: listing.id, listingTitle: listing.title, searchQuery: savedSearch.query });
-          } catch (_) {}
+          } catch (err) {
+            logger.warn("Failed to enqueue saved search alert email", { userId: savedSearch.userId, listingId: listing.id, error: err });
+          }
         }
       } catch (err) {
         console.error("Error checking saved searches:", err);
@@ -227,7 +234,9 @@ export async function registerRoutes(
 
       try {
         await storage.recordActivity("listing_created", userId, listing.id, { title: listing.title, category: listing.category });
-      } catch (_) {}
+      } catch (err) {
+        logger.warn("Failed to record listing creation activity", { userId, listingId: listing.id, error: err });
+      }
 
       res.status(201).json(toPublicListing(listing));
     } catch (err) {
@@ -307,7 +316,10 @@ export async function registerRoutes(
   app.post(api.listings.join.path, requireAuth, async (req, res) => {
     const id = parseInt(req.params.id as string);
     if (isNaN(id)) return res.status(400).json({ message: "Invalid listing ID" });
-    const userId = (req.user as any).claims.sub;
+    const userId = (req as any).user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     try {
       const existing = await storage.getParticipation(id, userId);
@@ -398,7 +410,10 @@ export async function registerRoutes(
   app.post(api.listings.leave.path, requireAuth, async (req, res) => {
     const id = parseInt(req.params.id as string);
     if (isNaN(id)) return res.status(400).json({ message: "Invalid listing ID" });
-    const userId = (req.user as any).claims.sub;
+    const userId = (req as any).user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     const listingBefore = await storage.getListing(id);
 
@@ -1011,7 +1026,10 @@ export async function registerRoutes(
   });
 
   // ── Primary Admin (Owner) ──────────────────────────────────────────────────
-  const PRIMARY_ADMIN_EMAIL = process.env.PRIMARY_ADMIN_EMAIL || "rami.kamar@gmail.com";
+  const PRIMARY_ADMIN_EMAIL = process.env.PRIMARY_ADMIN_EMAIL;
+  if (!PRIMARY_ADMIN_EMAIL) {
+    throw new Error("PRIMARY_ADMIN_EMAIL environment variable is required");
+  }
 
   // Ensure primary admin has admin access on startup
   (async () => {
@@ -1855,7 +1873,7 @@ export async function registerRoutes(
   // ── Admin: User Management ─────────────────────────────────────────────────
   app.post("/api/admin/users/:userId/promote", requireAdmin, async (req, res) => {
     try {
-      const { userId } = req.params;
+      const userId = String(req.params.userId);
       const adminId = (req.user as any).claims.sub;
       const user = await authStorage.getUser(userId);
       if (!user) return res.status(404).json({ message: "User not found" });
@@ -1877,7 +1895,7 @@ export async function registerRoutes(
   // ── Admin: Role Management ──────────────────────────────────────────────────
   app.patch("/api/admin/users/:userId/role", requireAdmin, async (req, res) => {
     try {
-      const { userId } = req.params;
+      const userId = String(req.params.userId);
       const { role } = req.body;
       const adminId = (req.user as any).claims.sub;
 
@@ -1906,7 +1924,7 @@ export async function registerRoutes(
 
   app.post("/api/admin/users/:userId/disable", requireAdmin, async (req, res) => {
     try {
-      const { userId } = req.params;
+      const userId = String(req.params.userId);
       const adminId = (req.user as any).claims.sub;
       const user = await authStorage.getUser(userId);
       if (!user) return res.status(404).json({ message: "User not found" });
@@ -1922,7 +1940,7 @@ export async function registerRoutes(
   // ── Admin: Listing Management ──────────────────────────────────────────────
   app.patch("/api/admin/listings/:id/feature", requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(String(req.params.id), 10);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
       const { featured } = req.body;
       const updated = await storage.updateListing(id, { isFeatured: !!featured });
@@ -1935,7 +1953,7 @@ export async function registerRoutes(
 
   app.patch("/api/admin/listings/:id/trending", requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(String(req.params.id), 10);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
       const { trending } = req.body;
       const updated = await storage.updateListing(id, { isTrending: !!trending });
@@ -1948,7 +1966,7 @@ export async function registerRoutes(
 
   app.delete("/api/admin/listings/:id", requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(String(req.params.id), 10);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
       await storage.deleteListing(id);
       res.json({ success: true });
@@ -2079,7 +2097,7 @@ Be specific, data-driven, and actionable. Use bullet points.`;
   // ── Admin: User Activity History ────────────────────────────────────────────
   app.get("/api/admin/users/:userId/activity", requireAdmin, async (req, res) => {
     try {
-      const { userId } = req.params;
+      const userId = String(req.params.userId);
       const [user, participations, reports, flags, reviews, listings] = await Promise.all([
         authStorage.getUser(userId),
         storage.getUserParticipations(userId),
@@ -2121,7 +2139,7 @@ Be specific, data-driven, and actionable. Use bullet points.`;
   // ── Admin: Reset User ───────────────────────────────────────────────────────
   app.post("/api/admin/users/:userId/reset", requireAdmin, async (req, res) => {
     try {
-      const { userId } = req.params;
+      const userId = String(req.params.userId);
       const adminId = (req.user as any).claims.sub;
       const user = await authStorage.getUser(userId);
       if (!user) return res.status(404).json({ message: "User not found" });
@@ -2146,9 +2164,12 @@ Be specific, data-driven, and actionable. Use bullet points.`;
   // ── Admin: Delete User (anonymize + purge data) ───────────────────────────
   app.delete("/api/admin/users/:userId", requireAdmin, async (req, res) => {
     try {
-      const { userId } = req.params;
+      const userId = String(req.params.userId);
       const adminId = (req.user as any).claims.sub;
-      const PRIMARY_ADMIN_EMAIL = process.env.PRIMARY_ADMIN_EMAIL || "rami.kamar@gmail.com";
+      const PRIMARY_ADMIN_EMAIL = process.env.PRIMARY_ADMIN_EMAIL;
+      if (!PRIMARY_ADMIN_EMAIL) {
+        return res.status(500).json({ message: "Server configuration error" });
+      }
       const user = await authStorage.getUser(userId);
       if (!user) return res.status(404).json({ message: "User not found" });
       if ((user as any).email === PRIMARY_ADMIN_EMAIL) {

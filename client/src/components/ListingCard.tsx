@@ -61,7 +61,11 @@ export function ListingCard({ listing }: ListingCardProps) {
 
   const { data: savedListings } = useQuery<number[]>({
     queryKey: ["/api/user/saved-listings"],
-    queryFn: () => fetch("/api/user/saved-listings", { credentials: "include" }).then(r => r.ok ? r.json() : []),
+    queryFn: async () => {
+      const res = await fetch("/api/user/saved-listings", { credentials: "include" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    },
     enabled: !!user,
     select: (data: any) => Array.isArray(data) ? data.map((s: any) => typeof s === "number" ? s : s.listingId) : [],
   });
