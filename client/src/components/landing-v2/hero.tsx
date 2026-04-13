@@ -3,10 +3,55 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Play, Users, Zap, TrendingUp } from "lucide-react";
+import { ArrowRight, Users, TrendingUp } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
+
+type DealListing = {
+  id: number;
+  title: string;
+  description?: string;
+  imageUrl?: string | null;
+  filledSlots?: number;
+  totalSlots?: number;
+  pricePerSlot?: number | null;
+  marketPrice?: number | null;
+};
+
+function formatUsd(cents: number | null | undefined): string | null {
+  if (cents == null || cents <= 0) return null;
+  return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(cents / 100);
+}
 
 function LiveDealCard() {
   const { t } = useTranslation();
+
+  const { data: deal } = useQuery<DealListing | null>({
+    queryKey: ["/api/discover/deal-of-the-day"],
+    queryFn: async () => {
+      const res = await fetch("/api/discover/deal-of-the-day");
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json && typeof json === "object" && json.id != null ? (json as DealListing) : null;
+    },
+    staleTime: 5 * 60_000,
+  });
+
+  const hasDeal = deal && deal.title;
+  const title = hasDeal ? deal.title : t("v2.exampleDealTitle");
+  const subtitle = hasDeal ? (deal.description?.slice(0, 80) || "") : t("v2.exampleDealSubtitle");
+  const groupPrice = hasDeal ? formatUsd(deal.pricePerSlot ?? null) : null;
+  const marketPrice = hasDeal ? formatUsd(deal.marketPrice ?? null) : null;
+  const filled = hasDeal ? Math.max(0, deal.filledSlots ?? 0) : 8;
+  const total = hasDeal ? Math.max(2, deal.totalSlots ?? 10) : 10;
+  const pct = Math.min(100, Math.round((filled / total) * 100));
+  let discountLabel: string | null = null;
+  if (hasDeal && deal.pricePerSlot && deal.marketPrice && deal.marketPrice > deal.pricePerSlot) {
+    discountLabel = `-${Math.round((1 - deal.pricePerSlot / deal.marketPrice) * 100)}%`;
+  }
+
+  const ctaHref = hasDeal ? `/listings/${deal.id}` : "/explore";
+  const ctaLabel = hasDeal ? t("v2.joinThisGroup") : t("v2.exampleDealJoin");
 
   return (
     <motion.div
@@ -22,41 +67,54 @@ function LiveDealCard() {
         </div>
 
         <div className="h-40 rounded-2xl bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 flex items-center justify-center mb-4 overflow-hidden">
-          <motion.div
-            animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="text-6xl"
-          >
-            🎧
-          </motion.div>
+          {hasDeal && deal.imageUrl ? (
+            <img src={deal.imageUrl} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <motion.div
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="text-6xl"
+              aria-hidden
+            >
+              📦
+            </motion.div>
+          )}
         </div>
 
-        <h3 className="font-bold text-lg mb-1">Sony WH-1000XM5</h3>
-        <p className="text-sm text-muted-foreground mb-4">Premium Noise Cancelling</p>
+        <h3 className="font-bold text-lg mb-1 line-clamp-2">{title}</h3>
+        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{subtitle || "\u00a0"}</p>
 
-        <div className="flex items-baseline gap-3 mb-4">
-          <span className="text-3xl font-bold text-primary">$279</span>
-          <span className="text-lg text-muted-foreground line-through">$399</span>
-          <span className="text-sm font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-full dark:bg-green-950 dark:text-green-400">
-            -30%
-          </span>
+        <div className="flex items-baseline gap-3 mb-4 flex-wrap">
+          {groupPrice ? (
+            <span className="text-3xl font-bold text-primary">{groupPrice}</span>
+          ) : (
+            <span className="text-3xl font-bold text-muted-foreground">—</span>
+          )}
+          {marketPrice ? (
+            <span className="text-lg text-muted-foreground line-through">{marketPrice}</span>
+          ) : null}
+          {discountLabel ? (
+            <span className="text-sm font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-full dark:bg-green-950 dark:text-green-400">
+              {discountLabel}
+            </span>
+          ) : null}
         </div>
 
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-2">
             <span className="flex items-center gap-1.5">
               <Users className="size-4 text-primary" />
-              <span className="font-semibold">18</span> {t("v2.peopleIn")}
+              <span className="font-semibold">{filled}</span> {t("v2.peopleIn")}
             </span>
             <span className="text-muted-foreground">
-              <span className="font-semibold text-foreground">2</span> {t("v2.moreToUnlock")}
+              <span className="font-semibold text-foreground">{Math.max(0, total - filled)}</span> {t("v2.moreToUnlock")}
             </span>
           </div>
 
           <div className="relative h-3 rounded-full bg-muted overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: "90%" }}
+              animate={{ width: `${pct}%` }}
               transition={{ delay: 0.8, duration: 1.5, ease: "easeOut" }}
               className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-accent rounded-full"
             />
@@ -64,62 +122,54 @@ function LiveDealCard() {
         </div>
 
         <Button className="w-full rounded-xl h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary/90" asChild>
-          <a href="/api/login" className="inline-flex items-center justify-center gap-0">
-            {t("v2.joinThisGroup")}
+          <Link href={ctaHref} className="inline-flex items-center justify-center gap-0">
+            {ctaLabel}
             <ArrowRight className="ml-2 size-4 shrink-0" />
-          </a>
+          </Link>
         </Button>
 
         <div className="absolute -right-4 top-20 flex flex-col gap-1">
-          {[1, 2, 3].map((i) => (
+          {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 1 + i * 0.15 }}
-              className="size-8 rounded-full border-[3px] border-card overflow-hidden shadow-lg"
-            >
-              <img src={`https://i.pravatar.cc/32?img=${i + 5}`} alt="" className="size-full object-cover" />
-            </motion.div>
+              className="size-8 rounded-full border-[3px] border-card bg-muted shadow-lg"
+              aria-hidden
+            />
           ))}
           <motion.div
             initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 1.5 }}
             className="size-8 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shadow-lg"
+            aria-hidden
           >
-            +15
+            +
           </motion.div>
         </div>
       </div>
-
-      <motion.div
-        initial={{ opacity: 0, x: -20, scale: 0.9 }}
-        animate={{ opacity: 1, x: 0, scale: 1 }}
-        transition={{ delay: 2 }}
-        className="absolute -left-8 bottom-24 bg-card rounded-2xl p-4 shadow-xl border flex items-center gap-3 max-w-[200px]"
-      >
-        <div className="size-10 rounded-full bg-green-100 flex items-center justify-center shrink-0 dark:bg-green-950">
-          <Zap className="size-5 text-green-600 dark:text-green-400" />
-        </div>
-        <div>
-          <p className="font-semibold text-sm">{t("v2.dealUnlocked")}</p>
-          <p className="text-xs text-muted-foreground">
-            $4,230 {t("v2.savedTotal")}
-          </p>
-        </div>
-      </motion.div>
     </motion.div>
   );
 }
 
-export function Hero() {
+interface HeroProps {
+  activeListings?: number | null;
+  totalMembers?: number | null;
+}
+
+export function Hero({ activeListings, totalMembers }: HeroProps) {
   const { t } = useTranslation();
 
+  const listingsDisplay =
+    activeListings != null && activeListings >= 0 ? activeListings.toLocaleString() : "—";
+  const membersDisplay =
+    totalMembers != null && totalMembers >= 0 ? totalMembers.toLocaleString() : "—";
+
   const heroStats = [
-    { value: t("v2.heroStat1Value"), label: t("v2.heroStat1Label"), icon: undefined as string | undefined },
-    { value: t("v2.heroStat2Value"), label: t("v2.heroStat2Label"), icon: undefined },
-    { value: t("v2.heroStat3Value"), label: t("v2.heroStat3Label"), icon: "★" },
+    { value: listingsDisplay, label: t("v2.heroStatListingsLabel") },
+    { value: membersDisplay, label: t("v2.heroStatMembersLabel") },
   ];
 
   return (
@@ -183,10 +233,9 @@ export function Hero() {
                   <ArrowRight className="ml-2 size-5 shrink-0" />
                 </a>
               </Button>
-              <Button size="lg" variant="outline" className="rounded-full h-14 px-8 text-base font-semibold border-2 group" asChild>
+              <Button size="lg" variant="outline" className="rounded-full h-14 px-8 text-base font-semibold border-2" asChild>
                 <a href="#how-it-works" className="inline-flex items-center justify-center">
-                  <Play className="mr-2 size-4 shrink-0 group-hover:scale-110 transition-transform" />
-                  {t("v2.watchDemo")}
+                  {t("v2.seeHowItWorks")}
                 </a>
               </Button>
             </div>
@@ -201,7 +250,6 @@ export function Hero() {
                   className="text-center lg:text-left"
                 >
                   <div className="text-2xl font-bold font-display text-foreground flex items-center gap-1 justify-center lg:justify-start">
-                    {stat.icon && <span className="text-yellow-500">{stat.icon}</span>}
                     {stat.value}
                   </div>
                   <div className="text-sm text-muted-foreground">{stat.label}</div>

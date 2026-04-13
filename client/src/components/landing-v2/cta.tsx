@@ -5,6 +5,7 @@ import { ArrowRight, Sparkles, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
+import { DecorativeAvatar } from "@/components/landing-v2/decorative-avatar";
 
 export function CTA() {
   const { t } = useTranslation();
@@ -32,7 +33,7 @@ export function CTA() {
                     transition={{ delay: i * 0.1 }}
                     className="size-12 rounded-full border-[3px] border-card overflow-hidden shadow-lg"
                   >
-                    <img src={`https://i.pravatar.cc/48?img=${i + 30}`} alt="" className="size-full object-cover" />
+                    <DecorativeAvatar seed={i + 30} />
                   </motion.div>
                 ))}
               </div>
@@ -47,7 +48,7 @@ export function CTA() {
                     transition={{ delay: i * 0.1 }}
                     className="size-12 rounded-full border-[3px] border-card overflow-hidden shadow-lg"
                   >
-                    <img src={`https://i.pravatar.cc/48?img=${i + 30}`} alt="" className="size-full object-cover" />
+                    <DecorativeAvatar seed={i + 50} />
                   </motion.div>
                 ))}
               </div>
@@ -92,13 +93,13 @@ export function CTA() {
                   <div className="flex -space-x-2">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <div key={i} className="size-8 rounded-full border-2 border-card overflow-hidden">
-                        <img src={`https://i.pravatar.cc/32?img=${i + 40}`} alt="" className="size-full object-cover" />
+                        <DecorativeAvatar seed={i + 70} />
                       </div>
                     ))}
                   </div>
                   <div className="text-sm text-muted-foreground flex items-center gap-1">
                     <Users className="size-4" />
-                    <span>{t("v2.ctaJoinedWeek", { count: "2,847" })}</span>
+                    <span>{t("v2.ctaCommunityHint")}</span>
                   </div>
                 </div>
               </div>

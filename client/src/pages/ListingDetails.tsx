@@ -28,6 +28,7 @@ import { SimilarDealsSection } from "@/components/listing/SimilarDealsSection";
 import { EditHistorySection } from "@/components/listing/EditHistorySection";
 import { MilestoneTracker } from "@/components/listing/MilestoneTracker";
 import { DealProofSection } from "@/components/listing/DealProofSection";
+import { api } from "@shared/routes";
 
 export default function ListingDetails() {
   const [match, params] = useRoute("/listings/:id");
@@ -564,6 +565,15 @@ export default function ListingDetails() {
 
                 {isActive && isParticipant && !isCreator && (
                   <>
+                    <Button
+                      size="lg"
+                      variant="secondary"
+                      disabled
+                      className="w-full md:w-auto px-8 pointer-events-none opacity-90"
+                      data-testid="button-joined-state"
+                    >
+                      <CheckCircle2 className="w-5 h-5 mr-2" /> {t("listing.joinedStatus")}
+                    </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button 
@@ -1290,7 +1300,7 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
             body: JSON.stringify({ distributionPreference: distPref }),
           });
         } catch { /* preference save is best-effort */ }
-        queryClient.invalidateQueries({ queryKey: ["/api/listings", listing.id] });
+        queryClient.invalidateQueries({ queryKey: [api.listings.get.path, listing.id] });
         setOpen(false);
         reset();
         if (data?.justCompleted) localStorage.removeItem(`celebration-seen-${listing.id}`);

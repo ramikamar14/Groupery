@@ -4,7 +4,7 @@ import {
   listings, participations, messages, reports, warnings,
   listingImages, savedListings, reviews, listingViews, listingUpdates, listingTags,
   savedSearches, suspiciousFlags, listingHistory, activityFeed, systemEvents, featureFlags, emailQueue,
-  waitlists, orders, dealMilestones, siteSettings, dealProofs, invitations,
+  waitlists, orders, dealMilestones, siteSettings, dealProofs, invitations, newsletterSubscribers,
   type Listing, type InsertListing, type UpdateListingRequest,
   type Participation, 
   type Message, 
@@ -158,6 +158,9 @@ export interface IStorage {
   enqueueEmail(userId: string, emailType: string, payload: any): Promise<EmailQueueEntry>;
   getEmailQueue(status?: string): Promise<EmailQueueEntry[]>;
   markEmailProcessed(id: number, status: "sent" | "failed"): Promise<void>;
+
+  /** Landing-page newsletter; email stored lowercased, unique. */
+  subscribeNewsletterEmail(email: string, locale?: string | null): Promise<"created" | "exists">;
 
   // Feature Flags
   getFeatureFlag(key: string): Promise<FeatureFlag | undefined>;
@@ -1566,6 +1569,14 @@ export class DatabaseStorage implements IStorage {
 
   async updateInvitation(id: number, status: "accepted" | "declined"): Promise<void> {
     await db.update(invitations).set({ status }).where(eq(invitations.id, id));
+  }
+
+  async subscribeNewsletterEmail(email: string, locale?: string | null): Promise<"created" | "exists"> {
+    const normalized = email.trim().toLowerCase();
+    const [existing] = await db.select().from(newsletterSubscribers).where(eq(newsletterSubscribers.email, normalized)).limit(1);
+    if (existing) return "exists";
+    await db.insert(newsletterSubscribers).values({ email: normalized, locale: locale?.trim() || null });
+    return "created";
   }
 }
 

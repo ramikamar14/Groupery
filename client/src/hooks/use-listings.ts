@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
 import type { InsertListing, Listing } from "@shared/schema";
+import i18n from "@/lib/i18n";
 
 // Types derived from schema via routes, but for convenience:
 // Ideally we import these from shared/schema directly if routes.ts didn't export them cleanly,
@@ -78,14 +79,17 @@ export function useCreateListing() {
         const error = await res.json();
         throw new Error(error.message || "Failed to create listing");
       }
-      return await res.json();
+      return (await res.json()) as Listing;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.listings.list.path] });
-      toast({ title: "Success", description: "Listing created successfully!" });
+      toast({
+        title: i18n.t("create.listingCreatedTitle"),
+        description: i18n.t("create.listingCreatedDesc"),
+      });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: i18n.t("common.error"), description: error.message, variant: "destructive" });
     },
   });
 }
@@ -109,12 +113,15 @@ export function useJoinListing() {
       return await res.json();
     },
     onSuccess: (_, listingId) => {
-      queryClient.invalidateQueries({ queryKey: [api.listings.get.path, String(listingId)] });
+      queryClient.invalidateQueries({ queryKey: [api.listings.get.path, listingId] });
       queryClient.invalidateQueries({ queryKey: [api.listings.list.path] });
-      toast({ title: "Joined!", description: "You are now part of this group." });
+      toast({
+        title: i18n.t("listing.joined"),
+        description: i18n.t("listing.joinedDesc"),
+      });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: i18n.t("common.error"), description: error.message, variant: "destructive" });
     },
   });
 }
@@ -138,7 +145,7 @@ export function useLeaveListing() {
       return await res.json();
     },
     onSuccess: (_, listingId) => {
-      queryClient.invalidateQueries({ queryKey: [api.listings.get.path, String(listingId)] });
+      queryClient.invalidateQueries({ queryKey: [api.listings.get.path, listingId] });
       queryClient.invalidateQueries({ queryKey: [api.listings.list.path] });
       toast({ title: "Left Group", description: "You have left the group." });
     },

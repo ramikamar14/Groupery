@@ -24,8 +24,8 @@ export default function Contact() {
 
     if (!formData.name || !formData.email || !formData.subject || !formData.message) {
       toast({
-        title: "Error",
-        description: "Please fill in all fields",
+        title: t("contact.toastErrorTitle"),
+        description: t("contact.toastValidation"),
         variant: "destructive",
       });
       return;
@@ -43,15 +43,15 @@ export default function Contact() {
       if (!res.ok) throw new Error("Failed to send message");
 
       toast({
-        title: "Message sent!",
-        description: "We'll get back to you as soon as possible.",
+        title: t("contact.toastSentTitle"),
+        description: t("contact.toastSentDesc"),
       });
 
       setFormData({ name: "", email: "", subject: "", message: "" });
     } catch {
       toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
+        title: t("contact.toastErrorTitle"),
+        description: t("contact.toastFailDesc"),
         variant: "destructive",
       });
     } finally {
@@ -63,27 +63,24 @@ export default function Contact() {
     <Layout>
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
-          <h1 className="text-4xl font-bold font-display mb-2">Contact Us</h1>
-          <p className="text-muted-foreground">
-            Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-          </p>
+          <h1 className="text-4xl font-bold font-display mb-2">{t("contact.title")}</h1>
+          <p className="text-muted-foreground">{t("contact.subtitle")}</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Contact Form */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="w-5 h-5" />
-                Send us a Message
+                {t("contact.formTitle")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4" data-testid="contact-form">
                 <div>
-                  <label className="text-sm font-medium">Name</label>
+                  <label className="text-sm font-medium">{t("contact.name")}</label>
                   <Input
-                    placeholder="Your name"
+                    placeholder={t("contact.placeholderName")}
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     data-testid="input-name"
@@ -91,10 +88,10 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium">Email</label>
+                  <label className="text-sm font-medium">{t("contact.email")}</label>
                   <Input
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder={t("contact.placeholderEmail")}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     data-testid="input-email"
@@ -102,9 +99,9 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium">Subject</label>
+                  <label className="text-sm font-medium">{t("contact.subject")}</label>
                   <Input
-                    placeholder="What is this about?"
+                    placeholder={t("contact.placeholderSubject")}
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     data-testid="input-subject"
@@ -112,9 +109,9 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium">Message</label>
+                  <label className="text-sm font-medium">{t("contact.message")}</label>
                   <Textarea
-                    placeholder="Your message..."
+                    placeholder={t("contact.placeholderMessage")}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     className="min-h-[150px]"
@@ -122,21 +119,16 @@ export default function Contact() {
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full"
-                  data-testid="button-submit-contact"
-                >
+                <Button type="submit" disabled={isSubmitting} className="w-full" data-testid="button-submit-contact">
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Sending...
+                      {t("contact.sending")}
                     </>
                   ) : (
                     <>
                       <Send className="w-4 h-4 mr-2" />
-                      Send Message
+                      {t("contact.send")}
                     </>
                   )}
                 </Button>
@@ -144,53 +136,44 @@ export default function Contact() {
             </CardContent>
           </Card>
 
-          {/* Contact Info */}
           <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Mail className="w-5 h-5" />
-                  Get in Touch
+                  {t("contact.infoTitle")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h4 className="font-semibold mb-2">General Inquiries</h4>
-                  <p className="text-sm text-muted-foreground">
-                    For general questions about Grouperry, use the contact form or check our FAQ.
-                  </p>
+                  <h4 className="font-semibold mb-2">{t("contact.generalTitle")}</h4>
+                  <p className="text-sm text-muted-foreground">{t("contact.generalDesc")}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-2">Support</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Need help with your account? Check the Help Center or submit a support ticket through the form.
-                  </p>
+                  <h4 className="font-semibold mb-2">{t("contact.supportTitle")}</h4>
+                  <p className="text-sm text-muted-foreground">{t("contact.supportDesc")}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-2">Report Issues</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Found a bug or security issue? Please contact us immediately through this form.
-                  </p>
+                  <h4 className="font-semibold mb-2">{t("contact.reportTitle")}</h4>
+                  <p className="text-sm text-muted-foreground">{t("contact.reportDesc")}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-2">Business Inquiries</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Interested in partnerships or commercial opportunities? We'd love to discuss with you.
-                  </p>
+                  <h4 className="font-semibold mb-2">{t("contact.businessTitle")}</h4>
+                  <p className="text-sm text-muted-foreground">{t("contact.businessDesc")}</p>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Response Time</CardTitle>
+                <CardTitle>{t("contact.responseTitle")}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground space-y-2">
-                <p>We typically respond to messages within 24-48 hours during business days.</p>
-                <p>For urgent issues, please use the report feature within the app.</p>
+                <p>{t("contact.responseP1")}</p>
+                <p>{t("contact.responseP2")}</p>
               </CardContent>
             </Card>
           </div>

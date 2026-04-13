@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Heart } from "lucide-react";
 import { Link } from "wouter";
 import { Logo } from "./logo";
+import { NewsletterSection } from "./newsletter-section";
 
 export function Footer() {
   const { t } = useTranslation();
@@ -20,7 +21,7 @@ export function Footer() {
     },
     {
       title: t("v2.footerColCompany"),
-      links: [{ label: t("v2.footerLinkAbout"), href: "/faq" }],
+      links: [{ label: t("v2.footerLinkAbout"), href: "/about" }],
     },
     {
       title: t("v2.footerColSupport"),
@@ -41,6 +42,7 @@ export function Footer() {
 
   return (
     <footer className="relative overflow-hidden">
+      <NewsletterSection />
       <div className="bg-card border-t py-16">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-6 gap-8 lg:gap-12">

@@ -525,6 +525,20 @@ export const referrals = pgTable("referrals", {
 
 export type Referral = typeof referrals.$inferSelect;
 
+// Marketing: landing-page newsletter signups (no auth required)
+export const newsletterSubscribers = pgTable(
+  "newsletter_subscribers",
+  {
+    id: serial("id").primaryKey(),
+    email: text("email").notNull(),
+    locale: varchar("locale", { length: 16 }),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (t) => [uniqueIndex("newsletter_subscribers_email_unique").on(t.email)]
+);
+
+export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
+
 // Phone OTP table — stores verification codes (mock SMS for now)
 export const phoneOtps = pgTable("phone_otps", {
   id: serial("id").primaryKey(),

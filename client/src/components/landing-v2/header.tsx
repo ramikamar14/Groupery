@@ -16,6 +16,7 @@ export function Header() {
     { label: t("v2.navHowItWorks"), href: "#how-it-works" },
     { label: t("v2.navCategories"), href: "#categories" },
     { label: t("v2.navTrust"), href: "#trust" },
+    { label: t("v2.navAbout"), href: "/about" },
   ];
 
   return (
@@ -60,7 +61,7 @@ export function Header() {
             className="md:hidden rounded-full"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-expanded={mobileMenuOpen}
-            aria-label="Menu"
+            aria-label={t("common.menu")}
           >
             {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
           </Button>

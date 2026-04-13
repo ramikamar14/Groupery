@@ -23,6 +23,7 @@ import SavedListings from "@/pages/SavedListings";
 import ExpiredListings from "@/pages/ExpiredListings";
 import Terms from "@/pages/Terms";
 import FAQ from "@/pages/FAQ";
+import About from "@/pages/About";
 import Contact from "@/pages/Contact";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import { useAuth } from "@/hooks/use-auth";
@@ -133,6 +134,9 @@ function Router() {
       </Route>
       <Route path="/faq">
         <FAQ />
+      </Route>
+      <Route path="/about">
+        <About />
       </Route>
       <Route path="/contact">
         <Contact />

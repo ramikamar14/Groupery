@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowUpRight, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
+import { DecorativeAvatar } from "@/components/landing-v2/decorative-avatar";
 
 export function Categories() {
   const { t } = useTranslation();
@@ -116,11 +117,7 @@ export function Categories() {
                   <div className="flex -space-x-2">
                     {[1, 2, 3].map((j) => (
                       <div key={j} className="size-6 rounded-full border-2 border-card overflow-hidden">
-                        <img
-                          src={`https://i.pravatar.cc/24?img=${i * 3 + j}`}
-                          alt=""
-                          className="size-full object-cover"
-                        />
+                        <DecorativeAvatar seed={i * 3 + j} />
                       </div>
                     ))}
                   </div>

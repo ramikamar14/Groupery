@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Search, Share2, Users, PartyPopper } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { DecorativeAvatar } from "@/components/landing-v2/decorative-avatar";
 
 export function HowItWorks() {
   const { t } = useTranslation();
@@ -54,7 +55,7 @@ export function HowItWorks() {
                 transition={{ delay: i * 0.1 }}
                 className="size-12 rounded-full border-[3px] border-card overflow-hidden shadow-lg"
               >
-                <img src={`https://i.pravatar.cc/48?img=${i + 10}`} alt="" className="size-full object-cover" />
+                <DecorativeAvatar seed={i + 10} />
               </motion.div>
             ))}
             <motion.div

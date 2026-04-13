@@ -11,7 +11,7 @@ export default function Landing() {
     <div className="theme-v2 min-h-screen bg-background text-foreground flex flex-col" data-testid="landing-page">
       <Header />
       <main className="flex-1">
-        <Hero />
+        <Hero activeListings={platformStats?.activeListings} totalMembers={platformStats?.totalMembers} />
         <Stats activeListings={platformStats?.activeListings} totalMembers={platformStats?.totalMembers} />
         <HowItWorks />
         <Categories />

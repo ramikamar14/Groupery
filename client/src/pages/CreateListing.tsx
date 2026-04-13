@@ -422,16 +422,31 @@ export default function CreateListing() {
   };
 
   const onSubmit = (data: InsertListing) => {
-    // Hard guard — backend will also reject, but stop here for cleaner UX
-    if (currentUser && (!currentUser.phoneVerified || !currentUser.onboardingComplete)) return;
+    if (currentUser && (!currentUser.phoneVerified || !currentUser.onboardingComplete)) {
+      toast({
+        title: t("create.submitBlockedTitle"),
+        description:
+          !currentUser.phoneVerified && !currentUser.onboardingComplete
+            ? t("create.verificationRequiredBothDesc")
+            : !currentUser.phoneVerified
+              ? t("create.verificationRequiredPhoneDesc")
+              : t("create.verificationRequiredOnboardingDesc"),
+        variant: "destructive",
+      });
+      return;
+    }
     const additionalImages = uploadedImages.slice(1).map(img => img.url);
     const pricePerSlot = pricePerSlotDollars ? Math.round(parseFloat(pricePerSlotDollars) * 100) : null;
     const marketPrice = marketPriceDollars ? Math.round(parseFloat(marketPriceDollars) * 100) : null;
     createListing.mutate({ ...data, additionalImages, tags, pricePerSlot, marketPrice, distributionType, distributionDetails } as any, {
-      onSuccess: () => {
+      onSuccess: (listing: { id?: number }) => {
         try { localStorage.removeItem(draftKey); } catch {}
-        setLocation("/");
-      }
+        if (listing?.id != null) {
+          setLocation(`/listings/${listing.id}`);
+        } else {
+          setLocation("/");
+        }
+      },
     });
   };
 
@@ -468,10 +483,10 @@ export default function CreateListing() {
               <Button
                 size="sm"
                 className="mt-3"
-                onClick={() => setLocation("/profile")}
+                onClick={() => setLocation(!currentUser.onboardingComplete ? "/onboarding" : "/profile")}
                 data-testid="button-go-to-profile"
               >
-                {t("create.goToProfile", "Complete profile")}
+                {!currentUser.onboardingComplete ? t("create.continueSetup") : t("create.goToProfile")}
               </Button>
             </div>
           </div>
@@ -1007,7 +1022,7 @@ export default function CreateListing() {
                 <Button 
                   type="submit" 
                   size="lg"
-                  disabled={createListing.isPending}
+                  disabled={createListing.isPending || !!needsVerification}
                   className="w-full font-semibold shadow-lg shadow-primary/25"
                   data-testid="button-create-listing"
                 >

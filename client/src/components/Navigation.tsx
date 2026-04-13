@@ -8,6 +8,7 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { LogoIcon } from "./Logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function BottomNav() {
   const [location] = useLocation();
@@ -20,26 +21,37 @@ export function BottomNav() {
   });
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const isAdmin = !!(user as { isAdmin?: boolean } | undefined)?.isAdmin;
 
   const navItems = [
     { href: "/", icon: Home, label: t("nav.explore") },
     { href: "/dashboard", icon: LayoutDashboard, label: t("nav.dashboard") },
     { href: "/my-groups", icon: Users, label: t("nav.myGroups") },
     { href: "/create", icon: PlusSquare, label: t("nav.create") },
-    { href: "/saved", icon: Bookmark, label: t("nav.saved") },
-    { href: "/profile", icon: User, label: t("nav.profile"), badge: unreadCount > 0 ? unreadCount : undefined },
+    { href: "/notifications", icon: Bell, label: t("nav.notifications"), badge: unreadCount > 0 ? unreadCount : undefined },
+    ...(isAuthenticated && isAdmin ? [{ href: "/admin", icon: ShieldAlert, label: t("nav.adminCrm") }] : []),
+    { href: "/profile", icon: User, label: t("nav.profile") },
   ];
+
+  const createBlocked =
+    isAuthenticated &&
+    user &&
+    (!(user as { phoneVerified?: boolean }).phoneVerified || !(user as { onboardingComplete?: boolean }).onboardingComplete);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 glass border-t md:hidden pb-safe">
       <div className="flex justify-around items-center h-16 px-1">
         {navItems.map((item) => {
           const isActive = location === item.href;
-          return (
-            <Link key={item.href} href={item.href} className={cn(
-              "flex flex-col items-center justify-center flex-1 h-full space-y-0.5 transition-all duration-200 relative rounded-lg mx-0.5",
-              isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-            )} data-testid={`nav-mobile-${item.href.replace("/", "") || "home"}`}>
+          const inner = (
+            <Link
+              href={item.href}
+              className={cn(
+                "flex flex-col items-center justify-center flex-1 h-full space-y-0.5 transition-all duration-200 relative rounded-lg mx-0.5",
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+              data-testid={`nav-mobile-${item.href.replace("/", "") || "home"}`}
+            >
               {isActive && (
                 <span className="absolute top-1.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-primary" />
               )}
@@ -54,6 +66,17 @@ export function BottomNav() {
               <span className={cn("text-[9px] font-medium tracking-wide", isActive ? "font-semibold" : "")}>{item.label}</span>
             </Link>
           );
+          if (item.href === "/create" && createBlocked) {
+            return (
+              <Tooltip key={item.href} delayDuration={300}>
+                <TooltipTrigger asChild>{inner}</TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[240px]">
+                  {t("nav.createRequiresVerification")}
+                </TooltipContent>
+              </Tooltip>
+            );
+          }
+          return <span key={item.href} className="contents">{inner}</span>;
         })}
       </div>
     </div>
@@ -95,9 +118,16 @@ export function Sidebar() {
     { href: "/profile", icon: User, label: t("nav.profile") },
   ];
 
-  const userName = user ? `${(user as any).firstName || ""} ${(user as any).lastName || ""}`.trim() || (user as any).email || "User" : "";
+  const userName = user
+    ? `${(user as any).firstName || ""} ${(user as any).lastName || ""}`.trim() || (user as any).email || t("nav.fallbackUser")
+    : "";
   const userInitials = userName ? userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : "U";
   const reliabilityScore = reliability?.score ?? null;
+
+  const createBlocked =
+    isAuthenticated &&
+    user &&
+    (!(user as { phoneVerified?: boolean }).phoneVerified || !(user as { onboardingComplete?: boolean }).onboardingComplete);
 
   return (
     <div className="hidden md:flex flex-col w-60 xl:w-64 h-screen border-r border-border/50 bg-card/50 backdrop-blur-sm fixed left-0 top-0 z-30">
@@ -106,7 +136,7 @@ export function Sidebar() {
         <Link href="/" className="flex items-center gap-2.5 group" data-testid="nav-logo">
           <LogoIcon size={32} />
           <span className="text-base font-bold font-display tracking-tight text-foreground group-hover:text-primary transition-colors">
-            Grouperry
+            {t("landing.brandName")}
           </span>
         </Link>
       </div>
@@ -125,13 +155,15 @@ export function Sidebar() {
                 {(user as any).isVerified ? (
                   <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-0 font-medium gap-0.5">
                     <CheckCircle className="w-2.5 h-2.5" />
-                    Verified
+                    {t("nav.verified")}
                   </Badge>
                 ) : (
-                  <span className="text-[10px] text-muted-foreground">Not verified</span>
+                  <span className="text-[10px] text-muted-foreground">{t("nav.notVerified")}</span>
                 )}
                 {reliabilityScore !== null && (
-                  <span className="text-[10px] text-muted-foreground">· {reliabilityScore}% reliable</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    · {t("nav.reliableLine", { pct: reliabilityScore })}
+                  </span>
                 )}
               </div>
             </div>
@@ -144,13 +176,17 @@ export function Sidebar() {
       <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto scrollbar-hide">
         {navItems.map((item) => {
           const isActive = location === item.href;
-          return (
-            <Link key={item.href} href={item.href} className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 group relative",
-              isActive
-                ? "bg-primary/10 text-primary font-semibold"
-                : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
-            )} data-testid={`nav-sidebar-${item.href.replace("/", "") || "home"}`}>
+          const inner = (
+            <Link
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 group relative",
+                isActive
+                  ? "bg-primary/10 text-primary font-semibold"
+                  : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+              )}
+              data-testid={`nav-sidebar-${item.href.replace("/", "") || "home"}`}
+            >
               {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r bg-primary" />}
               <div className="relative">
                 <item.icon className={cn("shrink-0", isActive ? "text-primary" : "group-hover:text-foreground")} strokeWidth={isActive ? 2.25 : 1.75} style={{ width: "1.0625rem", height: "1.0625rem" }} />
@@ -163,6 +199,17 @@ export function Sidebar() {
               <span className="text-sm flex-1">{item.label}</span>
             </Link>
           );
+          if (item.href === "/create" && createBlocked) {
+            return (
+              <Tooltip key={item.href} delayDuration={300}>
+                <TooltipTrigger asChild>{inner}</TooltipTrigger>
+                <TooltipContent side="right" className="max-w-[260px]">
+                  {t("nav.createRequiresVerification")}
+                </TooltipContent>
+              </Tooltip>
+            );
+          }
+          return <span key={item.href} className="contents">{inner}</span>;
         })}
 
         {(user as any)?.isAdmin && (

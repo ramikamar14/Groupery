@@ -22,7 +22,10 @@ const resources = {
         pastListings: "Past Listings",
         adminCrm: "Admin CRM",
         verified: "Verified",
-        notVerified: "Not verified"
+        notVerified: "Not verified",
+        reliableLine: "{{pct}}% reliable",
+        fallbackUser: "User",
+        createRequiresVerification: "Finish onboarding and verify your phone before creating a listing."
       },
       saved: {
         title: "Saved Listings",
@@ -206,7 +209,11 @@ const resources = {
         verificationRequiredPhoneDesc: "You need to verify your phone number before you can create a listing.",
         verificationRequiredOnboardingDesc: "You need to complete your profile setup before you can create a listing.",
         verificationRequiredBothDesc: "You need to complete your profile and verify your phone number first.",
-        goToProfile: "Complete profile",
+        goToProfile: "Go to profile",
+        continueSetup: "Continue setup",
+        listingCreatedTitle: "Listing created",
+        listingCreatedDesc: "Your group buy is live.",
+        submitBlockedTitle: "Can't publish yet",
         draftSaved: "Draft saved",
         pricingSavings: "Members save {{pct}}% compared to market price",
         pricingWarning: "Group price is higher than market price — double-check your values",
@@ -439,7 +446,8 @@ const resources = {
         onlySpotsLeft_other: "Only {{count}} spots left!",
         signInToSave: "Sign in to save listings",
         signInToJoin: "Sign in to Join",
-        commitToBuy: "Commit to Buy",
+        joinedStatus: "Joined",
+        commitToBuy: "Join",
         revealContact: "Reveal Creator Contact",
         creatorPhone: "Creator's Phone",
         hoursLeft: "{{count}}h left",
@@ -897,12 +905,6 @@ const resources = {
         trustLead: "Verified profiles, moderated listings, and secure checkout—backed by usage stats and real member feedback.",
         trustCredibilityTitle: "Live platform snapshot",
         trustCredibilitySubtitle: "Key figures from our active marketplace.",
-        trustStatMembers: "Verified members",
-        trustStatDeals: "Deals live now",
-        trustStatRating: "Avg. member rating",
-        trustStatRecommend: "Would join another deal",
-        trustStatRatingValue: "4.8",
-        trustStatRecommendValue: "94%",
         trustTestimonialsTitle: "What members say",
         trustPillarsTitle: "How we protect buyers & organizers",
         trustT1Quote: "I finally stopped paying full price for things I was going to buy anyway. Our group locked in under two days.",
@@ -932,13 +934,12 @@ const resources = {
         joinThisGroup: "Join This Group",
         dealUnlocked: "Deal Unlocked!",
         savedTotal: "saved total",
-        watchDemo: "Watch Demo",
-        heroStat1Value: "50K+",
-        heroStat1Label: "Active members",
-        heroStat2Value: "$2M+",
-        heroStat2Label: "Saved this month",
-        heroStat3Value: "4.9",
-        heroStat3Label: "App rating",
+        seeHowItWorks: "See how it works",
+        exampleDealTitle: "Example group deal",
+        exampleDealSubtitle: "Illustration only — real deals look like this on Grouperry.",
+        exampleDealJoin: "Browse live deals",
+        heroStatListingsLabel: "Active listings",
+        heroStatMembersLabel: "Members on the platform",
         heroTrending: "Trending: Home Appliances",
         howTagline: "Simple as 1-2-3",
         howTitle: "Group buying, reimagined",
@@ -981,7 +982,7 @@ const resources = {
         ctaTitle: "Your next big save is one click away",
         ctaButton: "Create Free Account",
         ctaSecondary: "Browse Active Deals",
-        ctaJoinedWeek: "{{count}} joined this week",
+        ctaCommunityHint: "Browse live deals and team up with others",
         footerTagline: "Shop together, save together.",
         footerTaglineExtra: "Join millions of smart shoppers saving money together.",
         footerStayLoop: "Stay in the loop",
@@ -1030,6 +1031,7 @@ const resources = {
       faq: {
         title: "Frequently Asked Questions",
         subtitle: "Find answers to common questions about Grouperry",
+        emptyState: "No questions are available right now. Please try again later or contact support.",
         items: [
           {
             id: "1",
@@ -1128,7 +1130,7 @@ const resources = {
       },
       footer: {
         platform: "Platform",
-        company: "Support",
+        support: "Support",
         legal: "Legal",
         exploreDeals: "Explore Deals",
         createGroup: "Create a Group",
@@ -1148,7 +1150,15 @@ const resources = {
       notFound: {
         title: "404 Page Not Found",
         description: "The page you requested does not exist.",
-        home: "Return Home"
+        home: "Return Home",
+        browse: "Browse deals"
+      },
+      newsletter: {
+        success: "You're subscribed!",
+        subscribedPersist: "You're on the list — we'll keep you posted.",
+        already: "You're already on the list.",
+        error: "Something went wrong. Please try again.",
+        invalid: "Enter a valid email address."
       },
       categories: {
         title: "Browse Categories",
@@ -1207,7 +1217,12 @@ const resources = {
         language: "اللغة",
         categories: "التصنيفات",
         pastListings: "قوائم سابقة",
-        adminCrm: "لوحة الإدارة"
+        adminCrm: "لوحة الإدارة",
+        verified: "موثّق",
+        notVerified: "غير موثّق",
+        reliableLine: "{{pct}}% موثوقية",
+        fallbackUser: "مستخدم",
+        createRequiresVerification: "أكمل الإعداد وتحقق من هاتفك قبل إنشاء قائمة."
       },
       saved: {
         title: "القوائم المحفوظة",
@@ -1391,7 +1406,11 @@ const resources = {
         verificationRequiredPhoneDesc: "تحتاج إلى التحقق من رقم هاتفك قبل إنشاء قائمة.",
         verificationRequiredOnboardingDesc: "تحتاج إلى إكمال إعداد ملفك الشخصي قبل إنشاء قائمة.",
         verificationRequiredBothDesc: "تحتاج إلى إكمال ملفك الشخصي والتحقق من رقم هاتفك أولاً.",
-        goToProfile: "إكمال الملف الشخصي",
+        goToProfile: "الذهاب للملف الشخصي",
+        continueSetup: "متابعة الإعداد",
+        listingCreatedTitle: "تم إنشاء القائمة",
+        listingCreatedDesc: "صفقتك الجماعية أصبحت نشطة.",
+        submitBlockedTitle: "لا يمكن النشر بعد",
         draftSaved: "تم حفظ المسودة",
         pricingSavings: "يوفر الأعضاء {{pct}}٪ مقارنة بسعر السوق",
         pricingWarning: "سعر المجموعة أعلى من سعر السوق — راجع القيم",
@@ -1624,7 +1643,8 @@ const resources = {
         onlySpotsLeft_other: "{{count}} أماكن فقط متبقية!",
         signInToSave: "سجّل الدخول لحفظ القوائم",
         signInToJoin: "سجّل الدخول للانضمام",
-        commitToBuy: "أكّد المشاركة",
+        joinedStatus: "منضم",
+        commitToBuy: "انضم",
         revealContact: "كشف معلومات المنظّم",
         creatorPhone: "هاتف المنظّم",
         hoursLeft: "{{count}}س متبقية",
@@ -2028,9 +2048,249 @@ const resources = {
         ctaTitle: "مستعد للتوفير معاً؟",
         ctaSubtitle: "انضم لآلاف المتسوقين الأذكياء الذين يستخدمون الشراء الجماعي بالفعل للحصول على صفقات أفضل.",
         ctaButton: "أنشئ حسابك المجاني",
+        brandName: "Grouperry",
         footer: "جميع الحقوق محفوظة.",
         noPayments: "بدون تعامل مالي",
         noPaymentsDesc: "نركز فقط على التنسيق. جميع الترتيبات المالية تتم مباشرة بين المشاركين."
+      },
+      v2: {
+        navHowItWorks: "كيف يعمل",
+        navCategories: "التصنيفات",
+        navTrust: "الثقة",
+        navAbout: "من نحن",
+        headerGetStarted: "ابدأ الآن",
+        heroTagline: "مستقبل التسوق جماعي",
+        heroTitle: "أسعار أفضل عندما",
+        heroTitleHighlight: "نتسوق معاً",
+        heroSubtitle:
+          "لماذا تدفع السعر الكامل وحدك؟ انضم لمجموعات الشراء، حقّق الهدف معاً، واستفد من خصومات كبيرة للجميع.",
+        liveNow: "مباشر الآن",
+        peopleIn: "شخص في",
+        moreToUnlock: "إضافي لفتح العرض",
+        joinThisGroup: "انضم لهذه المجموعة",
+        dealUnlocked: "تم فتح الصفقة!",
+        savedTotal: "إجمالي التوفير",
+        seeHowItWorks: "شاهد كيف يعمل",
+        exampleDealTitle: "مثال لصفقة جماعية",
+        exampleDealSubtitle: "للتوضيح فقط — الصفقات الحقيقية تظهر هكذا على Grouperry.",
+        exampleDealJoin: "تصفح الصفقات الحية",
+        heroStatListingsLabel: "قوائم نشطة",
+        heroStatMembersLabel: "أعضاء على المنصة",
+        heroTrending: "رائج: أجهزة المنزل",
+        howTagline: "بسيط كـ 1-2-3",
+        howTitle: "الشراء الجماعي بصورة جديدة",
+        howStep: "الخطوة {{n}}",
+        howVisualElectronics: "إلكترونيات",
+        howVisualHomeGarden: "المنزل والحديقة",
+        howGroupProgress: "تقدم المجموعة",
+        howMembersJoined: "17/20 عضواً انضموا!",
+        howUnlockedBadge: "-30% مفتوح!",
+        statsTagline: "الأرقام تتحدث",
+        categoriesTagline: "اعثر على مجتمعك",
+        categoriesTitle: "صفقات للجميع",
+        categoryActiveDeals: "{{count}} صفقة نشطة",
+        categoryMembersLine: "{{members}} عضواً",
+        browseAllCategories: "تصفح كل التصنيفات",
+        trustTagline: "أنت بأمان",
+        trustTitle: "مبني بشكل مختلف",
+        trustF1Title: "أعضاء موثّقون",
+        trustF1Desc: "يمر كل عضو بعملية التحقق لدينا",
+        trustF2Title: "حماية المشتري",
+        trustF2Desc: "استرداد كامل إذا لم تتم الصفقة",
+        trustF3Title: "مجموعات فورية",
+        trustF3Desc: "الذكاء الاصطناعي يطابقك مع أفضل مجموعات الشراء",
+        trustF4Title: "المجتمع أولاً",
+        trustF4Desc: "من المتسوقين للمتسوقين",
+        testimonial1Quote: "وفّرت 400$ على حاسوبي الجديد بالانضمام لشراء جماعي. هذا هو مستقبل التسوق!",
+        testimonial1Author: "سارة م.",
+        testimonial1Role: "مهتمة بالتقنية",
+        testimonial2Quote: "مكتبنا يوفر آلاف الدولارات شهرياً على اشتراك البرمجيات عبر Grouperry.",
+        testimonial2Author: "ديفيد ك.",
+        testimonial2Role: "مؤسس شركة ناشئة",
+        testimonial3Quote: "أحب التواصل مع أولياء الأمور الآخرين للحصول على صفقات بالجملة لمستلزمات الأطفال.",
+        testimonial3Author: "ماريا ل.",
+        testimonial3Role: "أم لثلاثة",
+        secureBadge: "آمن 100%",
+        ctaTagline: "مستعد للانضمام؟",
+        ctaTitle: "توفيرك الكبير التالي نقرة واحدة فقط",
+        ctaButton: "إنشاء حساب مجاني",
+        ctaSecondary: "تصفح الصفقات النشطة",
+        ctaCommunityHint: "تصفح الصفقات الحية وتعاون مع الآخرين",
+        footerTagline: "تسوّق معاً، وفّر معاً.",
+        footerTaglineExtra: "انضم إلى ملايين المتسوقين الأذكياء الذين يوفرون المال معاً.",
+        footerStayLoop: "ابقَ على اطلاع",
+        footerNewsletterDesc: "احصل على إشعارات بالصفقات والميزات الجديدة. بلا إزعاج.",
+        footerEmailPlaceholder: "أدخل بريدك الإلكتروني",
+        footerSubscribe: "اشترك",
+        footerColProduct: "المنتج",
+        footerColCompany: "الشركة",
+        footerColSupport: "الدعم",
+        footerColLegal: "قانوني",
+        footerLinkHowItWorks: "كيف يعمل",
+        footerLinkCategories: "التصنيفات",
+        footerLinkPricing: "الأسعار",
+        footerLinkMobileApp: "تطبيق الجوال",
+        footerLinkAbout: "من نحن",
+        footerLinkCareers: "وظائف",
+        footerLinkBlog: "المدونة",
+        footerLinkPress: "المتعلقات الصحفية",
+        footerLinkHelp: "مركز المساعدة",
+        footerLinkCommunity: "المجتمع",
+        footerLinkContact: "اتصل بنا",
+        footerLinkStatus: "الحالة",
+        footerLinkPrivacy: "سياسة الخصوصية",
+        footerLinkTerms: "شروط الخدمة",
+        footerLinkCookies: "سياسة ملفات تعريف الارتباط",
+        footerMadeWith: "صُنع بـ",
+        footerForShoppers: "للمتسوقين في كل مكان",
+        statFallbackGroups: "+12,400",
+        statFallbackMembers: "847 ألف",
+        statSavedValue: "31%",
+        statFallbackCountries: "89"
+      },
+      about: {
+        title: "عن Grouperry",
+        subtitle: "تنسيق للشراء الجماعي، مبني على الثقة والوضوح.",
+        lead: "يساعدك Grouperry على التعاون للحصول على أسعار أفضل لما تريد شراءه.",
+        body1:
+          "نركز على التنسيق: تكوين المجموعات وملء الأماكن والدردشة في مكان واحد. لا نعالج المدفوعات—يرتب الأعضاء الأمور المالية مباشرة، مع توقعات واضحة وتحقق اختياري يعزز الثقة.",
+        body2:
+          "سواء كنت تنظم طلباً بالجملة أو تنضم لمجموعة قائمة، صُمم Grouperry لجعل العملية بسيطة وشفافة.",
+        missionTitle: "مهمتنا",
+        missionBody: "جعل الشراء الجماعي أسهل للاكتشاف والانضمام والإدارة—عبر التصنيفات والمجتمعات.",
+        ctaFaq: "اقرأ الأسئلة الشائعة",
+        ctaContact: "اتصل بنا"
+      },
+      faq: {
+        title: "الأسئلة الشائعة",
+        subtitle: "إجابات على أسئلة شائعة حول Grouperry",
+        emptyState: "لا توجد أسئلة متاحة حالياً. حاول لاحقاً أو تواصل مع الدعم.",
+        items: [
+          {
+            id: "1",
+            question: "ما هو Grouperry؟",
+            answer:
+              "Grouperry منصة لتنسيق الشراء الجماعي تمكن المستخدمين من تكوين مجموعات للمشتريات بالجملة وتقاسم التكاليف وفتح صفقات جماعية. تركز على التنسيق فقط ولا تعالج المدفوعات."
+          },
+          {
+            id: "2",
+            question: "كيف أنشئ قائمة؟",
+            answer:
+              "اضغط «إنشاء قائمة» في القائمة. املأ التفاصيل وعدد الأماكن والصور وانشر. يمكنك ضبط الأسعار ورؤية حسابات التوفير."
+          },
+          {
+            id: "3",
+            question: "كيف أنضم لمجموعة؟",
+            answer:
+              "تصفح القوائم واختر ما يعجبك واضغط «انضم للمجموعة». يظهر تأكيد وبعده تصبح عضواً ويمكنك الدردشة."
+          },
+          {
+            id: "4",
+            question: "هل يمكنني تعديل ملفي؟",
+            answer:
+              "نعم! اذهب للملف الشخصي واضغط «تعديل الملف». يمكنك تحديث الاسم والصورة وغيرها. تُحفظ التغييرات فوراً."
+          },
+          {
+            id: "5",
+            question: "ما هو توثيق المستخدم؟",
+            answer:
+              "التوثيق يعزز الثقة. يمكنك رفع هوية وصورة سيلفي. يراجع المسؤولون ويقررون القبول أو الرفض."
+          },
+          {
+            id: "6",
+            question: "ما الفرق بين حساب فردي وتجاري؟",
+            answer:
+              "الفردي للاستخدام الشخصي. التجاري للشركات والمتاجر ويعرض منتجات للبيع. اختر النوع المناسب عند التسجيل."
+          },
+          {
+            id: "7",
+            question: "هل يمكنني حفظ القوائم؟",
+            answer:
+              "نعم! اضغط أيقونة الحفظ على أي قائمة. تجد المحفوظات في قسم «المحفوظات» في ملفك."
+          },
+          {
+            id: "8",
+            question: "كيف أغادر مجموعة؟",
+            answer:
+              "في صفحة التفاصيل اضغط «غادر المجموعة». يظهر تأكيد لتجنب الخروج بالخطأ. بعد التأكيد تُزال من المجموعة."
+          },
+          {
+            id: "9",
+            question: "هل يوجد دردشة؟",
+            answer:
+              "نعم! لكل مجموعة دردشة لمناقشة التفاصيل. يمكنك أيضاً استخدام مساعد الدردشة الذكي."
+          },
+          {
+            id: "10",
+            question: "كيف أبلغ عن مشكلة؟",
+            answer:
+              "إن واجهت مشكلة مع قائمة أو مستخدم، استخدم ميزة الإبلاغ. يراجع المسؤولون ويتخذون الإجراء المناسب."
+          }
+        ]
+      },
+      contact: {
+        title: "اتصل بنا",
+        subtitle: "لديك أسئلة؟ يسعدنا سماعك. أرسل رسالة وسنرد في أقرب وقت.",
+        formTitle: "أرسل لنا رسالة",
+        name: "الاسم",
+        email: "البريد الإلكتروني",
+        subject: "الموضوع",
+        message: "الرسالة",
+        placeholderName: "اسمك",
+        placeholderEmail: "you@example.com",
+        placeholderSubject: "عن ماذا تتعلق الرسالة؟",
+        placeholderMessage: "رسالتك...",
+        send: "إرسال الرسالة",
+        sending: "جاري الإرسال...",
+        infoTitle: "تواصل معنا",
+        generalTitle: "استفسارات عامة",
+        generalDesc: "للأسئلة العامة عن Grouperry استخدم النموذج أو راجع الأسئلة الشائعة.",
+        supportTitle: "الدعم",
+        supportDesc: "تحتاج مساعدة في حسابك؟ راجع المساعدة أو أرسل تذكرة عبر النموذج.",
+        reportTitle: "الإبلاغ عن مشاكل",
+        reportDesc: "وجدت خللاً أو مشكلة أمنية؟ تواصل فوراً عبر هذا النموذج.",
+        businessTitle: "استفسارات تجارية",
+        businessDesc: "مهتم بالشراكات أو الفرص التجارية؟ يسعدنا الحديث معك.",
+        responseTitle: "مدة الرد",
+        responseP1: "نرد عادة خلال 24–48 ساعة في أيام العمل.",
+        responseP2: "للمشاكل العاجلة استخدم الإبلاغ داخل التطبيق.",
+        toastErrorTitle: "خطأ",
+        toastValidation: "يرجى ملء كل الحقول",
+        toastSentTitle: "تم إرسال الرسالة!",
+        toastSentDesc: "سنعود إليك في أقرب وقت ممكن.",
+        toastFailDesc: "فشل إرسال الرسالة. يرجى المحاولة مرة أخرى."
+      },
+      footer: {
+        platform: "المنصة",
+        support: "الدعم",
+        legal: "قانوني",
+        exploreDeals: "استكشف الصفقات",
+        createGroup: "إنشاء مجموعة",
+        myGroups: "مجموعاتي",
+        savedListings: "القوائم المحفوظة",
+        faq: "الأسئلة الشائعة",
+        about: "من نحن",
+        contact: "اتصل بنا",
+        yourAccount: "حسابك",
+        terms: "الشروط والأحكام",
+        privacy: "سياسة الخصوصية",
+        tagline: "منصة تنسيق للشراء الجماعي. اشترِ معاً ووفّر أكثر.",
+        copyrightYear: "© {{year}} Grouperry.",
+        madeWith: "صُنع بـ",
+        forGroupBuyers: "لمشتري المجموعات."
+      },
+      notFound: {
+        title: "404 الصفحة غير موجودة",
+        description: "الصفحة التي طلبتها غير موجودة.",
+        home: "العودة للرئيسية",
+        browse: "تصفح الصفقات"
+      },
+      newsletter: {
+        success: "تم الاشتراك!",
+        subscribedPersist: "أنت على القائمة — سنرسل لك التحديثات.",
+        already: "أنت بالفعل على القائمة.",
+        error: "حدث خطأ. حاول مرة أخرى.",
+        invalid: "أدخل بريداً إلكترونياً صالحاً."
       },
       categories: {
         title: "تصفح التصنيفات",
@@ -2067,7 +2327,8 @@ const resources = {
         back: "رجوع",
         next: "التالي",
         submit: "إرسال",
-        uploading: "جارٍ الرفع..."
+        uploading: "جارٍ الرفع...",
+        menu: "القائمة"
       }
     }
   },
@@ -2088,7 +2349,12 @@ const resources = {
         language: "Langue",
         categories: "Catégories",
         pastListings: "Annonces passées",
-        adminCrm: "CRM Admin"
+        adminCrm: "CRM Admin",
+        verified: "Vérifié",
+        notVerified: "Non vérifié",
+        reliableLine: "{{pct}} % de fiabilité",
+        fallbackUser: "Utilisateur",
+        createRequiresVerification: "Terminez l'intégration et vérifiez votre téléphone avant de créer une annonce."
       },
       saved: {
         title: "Annonces sauvegardées",
@@ -2272,7 +2538,11 @@ const resources = {
         verificationRequiredPhoneDesc: "Vous devez vérifier votre numéro de téléphone avant de créer une annonce.",
         verificationRequiredOnboardingDesc: "Vous devez compléter la configuration de votre profil avant de créer une annonce.",
         verificationRequiredBothDesc: "Vous devez compléter votre profil et vérifier votre numéro de téléphone d'abord.",
-        goToProfile: "Compléter le profil",
+        goToProfile: "Aller au profil",
+        continueSetup: "Poursuivre la configuration",
+        listingCreatedTitle: "Annonce créée",
+        listingCreatedDesc: "Votre achat groupé est en ligne.",
+        submitBlockedTitle: "Publication impossible pour l'instant",
         draftSaved: "Brouillon enregistré",
         pricingSavings: "Les membres économisent {{pct}} % par rapport au prix du marché",
         pricingWarning: "Le prix groupe est supérieur au marché — vérifiez vos montants",
@@ -2505,7 +2775,8 @@ const resources = {
         onlySpotsLeft_other: "Seulement {{count}} places restantes !",
         signInToSave: "Connectez-vous pour sauvegarder",
         signInToJoin: "Connectez-vous pour rejoindre",
-        commitToBuy: "S'engager à acheter",
+        joinedStatus: "Inscrit",
+        commitToBuy: "Rejoindre",
         revealContact: "Voir le contact de l'organisateur",
         creatorPhone: "Téléphone de l'organisateur",
         hoursLeft: "{{count}}h restantes",
@@ -2909,9 +3180,254 @@ const resources = {
         ctaTitle: "Prêt à économiser ensemble ?",
         ctaSubtitle: "Rejoignez des milliers d'acheteurs malins qui utilisent déjà l'achat groupé.",
         ctaButton: "Créez votre compte gratuit",
+        brandName: "Grouperry",
         footer: "Tous droits réservés.",
         noPayments: "Aucun paiement géré",
         noPaymentsDesc: "Nous nous concentrons uniquement sur la coordination. Tous les arrangements financiers se font directement entre participants."
+      },
+      v2: {
+        navHowItWorks: "Comment ça marche",
+        navCategories: "Catégories",
+        navTrust: "Confiance",
+        navAbout: "À propos",
+        headerGetStarted: "Commencer",
+        heroTagline: "L'avenir du shopping est collectif",
+        heroTitle: "De meilleurs prix quand nous",
+        heroTitleHighlight: "achetons ensemble",
+        heroSubtitle:
+          "Pourquoi payer plein tarif seul ? Rejoignez des groupes d'achat, atteignez l'objectif ensemble et profitez de réductions importantes pour tous.",
+        liveNow: "En direct",
+        peopleIn: "personnes dans",
+        moreToUnlock: "de plus pour débloquer",
+        joinThisGroup: "Rejoindre ce groupe",
+        dealUnlocked: "Offre débloquée !",
+        savedTotal: "économisé au total",
+        seeHowItWorks: "Voir comment ça marche",
+        exampleDealTitle: "Exemple d'offre groupée",
+        exampleDealSubtitle: "Illustration — les vraies offres ressemblent à ceci sur Grouperry.",
+        exampleDealJoin: "Parcourir les offres en cours",
+        heroStatListingsLabel: "Annonces actives",
+        heroStatMembersLabel: "Membres sur la plateforme",
+        heroTrending: "Tendance : Électroménager",
+        howTagline: "Simple comme 1-2-3",
+        howTitle: "L'achat groupé, repensé",
+        howStep: "Étape {{n}}",
+        howVisualElectronics: "Électronique",
+        howVisualHomeGarden: "Maison & Jardin",
+        howGroupProgress: "Progression du groupe",
+        howMembersJoined: "17/20 membres ont rejoint !",
+        howUnlockedBadge: "-30 % débloqué !",
+        statsTagline: "Les chiffres parlent",
+        categoriesTagline: "Trouvez votre tribu",
+        categoriesTitle: "Des offres pour tous",
+        categoryActiveDeals: "{{count}} offres actives",
+        categoryMembersLine: "{{members}} membres",
+        browseAllCategories: "Parcourir toutes les catégories",
+        trustTagline: "Vous êtes entre de bonnes mains",
+        trustTitle: "Conçu autrement",
+        trustF1Title: "Membres vérifiés",
+        trustF1Desc: "Chaque membre passe par notre processus de vérification",
+        trustF2Title: "Protection acheteurs",
+        trustF2Desc: "Remboursement intégral si l'offre n'aboutit pas",
+        trustF3Title: "Groupes instantanés",
+        trustF3Desc: "L'IA vous met en relation avec les bons groupes d'achat",
+        trustF4Title: "La communauté d'abord",
+        trustF4Desc: "Par des acheteurs, pour des acheteurs",
+        testimonial1Quote:
+          "J'ai économisé 400 $ sur mon nouvel ordinateur en rejoignant un achat groupé. C'est l'avenir du shopping !",
+        testimonial1Author: "Sarah M.",
+        testimonial1Role: "Passionnée de tech",
+        testimonial2Quote:
+          "Notre bureau économise des milliers d'euros chaque mois sur les abonnements logiciels avec Grouperry.",
+        testimonial2Author: "David K.",
+        testimonial2Role: "Fondateur de startup",
+        testimonial3Quote:
+          "J'adore me connecter avec d'autres parents pour des achats groupés pour les essentiels des enfants.",
+        testimonial3Author: "Maria L.",
+        testimonial3Role: "Mère de 3 enfants",
+        secureBadge: "100 % sécurisé",
+        ctaTagline: "Prêt à nous rejoindre ?",
+        ctaTitle: "Votre prochaine grosse économie est à un clic",
+        ctaButton: "Créer un compte gratuit",
+        ctaSecondary: "Parcourir les offres actives",
+        ctaCommunityHint: "Parcourez les offres en cours et achetez à plusieurs",
+        footerTagline: "Achetez ensemble, économisez ensemble.",
+        footerTaglineExtra: "Rejoignez des millions d'acheteurs qui économisent ensemble.",
+        footerStayLoop: "Restez informé",
+        footerNewsletterDesc: "Soyez averti des nouvelles offres et fonctionnalités. Pas de spam.",
+        footerEmailPlaceholder: "Votre e-mail",
+        footerSubscribe: "S'abonner",
+        footerColProduct: "Produit",
+        footerColCompany: "Entreprise",
+        footerColSupport: "Assistance",
+        footerColLegal: "Légal",
+        footerLinkHowItWorks: "Comment ça marche",
+        footerLinkCategories: "Catégories",
+        footerLinkPricing: "Tarifs",
+        footerLinkMobileApp: "Application mobile",
+        footerLinkAbout: "À propos",
+        footerLinkCareers: "Carrières",
+        footerLinkBlog: "Blog",
+        footerLinkPress: "Dossier de presse",
+        footerLinkHelp: "Centre d'aide",
+        footerLinkCommunity: "Communauté",
+        footerLinkContact: "Nous contacter",
+        footerLinkStatus: "Statut",
+        footerLinkPrivacy: "Politique de confidentialité",
+        footerLinkTerms: "Conditions d'utilisation",
+        footerLinkCookies: "Politique des cookies",
+        footerMadeWith: "Fait avec",
+        footerForShoppers: "pour les acheteurs du monde entier",
+        statFallbackGroups: "12 400+",
+        statFallbackMembers: "847K",
+        statSavedValue: "31 %",
+        statFallbackCountries: "89"
+      },
+      about: {
+        title: "À propos de Grouperry",
+        subtitle: "Coordination des achats groupés, pensée pour la confiance et la clarté.",
+        lead: "Grouperry aide les gens à s'unir pour de meilleurs prix sur ce qu'ils veulent déjà acheter.",
+        body1:
+          "Nous nous concentrons sur la coordination : former des groupes, remplir les places et discuter au même endroit. Nous ne traitons pas les paiements — les membres s'arrangent directement, avec des attentes claires et une vérification optionnelle pour renforcer la confiance.",
+        body2:
+          "Que vous organisiez une commande groupée ou rejoigniez un groupe existant, Grouperry est conçu pour rendre le processus simple et transparent.",
+        missionTitle: "Notre mission",
+        missionBody:
+          "Rendre les achats groupés plus faciles à découvrir, à rejoindre et à gérer — dans toutes les catégories et communautés.",
+        ctaFaq: "Lire la FAQ",
+        ctaContact: "Nous contacter"
+      },
+      faq: {
+        title: "Foire aux questions",
+        subtitle: "Réponses aux questions courantes sur Grouperry",
+        emptyState: "Aucune question n'est disponible pour le moment. Réessayez plus tard ou contactez le support.",
+        items: [
+          {
+            id: "1",
+            question: "Qu'est-ce que Grouperry ?",
+            answer:
+              "Grouperry est une plateforme de coordination d'achats groupés qui permet de former des groupes pour des achats en volume, de partager les coûts et de débloquer des offres de groupe. Elle se concentre sur la coordination et ne gère pas les paiements."
+          },
+          {
+            id: "2",
+            question: "Comment créer une annonce ?",
+            answer:
+              "Cliquez sur « Créer une annonce » dans le menu. Renseignez les détails, le nombre de places, ajoutez des images et publiez. Vous pouvez définir les prix et voir les économies estimées."
+          },
+          {
+            id: "3",
+            question: "Comment rejoindre un groupe ?",
+            answer:
+              "Parcourez les annonces, choisissez celle qui vous intéresse et cliquez sur « Rejoindre le groupe ». Une confirmation s'affiche ; une fois acceptée, vous êtes dans le groupe et pouvez chatter."
+          },
+          {
+            id: "4",
+            question: "Puis-je modifier mon profil ?",
+            answer:
+              "Oui ! Allez sur votre profil et cliquez sur « Modifier le profil ». Nom, photo et autres informations peuvent être mis à jour. Les changements sont enregistrés immédiatement."
+          },
+          {
+            id: "5",
+            question: "Qu'est-ce que la vérification ?",
+            answer:
+              "La vérification renforce la confiance. Vous pouvez envoyer une pièce d'identité et un selfie. Les administrateurs valident ou refusent la demande."
+          },
+          {
+            id: "6",
+            question: "Différence entre compte individuel et professionnel ?",
+            answer:
+              "Le compte individuel est pour les particuliers. Le compte professionnel sert aux entreprises et boutiques pour proposer des produits. Choisissez le bon type à l'inscription."
+          },
+          {
+            id: "7",
+            question: "Puis-je sauvegarder des annonces ?",
+            answer:
+              "Oui ! Cliquez sur le signet sur une annonce. Retrouvez-les dans la section « Sauvegardés » de votre profil."
+          },
+          {
+            id: "8",
+            question: "Comment quitter un groupe ?",
+            answer:
+              "Sur la page de l'annonce, cliquez sur « Quitter le groupe ». Une confirmation évite les sorties accidentelles. Après confirmation, vous êtes retiré du groupe."
+          },
+          {
+            id: "9",
+            question: "Y a-t-il un chat ?",
+            answer:
+              "Oui ! Chaque groupe a un chat dédié. Vous pouvez aussi utiliser notre assistant IA."
+          },
+          {
+            id: "10",
+            question: "Comment signaler un problème ?",
+            answer:
+              "En cas de problème avec une annonce ou un utilisateur, utilisez la fonction de signalement. L'équipe examinera et agira."
+          }
+        ]
+      },
+      contact: {
+        title: "Nous contacter",
+        subtitle:
+          "Des questions ? Écrivez-nous, nous répondrons dès que possible.",
+        formTitle: "Envoyez-nous un message",
+        name: "Nom",
+        email: "E-mail",
+        subject: "Objet",
+        message: "Message",
+        placeholderName: "Votre nom",
+        placeholderEmail: "vous@exemple.com",
+        placeholderSubject: "De quoi s'agit-il ?",
+        placeholderMessage: "Votre message...",
+        send: "Envoyer le message",
+        sending: "Envoi...",
+        infoTitle: "Restons en contact",
+        generalTitle: "Demandes générales",
+        generalDesc: "Pour toute question sur Grouperry, utilisez le formulaire ou consultez la FAQ.",
+        supportTitle: "Assistance",
+        supportDesc: "Besoin d'aide pour votre compte ? Consultez l'aide ou ouvrez un ticket via le formulaire.",
+        reportTitle: "Signaler un problème",
+        reportDesc: "Bug ou problème de sécurité ? Contactez-nous immédiatement via ce formulaire.",
+        businessTitle: "Demandes commerciales",
+        businessDesc: "Partenariats ou opportunités ? Nous serions ravis d'en discuter.",
+        responseTitle: "Délai de réponse",
+        responseP1: "Nous répondons généralement sous 24 à 48 heures ouvrées.",
+        responseP2: "Pour les urgences, utilisez la fonction de signalement dans l'application.",
+        toastErrorTitle: "Erreur",
+        toastValidation: "Veuillez remplir tous les champs",
+        toastSentTitle: "Message envoyé !",
+        toastSentDesc: "Nous vous répondrons dès que possible.",
+        toastFailDesc: "Échec de l'envoi. Veuillez réessayer."
+      },
+      footer: {
+        platform: "Plateforme",
+        support: "Assistance",
+        legal: "Légal",
+        exploreDeals: "Explorer les offres",
+        createGroup: "Créer un groupe",
+        myGroups: "Mes groupes",
+        savedListings: "Annonces sauvegardées",
+        faq: "FAQ",
+        about: "À propos",
+        contact: "Nous contacter",
+        yourAccount: "Votre compte",
+        terms: "Conditions générales",
+        privacy: "Politique de confidentialité",
+        tagline: "Plateforme de coordination d'achats groupés. Achetez ensemble, économisez plus.",
+        copyrightYear: "© {{year}} Grouperry.",
+        madeWith: "Fait avec",
+        forGroupBuyers: "pour les acheteurs groupés."
+      },
+      notFound: {
+        title: "404 Page introuvable",
+        description: "La page demandée n'existe pas.",
+        home: "Retour à l'accueil",
+        browse: "Parcourir les offres"
+      },
+      newsletter: {
+        success: "Inscription confirmée !",
+        subscribedPersist: "Vous êtes inscrit — nous vous tiendrons informé.",
+        already: "Vous êtes déjà inscrit.",
+        error: "Une erreur s'est produite. Réessayez.",
+        invalid: "Saisissez une adresse e-mail valide."
       },
       categories: {
         title: "Parcourir les catégories",
@@ -2948,7 +3464,8 @@ const resources = {
         back: "Retour",
         next: "Suivant",
         submit: "Soumettre",
-        uploading: "Téléchargement..."
+        uploading: "Téléchargement...",
+        menu: "Menu"
       }
     }
   },
@@ -2969,7 +3486,12 @@ const resources = {
         language: "Idioma",
         categories: "Categorías",
         pastListings: "Anuncios pasados",
-        adminCrm: "CRM Admin"
+        adminCrm: "CRM Admin",
+        verified: "Verificado",
+        notVerified: "No verificado",
+        reliableLine: "{{pct}} % de fiabilidad",
+        fallbackUser: "Usuario",
+        createRequiresVerification: "Completa la configuración y verifica tu teléfono antes de crear un anuncio."
       },
       saved: {
         title: "Anuncios guardados",
@@ -3153,7 +3675,11 @@ const resources = {
         verificationRequiredPhoneDesc: "Necesitas verificar tu número de teléfono antes de crear un anuncio.",
         verificationRequiredOnboardingDesc: "Necesitas completar la configuración de tu perfil antes de crear un anuncio.",
         verificationRequiredBothDesc: "Necesitas completar tu perfil y verificar tu número de teléfono primero.",
-        goToProfile: "Completar perfil",
+        goToProfile: "Ir al perfil",
+        continueSetup: "Continuar configuración",
+        listingCreatedTitle: "Anuncio creado",
+        listingCreatedDesc: "Tu compra grupal ya está publicada.",
+        submitBlockedTitle: "Aún no se puede publicar",
         draftSaved: "Borrador guardado",
         pricingSavings: "Los miembros ahorran un {{pct}} % frente al precio de mercado",
         pricingWarning: "El precio grupal es mayor que el de mercado — revisa los valores",
@@ -3386,7 +3912,8 @@ const resources = {
         onlySpotsLeft_other: "¡Solo {{count}} lugares restantes!",
         signInToSave: "Inicia sesión para guardar",
         signInToJoin: "Inicia sesión para unirte",
-        commitToBuy: "Comprometerse a comprar",
+        joinedStatus: "Unido",
+        commitToBuy: "Unirse",
         revealContact: "Ver contacto del organizador",
         creatorPhone: "Teléfono del organizador",
         hoursLeft: "{{count}}h restantes",
@@ -3790,9 +4317,254 @@ const resources = {
         ctaTitle: "¿Listo para ahorrar juntos?",
         ctaSubtitle: "Únete a miles de compradores inteligentes que ya usan las compras grupales para obtener mejores ofertas.",
         ctaButton: "Crea tu cuenta gratis",
+        brandName: "Grouperry",
         footer: "Todos los derechos reservados.",
         noPayments: "Sin pagos manejados",
         noPaymentsDesc: "Nos enfocamos solo en la coordinación. Todos los arreglos financieros se hacen directamente entre participantes."
+      },
+      v2: {
+        navHowItWorks: "Cómo funciona",
+        navCategories: "Categorías",
+        navTrust: "Confianza",
+        navAbout: "Acerca de",
+        headerGetStarted: "Empezar",
+        heroTagline: "El futuro de las compras es colectivo",
+        heroTitle: "Mejores precios cuando",
+        heroTitleHighlight: "compramos juntos",
+        heroSubtitle:
+          "¿Por qué pagar precio completo solo? Únete a grupos de compra, alcanzad la meta juntos y todos ganan con grandes descuentos.",
+        liveNow: "En vivo ahora",
+        peopleIn: "personas en",
+        moreToUnlock: "más para desbloquear",
+        joinThisGroup: "Unirse a este grupo",
+        dealUnlocked: "¡Oferta desbloqueada!",
+        savedTotal: "ahorrado en total",
+        seeHowItWorks: "Ver cómo funciona",
+        exampleDealTitle: "Ejemplo de oferta grupal",
+        exampleDealSubtitle: "Solo ilustración — las ofertas reales se ven así en Grouperry.",
+        exampleDealJoin: "Ver ofertas activas",
+        heroStatListingsLabel: "Anuncios activos",
+        heroStatMembersLabel: "Miembros en la plataforma",
+        heroTrending: "Tendencia: Electrodomésticos",
+        howTagline: "Tan simple como 1-2-3",
+        howTitle: "Compras grupales, reinventadas",
+        howStep: "Paso {{n}}",
+        howVisualElectronics: "Electrónica",
+        howVisualHomeGarden: "Hogar y jardín",
+        howGroupProgress: "Progreso del grupo",
+        howMembersJoined: "¡17/20 miembros se unieron!",
+        howUnlockedBadge: "¡-30 % desbloqueado!",
+        statsTagline: "Los números hablan",
+        categoriesTagline: "Encuentra tu grupo",
+        categoriesTitle: "Ofertas para todos",
+        categoryActiveDeals: "{{count}} ofertas activas",
+        categoryMembersLine: "{{members}} miembros",
+        browseAllCategories: "Ver todas las categorías",
+        trustTagline: "Estás en buenas manos",
+        trustTitle: "Hecho diferente",
+        trustF1Title: "Miembros verificados",
+        trustF1Desc: "Cada miembro pasa por nuestro proceso de verificación",
+        trustF2Title: "Protección al comprador",
+        trustF2Desc: "Reembolso completo si la oferta no se concreta",
+        trustF3Title: "Grupos al instante",
+        trustF3Desc: "La IA te empareja con los grupos de compra perfectos",
+        trustF4Title: "La comunidad primero",
+        trustF4Desc: "Hecho por compradores, para compradores",
+        testimonial1Quote:
+          "Ahorré 400 $ en mi portátil uniéndome a una compra grupal. ¡Este es el futuro de las compras!",
+        testimonial1Author: "Sarah M.",
+        testimonial1Role: "Entusiasta de la tecnología",
+        testimonial2Quote:
+          "Nuestra oficina ahorra miles cada mes en suscripciones de software con Grouperry.",
+        testimonial2Author: "David K.",
+        testimonial2Role: "Fundador de startup",
+        testimonial3Quote:
+          "Me encanta conectar con otros padres para ofertas al por mayor en lo esencial de los niños.",
+        testimonial3Author: "María L.",
+        testimonial3Role: "Madre de 3",
+        secureBadge: "100 % seguro",
+        ctaTagline: "¿Listo para unirte?",
+        ctaTitle: "Tu próximo gran ahorro está a un clic",
+        ctaButton: "Crear cuenta gratis",
+        ctaSecondary: "Ver ofertas activas",
+        ctaCommunityHint: "Explora ofertas activas y únete a otros",
+        footerTagline: "Compra junto, ahorra junto.",
+        footerTaglineExtra: "Únete a millones de compradores inteligentes que ahorran juntos.",
+        footerStayLoop: "Mantente al día",
+        footerNewsletterDesc: "Recibe novedades de ofertas y funciones. Sin spam.",
+        footerEmailPlaceholder: "Tu correo electrónico",
+        footerSubscribe: "Suscribirse",
+        footerColProduct: "Producto",
+        footerColCompany: "Empresa",
+        footerColSupport: "Soporte",
+        footerColLegal: "Legal",
+        footerLinkHowItWorks: "Cómo funciona",
+        footerLinkCategories: "Categorías",
+        footerLinkPricing: "Precios",
+        footerLinkMobileApp: "App móvil",
+        footerLinkAbout: "Quiénes somos",
+        footerLinkCareers: "Empleo",
+        footerLinkBlog: "Blog",
+        footerLinkPress: "Prensa",
+        footerLinkHelp: "Centro de ayuda",
+        footerLinkCommunity: "Comunidad",
+        footerLinkContact: "Contáctanos",
+        footerLinkStatus: "Estado",
+        footerLinkPrivacy: "Política de privacidad",
+        footerLinkTerms: "Términos del servicio",
+        footerLinkCookies: "Política de cookies",
+        footerMadeWith: "Hecho con",
+        footerForShoppers: "para compradores de todo el mundo",
+        statFallbackGroups: "12.400+",
+        statFallbackMembers: "847K",
+        statSavedValue: "31 %",
+        statFallbackCountries: "89"
+      },
+      about: {
+        title: "Acerca de Grouperry",
+        subtitle: "Coordinación de compras grupales, pensada para la confianza y la claridad.",
+        lead: "Grouperry ayuda a las personas a unirse para mejores precios en lo que ya quieren comprar.",
+        body1:
+          "Nos centramos en la coordinación: formar grupos, llenar plazas y chatear en un solo lugar. No procesamos pagos: los miembros acuerdan lo financiero directamente, con expectativas claras y verificación opcional para más confianza.",
+        body2:
+          "Tanto si organizas un pedido conjunto como si te unes a un grupo existente, Grouperry está diseñado para que el proceso sea simple y transparente.",
+        missionTitle: "Nuestra misión",
+        missionBody:
+          "Facilitar descubrir, unirse y gestionar compras grupales, en todas las categorías y comunidades.",
+        ctaFaq: "Leer las preguntas frecuentes",
+        ctaContact: "Contáctanos"
+      },
+      faq: {
+        title: "Preguntas frecuentes",
+        subtitle: "Respuestas a preguntas comunes sobre Grouperry",
+        emptyState: "No hay preguntas disponibles ahora. Vuelve más tarde o contacta con soporte.",
+        items: [
+          {
+            id: "1",
+            question: "¿Qué es Grouperry?",
+            answer:
+              "Grouperry es una plataforma de coordinación de compras grupales que permite formar grupos para compras al por mayor, compartir costes y desbloquear ofertas grupales. Se centra solo en la coordinación y no gestiona pagos."
+          },
+          {
+            id: "2",
+            question: "¿Cómo creo un anuncio?",
+            answer:
+              "Haz clic en «Crear anuncio» en el menú. Completa los detalles, el número de plazas, añade imágenes y publica. Puedes fijar precios y ver el cálculo de ahorros."
+          },
+          {
+            id: "3",
+            question: "¿Cómo me uno a un grupo?",
+            answer:
+              "Explora anuncios, elige uno y pulsa «Unirse al grupo». Aparecerá una confirmación; al aceptar, entrarás en el grupo y podrás chatear."
+          },
+          {
+            id: "4",
+            question: "¿Puedo editar mi perfil?",
+            answer:
+              "¡Sí! Ve a tu perfil y pulsa «Editar perfil». Puedes actualizar nombre, foto y más. Los cambios se guardan al instante."
+          },
+          {
+            id: "5",
+            question: "¿Qué es la verificación de usuario?",
+            answer:
+              "La verificación aumenta la confianza. Puedes subir un documento de identidad y un selfie. Los administradores aprueban o rechazan."
+          },
+          {
+            id: "6",
+            question: "¿Diferencia entre cuenta individual y comercial?",
+            answer:
+              "La individual es para personas. La comercial es para negocios/tiendas y permite publicar productos. Elige el tipo al registrarte."
+          },
+          {
+            id: "7",
+            question: "¿Puedo guardar anuncios?",
+            answer:
+              "¡Sí! Pulsa el icono de marcador en cualquier anuncio. Los verás en «Guardados» en tu perfil."
+          },
+          {
+            id: "8",
+            question: "¿Cómo salgo de un grupo?",
+            answer:
+              "En la página del anuncio, pulsa «Salir del grupo». Una confirmación evita salidas accidentales. Tras confirmar, dejarás el grupo."
+          },
+          {
+            id: "9",
+            question: "¿Hay chat?",
+            answer:
+              "¡Sí! Cada grupo tiene un chat dedicado. También puedes usar nuestro asistente de IA."
+          },
+          {
+            id: "10",
+            question: "¿Cómo reporto un problema?",
+            answer:
+              "Si hay un problema con un anuncio o usuario, usa la función de reporte. Los administradores revisarán y actuarán."
+          }
+        ]
+      },
+      contact: {
+        title: "Contáctanos",
+        subtitle:
+          "¿Tienes preguntas? Nos encantaría saber de ti. Envíanos un mensaje y responderemos lo antes posible.",
+        formTitle: "Envíanos un mensaje",
+        name: "Nombre",
+        email: "Correo electrónico",
+        subject: "Asunto",
+        message: "Mensaje",
+        placeholderName: "Tu nombre",
+        placeholderEmail: "tu@correo.com",
+        placeholderSubject: "¿De qué se trata?",
+        placeholderMessage: "Tu mensaje...",
+        send: "Enviar mensaje",
+        sending: "Enviando...",
+        infoTitle: "Ponte en contacto",
+        generalTitle: "Consultas generales",
+        generalDesc: "Para preguntas generales sobre Grouperry, usa el formulario o consulta las preguntas frecuentes.",
+        supportTitle: "Soporte",
+        supportDesc: "¿Ayuda con tu cuenta? Consulta el centro de ayuda o envía un ticket con el formulario.",
+        reportTitle: "Reportar problemas",
+        reportDesc: "¿Bug o problema de seguridad? Contáctanos de inmediato con este formulario.",
+        businessTitle: "Consultas comerciales",
+        businessDesc: "¿Interesado en alianzas u oportunidades? Nos encantaría hablar contigo.",
+        responseTitle: "Tiempo de respuesta",
+        responseP1: "Solemos responder en 24-48 horas hábiles.",
+        responseP2: "Para urgencias, usa la función de reporte en la app.",
+        toastErrorTitle: "Error",
+        toastValidation: "Completa todos los campos",
+        toastSentTitle: "¡Mensaje enviado!",
+        toastSentDesc: "Te responderemos lo antes posible.",
+        toastFailDesc: "No se pudo enviar el mensaje. Inténtalo de nuevo."
+      },
+      footer: {
+        platform: "Plataforma",
+        support: "Soporte",
+        legal: "Legal",
+        exploreDeals: "Explorar ofertas",
+        createGroup: "Crear un grupo",
+        myGroups: "Mis grupos",
+        savedListings: "Anuncios guardados",
+        faq: "Preguntas frecuentes",
+        about: "Acerca de",
+        contact: "Contáctanos",
+        yourAccount: "Tu cuenta",
+        terms: "Términos y condiciones",
+        privacy: "Política de privacidad",
+        tagline: "Plataforma de coordinación de compras grupales. Compra junto, ahorra más.",
+        copyrightYear: "© {{year}} Grouperry.",
+        madeWith: "Hecho con",
+        forGroupBuyers: "para compradores grupales."
+      },
+      notFound: {
+        title: "404 Página no encontrada",
+        description: "La página que solicitaste no existe.",
+        home: "Volver al inicio",
+        browse: "Explorar ofertas"
+      },
+      newsletter: {
+        success: "¡Te has suscrito!",
+        subscribedPersist: "Estás en la lista — te mantendremos informado.",
+        already: "Ya estás en la lista.",
+        error: "Algo salió mal. Inténtalo de nuevo.",
+        invalid: "Introduce un correo válido."
       },
       categories: {
         title: "Explorar categorías",
@@ -3829,7 +4601,8 @@ const resources = {
         back: "Atrás",
         next: "Siguiente",
         submit: "Enviar",
-        uploading: "Subiendo..."
+        uploading: "Subiendo...",
+        menu: "Menú"
       }
     }
   }
@@ -3841,18 +4614,25 @@ i18n
   .init({
     resources,
     fallbackLng: "en",
+    supportedLngs: ["en", "ar", "fr", "es"],
+    nonExplicitSupportedLngs: true,
+    load: "languageOnly",
     interpolation: {
       escapeValue: false
     },
     detection: {
       order: ["localStorage", "navigator"],
-      caches: ["localStorage"]
+      caches: ["localStorage"],
+      lookupLocalStorage: "i18nLng"
     }
   });
 
-// Apply RTL direction on initial load based on persisted language
+// Apply RTL direction on initial load based on persisted language (aligned with LanguageSwitcher + i18nLng)
 (function applyInitialDirection() {
-  const saved = localStorage.getItem("i18nLng") || navigator.language?.split("-")[0] || "en";
+  const supported = new Set(["en", "ar", "fr", "es"]);
+  const raw = localStorage.getItem("i18nLng") || navigator.language?.split("-")[0] || "en";
+  const base = raw.split("-")[0]?.toLowerCase() || "en";
+  const saved = supported.has(base) ? base : "en";
   const isRtl = saved === "ar";
   document.documentElement.dir = isRtl ? "rtl" : "ltr";
   document.documentElement.lang = saved;

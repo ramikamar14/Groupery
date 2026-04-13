@@ -26,6 +26,7 @@ const authLimiter = rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true
 const aiLimiter = rateLimit({ windowMs: 60_000, max: 20, standardHeaders: true, legacyHeaders: false, message: { message: "AI rate limit reached. Try again in a minute." } });
 const joinLimiter = rateLimit({ windowMs: 60_000, max: 10, standardHeaders: true, legacyHeaders: false, message: { message: "Too many join attempts. Please wait a minute." } });
 const contactLimiter = rateLimit({ windowMs: 15 * 60_000, max: 5, standardHeaders: true, legacyHeaders: false, message: { message: "Too many contact requests. Please wait 15 minutes." } });
+const newsletterLimiter = rateLimit({ windowMs: 60 * 60_000, max: 10, standardHeaders: true, legacyHeaders: false, message: { message: "Too many signup attempts. Try again later." } });
 
 const serverStartTime = Date.now();
 const otpLimiter = rateLimit({ windowMs: 5 * 60_000, max: 3, standardHeaders: true, legacyHeaders: false, message: { message: "Too many OTP requests. Wait 5 minutes." } });
@@ -1040,6 +1041,28 @@ export async function registerRoutes(
     }
 
     res.json({ success: true, message: "Thank you for contacting us!" });
+  });
+
+  const newsletterSchema = z.object({
+    email: z.string().email().max(254),
+    locale: z.string().max(16).optional(),
+  });
+
+  app.post("/api/newsletter", newsletterLimiter, async (req, res) => {
+    const parsed = newsletterSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ ok: false, code: "VALIDATION_ERROR", message: "Invalid email address." });
+    }
+    try {
+      const result = await storage.subscribeNewsletterEmail(parsed.data.email, parsed.data.locale);
+      if (result === "exists") {
+        return res.status(200).json({ ok: true, status: "already_subscribed" });
+      }
+      return res.status(201).json({ ok: true, status: "subscribed" });
+    } catch (e: any) {
+      logger.error("newsletter_subscribe", e);
+      return res.status(500).json({ ok: false, message: "Could not subscribe. Please try again later." });
+    }
   });
 
   // Block User

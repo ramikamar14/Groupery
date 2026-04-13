@@ -5,6 +5,7 @@ import { Footer } from "./Footer";
 import { LogoIcon } from "./Logo";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface LayoutProps {
   children: ReactNode;
@@ -13,6 +14,8 @@ interface LayoutProps {
 }
 
 export function Layout({ children, mainClassName }: LayoutProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Sidebar />
@@ -22,8 +25,8 @@ export function Layout({ children, mainClassName }: LayoutProps) {
         <div className="flex items-center justify-between px-4 h-14">
           <Link href="/" className="flex items-center gap-2" data-testid="mobile-logo">
             <LogoIcon size={28} />
-            <span className="text-base font-bold font-display tracking-tight bg-gradient-to-r from-[#001F3F] to-[#008080] bg-clip-text text-transparent">
-              Grouperry
+            <span className="text-base font-bold font-display tracking-tight text-foreground">
+              {t("landing.brandName")}
             </span>
           </Link>
           <LanguageSwitcher />

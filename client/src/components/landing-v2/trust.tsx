@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { BadgeCheck, ShieldCheck, Zap, Heart, Quote } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { initialsFromName } from "@/components/landing-v2/decorative-avatar";
 
 export function Trust() {
   const { t } = useTranslation();
@@ -43,19 +44,16 @@ export function Trust() {
       quote: t("v2.testimonial1Quote"),
       author: t("v2.testimonial1Author"),
       role: t("v2.testimonial1Role"),
-      avatar: 1,
     },
     {
       quote: t("v2.testimonial2Quote"),
       author: t("v2.testimonial2Author"),
       role: t("v2.testimonial2Role"),
-      avatar: 2,
     },
     {
       quote: t("v2.testimonial3Quote"),
       author: t("v2.testimonial3Author"),
       role: t("v2.testimonial3Role"),
-      avatar: 3,
     },
   ];
 
@@ -121,12 +119,11 @@ export function Trust() {
                   <Quote className="absolute top-4 right-4 size-8 text-primary/10" />
                   <p className="text-foreground mb-4 italic leading-relaxed">&ldquo;{testimonial.quote}&rdquo;</p>
                   <div className="flex items-center gap-3">
-                    <div className="size-10 rounded-full overflow-hidden">
-                      <img
-                        src={`https://i.pravatar.cc/40?img=${testimonial.avatar + 20}`}
-                        alt={testimonial.author}
-                        className="size-full object-cover"
-                      />
+                    <div
+                      className="size-10 rounded-full overflow-hidden border border-border/50 flex items-center justify-center text-xs font-semibold text-foreground/80 bg-muted"
+                      aria-hidden
+                    >
+                      {initialsFromName(testimonial.author)}
                     </div>
                     <div>
                       <div className="font-semibold text-sm text-foreground">{testimonial.author}</div>
