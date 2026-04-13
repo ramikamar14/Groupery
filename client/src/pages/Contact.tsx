@@ -22,7 +22,7 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+    if (!formData.name || !formData.email || !formData.subject || !formData.message || formData.message.trim().length < 10) {
       toast({
         title: t("contact.toastErrorTitle"),
         description: t("contact.toastValidation"),
