@@ -16,7 +16,7 @@ import { eq } from "drizzle-orm";
 import { callAI } from "./ai";
 import { logger } from "./logger";
 import { sendOtp, verifyOtp } from "./sms";
-import { processEmailQueue, isResendConfigured } from "./email";
+import { processEmailQueue, isResendConfigured, sendViaResend } from "./email";
 import rateLimit from "express-rate-limit";
 import cron from "node-cron";
 
@@ -801,6 +801,21 @@ export async function registerRoutes(
   });
 
   // ── Phone OTP Verification ────────────────────────────────────────────────
+  /**
+   * Normalise any phone number to E.164 so Twilio accepts international numbers.
+   * Handles: +20..., 0020..., 020..., 20... → +20...
+   * Falls back to returning the input unchanged if it already starts with '+'.
+   */
+  function toE164(raw: string): string {
+    const s = raw.trim().replace(/[\s\-().]/g, "");
+    if (s.startsWith("+")) return s;           // already E.164
+    if (s.startsWith("00")) return "+" + s.slice(2); // 00201... → +201...
+    // Local format (leading 0) without country code — cannot reliably auto-prefix,
+    // so just prepend + and let Twilio reject with a clear error.
+    if (s.startsWith("0")) return "+" + s.slice(1);
+    return "+" + s;
+  }
+
   app.post("/api/user/phone/send-otp", requireAuth, otpLimiter, async (req, res) => {
     try {
       const userId = (req.user as any).claims.sub;
@@ -808,7 +823,7 @@ export async function registerRoutes(
       if (!phone || typeof phone !== "string" || phone.trim().length < 7) {
         return res.status(400).json({ error: "Invalid phone number" });
       }
-      const cleanPhone = phone.trim();
+      const cleanPhone = toE164(phone);
       const sent = await sendOtp(cleanPhone);
       if (!sent) {
         return res.status(500).json({ error: "Failed to send OTP" });
@@ -827,12 +842,13 @@ export async function registerRoutes(
       const { phone, otp } = req.body;
       if (!phone || !otp) return res.status(400).json({ error: "Phone and OTP are required" });
 
-      const approved = await verifyOtp(phone.trim(), String(otp).trim());
+      const cleanPhone = toE164(phone);
+      const approved = await verifyOtp(cleanPhone, String(otp).trim());
       if (!approved) {
         return res.status(400).json({ error: "Invalid or expired OTP" });
       }
 
-      const updated = await authStorage.updateUser(userId, { phone: phone.trim(), phoneVerified: true });
+      const updated = await authStorage.updateUser(userId, { phone: cleanPhone, phoneVerified: true });
       res.json({ success: true, user: toPublicUser(updated) });
     } catch (e: any) {
       logger.error("verify-otp error", e);
@@ -1025,19 +1041,38 @@ export async function registerRoutes(
     }
     const { name, email, subject, message } = parsed.data;
 
-    try {
-      // Queue the contact email — never log the message body (PII)
-      const contactEmail = process.env.CONTACT_EMAIL ?? process.env.PRIMARY_ADMIN_EMAIL ?? "support@grouperry.com";
-      await db.insert(emailQueue).values({
-        toEmail: contactEmail,
-        emailType: "contact_form",
-        payload: JSON.stringify({ name, email, subject, message }),
-        status: "pending",
-      });
-      logger.info("contact_form_queued", { email: email.replace(/(?<=.{2}).(?=.*@)/g, "*") });
-    } catch (e: any) {
-      logger.error("contact_form_queue_error", e);
-      // Still return success to user — we don't expose internal errors
+    const contactEmail = process.env.CONTACT_EMAIL ?? process.env.PRIMARY_ADMIN_EMAIL ?? "support@grouperry.com";
+    const baseUrl = process.env.APP_ORIGIN ?? "https://grouperry.com";
+
+    if (isResendConfigured()) {
+      const html = `
+        <!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f4f5; margin: 0; padding: 24px; }
+          .card { background: white; border-radius: 12px; padding: 32px; max-width: 520px; margin: 0 auto; }
+          .logo { font-size: 18px; font-weight: 700; color: #6d28d9; margin-bottom: 20px; }
+          h2 { font-size: 16px; font-weight: 600; color: #111; margin: 0 0 16px; }
+          .field { margin-bottom: 12px; }
+          .label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+          .value { font-size: 14px; color: #333; margin-top: 2px; white-space: pre-wrap; }
+          .footer { margin-top: 24px; color: #999; font-size: 12px; border-top: 1px solid #eee; padding-top: 16px; }
+        </style></head><body><div class="card">
+          <div class="logo">Grouperry</div>
+          <h2>New Contact Form Message</h2>
+          <div class="field"><div class="label">From</div><div class="value">${name} &lt;${email}&gt;</div></div>
+          <div class="field"><div class="label">Subject</div><div class="value">${subject}</div></div>
+          <div class="field"><div class="label">Message</div><div class="value">${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div></div>
+          <div class="footer">Sent via <a href="${baseUrl}" style="color:#6d28d9">grouperry.com</a> contact form. Reply directly to ${email}.</div>
+        </div></body></html>`;
+
+      const result = await sendViaResend(contactEmail, `Contact: ${subject}`, html);
+      if (!result.ok) {
+        logger.error("contact_form_send_error", { error: result.error, from: email.replace(/(?<=.{2}).(?=.*@)/g, "*") });
+      } else {
+        logger.info("contact_form_sent", { to: contactEmail, from: email.replace(/(?<=.{2}).(?=.*@)/g, "*") });
+      }
+    } else {
+      // Resend not configured — log so it's visible in PM2 logs
+      logger.warn("contact_form_no_resend", { message: "RESEND_API_KEY not set. Contact form message not delivered.", from: email.replace(/(?<=.{2}).(?=.*@)/g, "*"), subject });
     }
 
     res.json({ success: true, message: "Thank you for contacting us!" });
@@ -1057,6 +1092,30 @@ export async function registerRoutes(
       const result = await storage.subscribeNewsletterEmail(parsed.data.email, parsed.data.locale);
       if (result === "exists") {
         return res.status(200).json({ ok: true, status: "already_subscribed" });
+      }
+      // New subscriber — send welcome email (fire-and-forget, don't block response)
+      if (isResendConfigured()) {
+        const baseUrl = process.env.APP_ORIGIN ?? "https://grouperry.com";
+        const welcomeHtml = `
+          <!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f4f5; margin: 0; padding: 24px; }
+            .card { background: white; border-radius: 12px; padding: 32px; max-width: 480px; margin: 0 auto; }
+            .logo { font-size: 20px; font-weight: 700; color: #6d28d9; margin-bottom: 20px; }
+            p { color: #555; line-height: 1.6; font-size: 14px; margin: 0 0 16px; }
+            .cta { display: inline-block; background: #6d28d9; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; }
+            .footer { margin-top: 24px; color: #999; font-size: 12px; }
+          </style></head><body><div class="card">
+            <div class="logo">Grouperry</div>
+            <p>Welcome! You're now subscribed to Grouperry updates.</p>
+            <p>We'll let you know about the best group deals, platform news, and buying tips. No spam — ever.</p>
+            <a href="${baseUrl}" class="cta">Explore Deals</a>
+            <div class="footer"><a href="${baseUrl}" style="color:#6d28d9">grouperry.com</a></div>
+          </div></body></html>`;
+        sendViaResend(parsed.data.email, "Welcome to Grouperry!", welcomeHtml)
+          .then(r => { if (!r.ok) logger.warn("newsletter_welcome_email_failed", { error: r.error }); })
+          .catch(e => logger.error("newsletter_welcome_email_error", e));
+      } else {
+        logger.warn("newsletter_no_resend", { message: "RESEND_API_KEY not set. Welcome email not sent." });
       }
       return res.status(201).json({ ok: true, status: "subscribed" });
     } catch (e: any) {

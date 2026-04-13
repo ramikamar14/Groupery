@@ -11,7 +11,7 @@ function isResendConfigured(): boolean {
   return !!(RESEND_API_KEY && RESEND_API_KEY.startsWith("re_"));
 }
 
-async function sendViaResend(to: string, subject: string, html: string): Promise<{ ok: boolean; error?: string }> {
+export async function sendViaResend(to: string, subject: string, html: string): Promise<{ ok: boolean; error?: string }> {
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",

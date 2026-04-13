@@ -68,7 +68,7 @@ function LiveDealCard() {
 
         <div className="h-40 rounded-2xl bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 flex items-center justify-center mb-4 overflow-hidden">
           {hasDeal && deal.imageUrl ? (
-            <img src={deal.imageUrl} alt="" className="w-full h-full object-cover" />
+            <img src={deal.imageUrl} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
           ) : (
             <motion.div
               animate={{ y: [0, -5, 0] }}
