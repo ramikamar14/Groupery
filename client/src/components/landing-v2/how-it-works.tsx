@@ -126,7 +126,7 @@ export function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 relative overflow-hidden">
+    <section id="how-it-works" className="py-24 relative overflow-hidden scroll-mt-24">
       <div className="absolute inset-0 bg-gradient-to-b from-muted/30 via-muted/50 to-muted/30" />
 
       <div className="container mx-auto px-6 relative">

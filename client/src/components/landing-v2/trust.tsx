@@ -60,7 +60,7 @@ export function Trust() {
   ];
 
   return (
-    <section id="trust" className="py-24 bg-gradient-to-b from-muted/50 to-background relative overflow-hidden">
+    <section id="trust" className="py-24 bg-gradient-to-b from-muted/50 to-background relative overflow-hidden scroll-mt-24">
       <div className="container mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

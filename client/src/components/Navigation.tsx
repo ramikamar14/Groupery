@@ -167,9 +167,9 @@ export function Sidebar() {
 
         {(user as any)?.isAdmin && (
           <div className="pt-2 mt-1 border-t border-border/40">
-            <Link href="/admin-secret-dashboard" className={cn(
+            <Link href="/admin" className={cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 group",
-              location === "/admin-secret-dashboard"
+              location === "/admin"
                 ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold"
                 : "text-muted-foreground hover:bg-amber-500/8 hover:text-amber-600 dark:hover:text-amber-400"
             )} data-testid="nav-sidebar-admin">

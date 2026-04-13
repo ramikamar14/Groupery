@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { LogoIcon } from "./Logo";
-import { Heart, Github, Twitter } from "lucide-react";
+import { Heart } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -89,32 +89,10 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-border/40">
-          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+        <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 pt-6 border-t border-border/40">
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1 text-center sm:text-left">
             &copy; {currentYear} Grouperry. Made with <Heart className="w-3 h-3 text-destructive fill-destructive" /> for group buyers.
           </p>
-          <div className="flex items-center gap-4">
-            <a
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-primary transition-colors"
-              aria-label="Twitter"
-              data-testid="footer-link-twitter"
-            >
-              <Twitter className="w-4 h-4" />
-            </a>
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-primary transition-colors"
-              aria-label="GitHub"
-              data-testid="footer-link-github"
-            >
-              <Github className="w-4 h-4" />
-            </a>
-          </div>
         </div>
       </div>
     </footer>

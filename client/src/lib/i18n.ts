@@ -20,7 +20,9 @@ const resources = {
         language: "Language",
         categories: "Categories",
         pastListings: "Past Listings",
-        adminCrm: "Admin CRM"
+        adminCrm: "Admin CRM",
+        verified: "Verified",
+        notVerified: "Not verified"
       },
       saved: {
         title: "Saved Listings",
@@ -917,6 +919,7 @@ const resources = {
         navHowItWorks: "How it Works",
         navCategories: "Categories",
         navTrust: "Trust",
+        navAbout: "About",
         headerGetStarted: "Get Started",
         heroTagline: "The future of shopping is collective",
         heroTitle: "Better prices when we",
@@ -1011,6 +1014,142 @@ const resources = {
         statSavedValue: "31%",
         statFallbackCountries: "89"
       },
+      about: {
+        title: "About Grouperry",
+        subtitle: "Group buying coordination, built for trust and clarity.",
+        lead: "Grouperry helps people team up for better prices on the things they already want to buy.",
+        body1:
+          "We focus on coordination: forming groups, filling slots, and chatting in one place. We do not process payments—members arrange money matters directly, with clear expectations and optional verification to improve trust.",
+        body2:
+          "Whether you are organizing a bulk order or joining an existing group, Grouperry is designed to make the process simple and transparent.",
+        missionTitle: "Our mission",
+        missionBody: "Make group buying easier to discover, join, and run—across categories and communities.",
+        ctaFaq: "Read the FAQ",
+        ctaContact: "Contact us"
+      },
+      faq: {
+        title: "Frequently Asked Questions",
+        subtitle: "Find answers to common questions about Grouperry",
+        items: [
+          {
+            id: "1",
+            question: "What is Grouperry?",
+            answer:
+              "Grouperry is a group buying coordination platform that allows users to form groups for bulk purchases, share costs, and unlock group deals. It focuses purely on coordination and does not handle payments."
+          },
+          {
+            id: "2",
+            question: "How do I create a listing?",
+            answer:
+              "Click 'Create Listing' in the navigation menu. Fill in the details about what you're buying, set the number of slots needed, add images, and publish. You can set pricing and see savings calculations."
+          },
+          {
+            id: "3",
+            question: "How do I join a group?",
+            answer:
+              "Browse listings, find one you're interested in, and click 'Join Group'. A confirmation dialog will appear. Once you confirm, you'll be added to the group and can start chatting with other members."
+          },
+          {
+            id: "4",
+            question: "Can I edit my profile?",
+            answer:
+              "Yes! Go to your Profile page and click 'Edit Profile'. You can update your name, profile picture, and other details. Changes are saved immediately."
+          },
+          {
+            id: "5",
+            question: "What is user verification?",
+            answer:
+              "Verification improves trust on the platform. You can upload your ID document and a selfie for verification. Admins will review and approve or reject your submission."
+          },
+          {
+            id: "6",
+            question: "What's the difference between Individual and Commercial accounts?",
+            answer:
+              "Individual accounts are for personal users. Commercial accounts are for businesses/shops and allow you to list products you're selling. Choose the appropriate type when signing up."
+          },
+          {
+            id: "7",
+            question: "Can I save listings?",
+            answer:
+              "Yes! Click the bookmark icon on any listing to save it. You can view all your saved listings in the 'Saved' section of your profile."
+          },
+          {
+            id: "8",
+            question: "How do I leave a group?",
+            answer:
+              "On the listing details page, click 'Leave Group'. A confirmation dialog will appear to prevent accidental exits. Once confirmed, you'll be removed from the group."
+          },
+          {
+            id: "9",
+            question: "Is there a chat feature?",
+            answer:
+              "Yes! Each group has a dedicated chat where members can discuss details, coordinate, and communicate. You can also use our AI chat widget for questions."
+          },
+          {
+            id: "10",
+            question: "How do I report a problem?",
+            answer:
+              "If you encounter any issues with a listing or another user, use the report feature. Admins will review your report and take appropriate action."
+          }
+        ]
+      },
+      contact: {
+        title: "Contact Us",
+        subtitle:
+          "Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.",
+        formTitle: "Send us a Message",
+        name: "Name",
+        email: "Email",
+        subject: "Subject",
+        message: "Message",
+        placeholderName: "Your name",
+        placeholderEmail: "your@email.com",
+        placeholderSubject: "What is this about?",
+        placeholderMessage: "Your message...",
+        send: "Send Message",
+        sending: "Sending...",
+        infoTitle: "Get in Touch",
+        generalTitle: "General Inquiries",
+        generalDesc: "For general questions about Grouperry, use the contact form or check our FAQ.",
+        supportTitle: "Support",
+        supportDesc: "Need help with your account? Check the Help Center or submit a support ticket through the form.",
+        reportTitle: "Report Issues",
+        reportDesc: "Found a bug or security issue? Please contact us immediately through this form.",
+        businessTitle: "Business Inquiries",
+        businessDesc: "Interested in partnerships or commercial opportunities? We'd love to discuss with you.",
+        responseTitle: "Response Time",
+        responseP1: "We typically respond to messages within 24-48 hours during business days.",
+        responseP2: "For urgent issues, please use the report feature within the app.",
+        toastErrorTitle: "Error",
+        toastValidation: "Please fill in all fields",
+        toastSentTitle: "Message sent!",
+        toastSentDesc: "We'll get back to you as soon as possible.",
+        toastFailDesc: "Failed to send message. Please try again."
+      },
+      footer: {
+        platform: "Platform",
+        company: "Support",
+        legal: "Legal",
+        exploreDeals: "Explore Deals",
+        createGroup: "Create a Group",
+        myGroups: "My Groups",
+        savedListings: "Saved Listings",
+        faq: "FAQ",
+        about: "About",
+        contact: "Contact Us",
+        yourAccount: "Your Account",
+        terms: "Terms & Conditions",
+        privacy: "Privacy Policy",
+        tagline: "Group buying coordination platform. Buy together, save more.",
+        copyrightYear: "© {{year}} Grouperry.",
+        madeWith: "Made with",
+        forGroupBuyers: "for group buyers."
+      },
+      notFound: {
+        title: "404 Page Not Found",
+        description: "The page you requested does not exist.",
+        home: "Return Home"
+      },
       categories: {
         title: "Browse Categories",
         subtitle: "Find group deals by category",
@@ -1046,7 +1185,8 @@ const resources = {
         back: "Back",
         next: "Next",
         submit: "Submit",
-        uploading: "Uploading..."
+        uploading: "Uploading...",
+        menu: "Menu"
       }
     }
   },

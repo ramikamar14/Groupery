@@ -66,7 +66,7 @@ export function Categories() {
   ];
 
   return (
-    <section id="categories" className="py-24 relative overflow-hidden">
+    <section id="categories" className="py-24 relative overflow-hidden scroll-mt-24">
       <div className="container mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
