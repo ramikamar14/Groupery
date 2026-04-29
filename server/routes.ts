@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import type { Server } from "http";
 // Routes use explicit try/catch; no external async-error package needed
+import { registerAgentReadyRoutes } from "./agentReady";
 import { storage, isFeatureEnabled, seedFeatureFlags } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
@@ -38,6 +39,10 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Agent-ready routes must be registered first so they take priority over
+  // the SPA catch-all that would otherwise swallow well-known paths.
+  registerAgentReadyRoutes(app);
+
   // Setup Replit Auth
   await setupAuth(app);
   registerAuthRoutes(app);
