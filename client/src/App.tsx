@@ -116,7 +116,7 @@ function Router() {
         {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <Notifications />}
       </Route>
       <Route path="/admin">
-        {!isAuthenticated ? <Redirect to="/?login=true&returnTo=%2Fadmin" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <Admin />}
+        {!isAuthenticated ? <Redirect to="/?login=true&returnTo=%2Fadmin" /> : !user?.isAdmin ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <Admin />}
       </Route>
       <Route path="/admin-secret-dashboard">
         <Redirect to="/admin" />
