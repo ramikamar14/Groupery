@@ -368,6 +368,7 @@ export async function registerRoutes(
 
         if (newFilled >= total) {
           notifyWatchlistUsers(id, "Group Complete", `"${listingTitle}" is now complete! All ${total} slots are filled.`, userId);
+          await storage.updateListing(id, { status: "completed" });
           storage.createSystemEvent("listing_completed", null, { listingId: id, title: listingTitle, trigger: "auto_filled" });
 
           const allParticipants = await storage.getParticipationsByListing(id);
@@ -786,13 +787,22 @@ export async function registerRoutes(
     const ALLOWED_PROFILE_FIELDS = new Set([
       "firstName", "lastName", "bio", "location", "username",
       "profileImageUrl", "notificationPreferences", "preferredLanguage",
-      "onboardingComplete",
     ]);
 
     const updates: Record<string, any> = {};
     for (const key of Object.keys(body)) {
       if (ALLOWED_PROFILE_FIELDS.has(key)) {
         updates[key] = body[key];
+      }
+    }
+
+    // onboardingComplete can only be set to true once required fields are present
+    if (body.onboardingComplete === true) {
+      const existing = await authStorage.getUser(userId);
+      const firstName = updates.firstName ?? existing?.firstName;
+      const lastName = updates.lastName ?? existing?.lastName;
+      if (firstName && lastName) {
+        updates.onboardingComplete = true;
       }
     }
 
@@ -1032,6 +1042,8 @@ export async function registerRoutes(
   });
 
   // ── Contact form ─────────────────────────────────────────────────────────
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
   const contactSchema = z.object({
     name:    z.string().min(1).max(100),
     email:   z.string().email().max(254),
@@ -1063,10 +1075,10 @@ export async function registerRoutes(
         </style></head><body><div class="card">
           <div class="logo">Grouperry</div>
           <h2>New Contact Form Message</h2>
-          <div class="field"><div class="label">From</div><div class="value">${name} &lt;${email}&gt;</div></div>
-          <div class="field"><div class="label">Subject</div><div class="value">${subject}</div></div>
-          <div class="field"><div class="label">Message</div><div class="value">${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div></div>
-          <div class="footer">Sent via <a href="${baseUrl}" style="color:#6d28d9">grouperry.com</a> contact form. Reply directly to ${email}.</div>
+          <div class="field"><div class="label">From</div><div class="value">${esc(name)} &lt;${esc(email)}&gt;</div></div>
+          <div class="field"><div class="label">Subject</div><div class="value">${esc(subject)}</div></div>
+          <div class="field"><div class="label">Message</div><div class="value">${esc(message)}</div></div>
+          <div class="footer">Sent via <a href="${baseUrl}" style="color:#6d28d9">grouperry.com</a> contact form. Reply directly to ${esc(email)}.</div>
         </div></body></html>`;
 
       const result = await sendViaResend(contactEmail, `Contact: ${subject}`, html);
@@ -1933,12 +1945,6 @@ export async function registerRoutes(
     res.json(usersWithOwnerFlag);
   });
 
-  // ── Admin: Orders (participations) ────────────────────────────────────────
-  app.get("/api/admin/orders", requireAdmin, async (_req, res) => {
-    const orders = await storage.getAllParticipations();
-    res.json(orders);
-  });
-
   app.post("/api/admin/orders/:id/approve", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id as string);
     const adminId = (req.user as any).claims.sub;
@@ -2791,6 +2797,22 @@ Return ONLY valid JSON with this structure:
     if (!invitation) return res.status(404).json({ error: "Invitation not found" });
     if (invitation.invitedUserId !== userId) return res.status(403).json({ error: "Forbidden" });
     await storage.updateInvitation(invId, status as "accepted" | "declined");
+
+    // Auto-join the listing when an invitation is accepted
+    if (status === "accepted") {
+      try {
+        const listing = await storage.getListing(invitation.listingId);
+        if (listing && listing.status === "active" && listing.filledSlots < listing.totalSlots) {
+          const existing = await storage.getParticipation(invitation.listingId, userId);
+          if (!existing) {
+            await storage.joinListing(invitation.listingId, userId);
+            cache.invalidatePrefix("discover:");
+            cache.invalidate(`listing:${invitation.listingId}`);
+          }
+        }
+      } catch (_) {}
+    }
+
     res.json({ message: "Invitation updated" });
   });
 
@@ -2833,9 +2855,11 @@ Return ONLY valid JSON with this structure:
     }
   });
 
-  // Seed feature flags and database
+  // Seed feature flags always (idempotent); demo data only outside production
   await seedFeatureFlags();
-  await seedDatabase();
+  if (process.env.NODE_ENV !== "production") {
+    await seedDatabase();
+  }
 
   // ── Global error handler (catches errors forwarded via express-async-errors) ──
   app.use((err: any, req: any, res: any, next: any) => {

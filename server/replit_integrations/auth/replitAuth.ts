@@ -55,6 +55,8 @@ export async function setupAuth(app: Express): Promise<void> {
     try {
       const user = await authStorage.getUser(id);
       if (!user) return cb(null, false);
+      // Banned users are blocked at the session level — every request re-checks.
+      if (user.isDisabled) return cb(null, false);
       // Re-hydrate into the shape routes expect: { claims: { sub } }
       cb(null, { claims: { sub: user.id }, ...user });
     } catch (err) {
