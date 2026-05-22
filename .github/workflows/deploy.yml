@@ -27,23 +27,14 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Copy dist to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: 22
-          source: "dist/"
-          target: "/home/rami/Groupery/"
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
 
-      - name: Restart app
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: 22
-          script: |
-            pm2 restart groupery
-            echo "✅ Deployed at $(date)"
+      - name: Upload dist & restart
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          tar czf dist.tar.gz dist/
+          sshpass -e scp -o StrictHostKeyChecking=no dist.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/rami/Groupery/
+          sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "cd /home/rami/Groupery && tar xzf dist.tar.gz && rm dist.tar.gz && pm2 restart groupery && echo '✅ Deployed at \$(date)'"
