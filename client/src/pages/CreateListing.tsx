@@ -185,6 +185,7 @@ export default function CreateListing() {
   const [distributionType, setDistributionType] = useState<"pickup" | "delivery" | "digital">("pickup");
   const [distributionDetails, setDistributionDetails] = useState("");
   const [draftSaved, setDraftSaved] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const draftKey = "grouperry-create-listing-draft";
 
@@ -664,6 +665,21 @@ export default function CreateListing() {
                 )}
               />
 
+              {/* Advanced toggle */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors font-medium"
+                  data-testid="button-toggle-advanced"
+                >
+                  <span className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}>›</span>
+                  {showAdvanced ? "Hide advanced options" : "Add tags, location, language…"}
+                </button>
+              </div>
+
+              {showAdvanced && (
+              <>
               <CreateSectionDivider step={2} icon={Tag} title={t("create.sectionDetails")} description={t("create.sectionDetailsDesc")} />
 
               <div className="space-y-3">
@@ -765,6 +781,9 @@ export default function CreateListing() {
                   )}
                 />
               </div>
+
+              </>
+              )} {/* end showAdvanced */}
 
               {/* Price fields (P5) */}
               <div className="space-y-2">

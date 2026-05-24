@@ -255,6 +255,30 @@ export default function ListingDetails() {
     }
   }, [listing, id]);
 
+  const { data: escrowData, refetch: refetchEscrow } = useQuery<{ escrow: { id: string; status: string; amount?: number } | null }>({
+    queryKey: ["/api/listings", id, "escrow"],
+    queryFn: async () => {
+      const res = await fetch(`/api/listings/${id}/escrow`, { credentials: "include" });
+      if (!res.ok) return { escrow: null };
+      return res.json();
+    },
+    enabled: !!user && !!isParticipant && !isCreator,
+    staleTime: 60_000,
+  });
+
+  const releaseEscrowMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/listings/${id}/escrow/release`, { method: "POST", credentials: "include" });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.message || "Failed"); }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Funds released", description: "Payment has been released to the seller." });
+      refetchEscrow();
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
   if (isLoading) {
     return (
       <Layout>
@@ -711,6 +735,45 @@ export default function ListingDetails() {
                     <p className="text-xs font-semibold text-foreground">{t("listing.contactViaChat", "Coordinate in the group chat")}</p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">{t("listing.contactViaChatDesc", "Message the creator and all participants directly in the Chat tab below.")}</p>
                   </div>
+                </div>
+              )}
+
+              {/* Escrow status — shown to participants with an active escrow */}
+              {isParticipant && !isCreator && escrowData?.escrow && (
+                <div className="mb-4 rounded-xl border border-border/50 bg-card p-3" data-testid="panel-escrow-status">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-primary shrink-0" />
+                      <span className="text-xs font-semibold">Escrow #{escrowData.escrow.id}</span>
+                      <span className={cn(
+                        "text-[10px] px-2 py-0.5 rounded-full font-medium capitalize",
+                        escrowData.escrow.status === "released" ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400" :
+                        escrowData.escrow.status === "refunded" ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" :
+                        "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400"
+                      )}>
+                        {escrowData.escrow.status}
+                      </span>
+                    </div>
+                    {isCompleted && escrowData.escrow.status !== "released" && escrowData.escrow.status !== "refunded" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs h-7"
+                        onClick={() => releaseEscrowMutation.mutate()}
+                        disabled={releaseEscrowMutation.isPending}
+                        data-testid="button-release-escrow"
+                      >
+                        {releaseEscrowMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Confirm receipt & release"}
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1.5">
+                    {escrowData.escrow.status === "released"
+                      ? "Payment released to the seller."
+                      : escrowData.escrow.status === "refunded"
+                      ? "You have been refunded."
+                      : "Funds are held in escrow until you confirm receipt after delivery."}
+                  </p>
                 </div>
               )}
 
@@ -1209,27 +1272,159 @@ function ImageGallery({ images, title, category, status }: { images: string[]; t
 
 function ListingAdminControls({ listing }: { listing: any }) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const updateStatus = useUpdateListingStatus();
+  const queryClient = useQueryClient();
+  const [showExtend, setShowExtend] = useState(false);
+  const [newExpiry, setNewExpiry] = useState("");
+  const [showPostUpdate, setShowPostUpdate] = useState(false);
+  const [updateContent, setUpdateContent] = useState("");
+
+  const extendMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/listings/${listing.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ expiresAt: new Date(newExpiry + "T00:00:00") }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.message || "Failed"); }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/listings", listing.id] });
+      setShowExtend(false);
+      toast({ title: "Deadline extended!" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  const postUpdateMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/listings/${listing.id}/updates`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ content: updateContent }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.message || "Failed"); }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/listings", listing.id, "updates"] });
+      setShowPostUpdate(false);
+      setUpdateContent("");
+      toast({ title: "Update posted to all participants!" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/listings/${listing.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: listing.title, text: `Join my group deal: ${listing.title}`, url });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Link copied!", description: "Share it with your network." });
+    }
+  };
 
   return (
-    <div className="flex gap-2 w-full md:w-auto">
-      <Button
-        variant="outline"
-        className="flex-1 md:flex-none border-green-200 text-green-700 hover:bg-green-50"
-        onClick={() => updateStatus.mutate({ id: listing.id, status: "completed" })}
-        data-testid="button-complete"
-      >
-        <CheckCircle2 className="w-4 h-4 mr-2" />
-        {t("listing.markComplete")}
-      </Button>
-      <Button
-        variant="outline"
-        className="flex-1 md:flex-none"
-        onClick={() => updateStatus.mutate({ id: listing.id, status: "cancelled" })}
-        data-testid="button-cancel"
-      >
-        {t("listing.cancel")}
-      </Button>
+    <div className="flex flex-col gap-3 w-full">
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-green-200 text-green-700 hover:bg-green-50 dark:hover:bg-green-950/20"
+          onClick={() => updateStatus.mutate({ id: listing.id, status: "completed" })}
+          data-testid="button-complete"
+        >
+          <CheckCircle2 className="w-4 h-4 mr-1.5" />
+          {t("listing.markComplete")}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowExtend(!showExtend)}
+          data-testid="button-extend-deadline"
+        >
+          <Clock className="w-4 h-4 mr-1.5" />
+          Extend deadline
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowPostUpdate(!showPostUpdate)}
+          data-testid="button-post-update"
+        >
+          Post update
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleShare}
+          data-testid="button-share-creator"
+        >
+          <Share2 className="w-4 h-4 mr-1.5" />
+          Share
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-destructive border-destructive/30 hover:bg-destructive/5"
+          onClick={() => updateStatus.mutate({ id: listing.id, status: "cancelled" })}
+          data-testid="button-cancel"
+        >
+          {t("listing.cancel")}
+        </Button>
+      </div>
+
+      {showExtend && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 border border-border/50">
+          <Input
+            type="date"
+            className="flex-1 h-9 text-sm"
+            value={newExpiry}
+            onChange={(e) => setNewExpiry(e.target.value)}
+            min={new Date().toISOString().split("T")[0]}
+            data-testid="input-new-expiry"
+          />
+          <Button
+            size="sm"
+            onClick={() => extendMutation.mutate()}
+            disabled={!newExpiry || extendMutation.isPending}
+            data-testid="button-confirm-extend"
+          >
+            {extendMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setShowExtend(false)}>Cancel</Button>
+        </div>
+      )}
+
+      {showPostUpdate && (
+        <div className="flex flex-col gap-2 p-3 rounded-xl bg-muted/50 border border-border/50">
+          <Textarea
+            placeholder="Share an update with all participants…"
+            className="text-sm min-h-[80px] resize-none"
+            value={updateContent}
+            onChange={(e) => setUpdateContent(e.target.value)}
+            data-testid="input-update-content"
+          />
+          <div className="flex gap-2 justify-end">
+            <Button size="sm" variant="ghost" onClick={() => { setShowPostUpdate(false); setUpdateContent(""); }}>Cancel</Button>
+            <Button
+              size="sm"
+              onClick={() => postUpdateMutation.mutate()}
+              disabled={!updateContent.trim() || postUpdateMutation.isPending}
+              data-testid="button-confirm-post-update"
+            >
+              {postUpdateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Post update"}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
