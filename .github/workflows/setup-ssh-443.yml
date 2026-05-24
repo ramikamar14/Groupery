@@ -2,6 +2,11 @@ name: Setup SSH on port 443 (sslh)
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - claude/setup-ssh-grouperry-NQS8l
+    paths:
+      - '.github/workflows/setup-ssh-443.yml'
 
 jobs:
   setup:
