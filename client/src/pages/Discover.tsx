@@ -129,26 +129,19 @@ export default function Discover() {
       ) : error ? (
         <div className="text-center p-12 bg-destructive/5 rounded-2xl border border-destructive/20 text-destructive">{t("common.error")}</div>
       ) : allListings.length === 0 ? (
-        <div className="text-center py-16 bg-secondary/30 rounded-3xl border border-dashed border-border space-y-4" data-testid="no-results-state">
-          <div className="text-5xl mb-2">🔍</div>
-          <h3 className="text-xl font-bold font-display">{t("home.noListings", "No deals found")}</h3>
-          <p className="text-muted-foreground max-w-sm mx-auto">{t("home.noListingsHint", "Try adjusting your search or filters.")}</p>
-          {search ? (
-            <div className="text-sm text-muted-foreground space-y-0.5">
-              <p className="font-medium">Try:</p>
-              <ul className="list-none">
-                <li>· Different or shorter keywords</li>
-                <li>· Removing some filters</li>
-              </ul>
-            </div>
-          ) : null}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <Button variant="outline" onClick={clearAllFilters} data-testid="button-clear-filters">
-              Clear all filters
+        <div className="text-center py-14 bg-muted/30 rounded-3xl border border-dashed border-border/70 space-y-3 px-6" data-testid="no-results-state">
+          <div className="w-14 h-14 rounded-2xl bg-muted mx-auto flex items-center justify-center text-2xl">🔍</div>
+          <h3 className="text-lg font-bold font-display">{t("home.noListings", "No deals found")}</h3>
+          <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+            {search ? t("home.noListingsSearchHint", "Try different keywords or fewer filters.") : t("home.noListingsHint", "Try adjusting your filters.")}
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
+            <Button variant="outline" size="sm" className="rounded-full w-full sm:w-auto" onClick={clearAllFilters} data-testid="button-clear-filters">
+              {t("home.clearFilters", "Clear filters")}
             </Button>
-            <Link href="/create">
-              <Button data-testid="button-create-deal-empty">Create a Deal</Button>
-            </Link>
+            <Button size="sm" className="rounded-full w-full sm:w-auto" asChild>
+              <Link href="/create" data-testid="button-create-deal-empty">{t("home.createDeal", "Create a Deal")}</Link>
+            </Button>
           </div>
         </div>
       ) : (
@@ -176,35 +169,20 @@ export default function Discover() {
       <AISuggestionsBanner />
       <ReferralBanner />
 
-      {!isFiltering && platformStats && (platformStats.activeListings > 0 || platformStats.totalMembers > 0) ? (
-        <div className="mb-6 flex flex-wrap items-center justify-center gap-6 py-3 px-4 rounded-2xl bg-muted/40 border border-border/50 text-sm" data-testid="stats-bar">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <span>
-              <strong className="text-foreground font-semibold">{platformStats.activeListings}</strong> active{" "}
-              {platformStats.activeListings === 1 ? "deal" : "deals"}
-            </span>
-          </div>
-          <div className="w-px h-4 bg-border hidden sm:block" />
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <span>
-              <strong className="text-foreground font-semibold">{platformStats.totalMembers}</strong>{" "}
-              {platformStats.totalMembers === 1 ? "member" : "members"}
-            </span>
-          </div>
-        </div>
-      ) : null}
-
       <ExploreFiltersToolbar
         {...explore}
         titleBlock={
-          <div className="space-y-2">
+          <div className="space-y-1.5">
+            <h1 className="text-2xl font-display font-bold">{t("discover.title")}</h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <h1 className="text-2xl font-display font-bold">{t("discover.title")}</h1>
-              <Button variant="outline" size="sm" className="rounded-full h-8 text-xs" asChild>
-                <Link href="/explore">{t("discover.viewClassic")}</Link>
-              </Button>
+              <p className="text-sm text-muted-foreground">{t("discover.subtitle")}</p>
+              {!isFiltering && platformStats && (platformStats.activeListings > 0 || platformStats.totalMembers > 0) && (
+                <span className="text-xs text-muted-foreground hidden sm:inline">
+                  <strong className="text-foreground">{platformStats.activeListings}</strong> deals ·{" "}
+                  <strong className="text-foreground">{platformStats.totalMembers}</strong> members
+                </span>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground">{t("discover.subtitle")}</p>
           </div>
         }
       />
@@ -261,6 +239,11 @@ export default function Discover() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-display font-bold">{t("discover.allDeals")}</h2>
+            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs" asChild>
+              <Link href="/create">
+                <span>+ {t("discover.createDeal", "Create a deal")}</span>
+              </Link>
+            </Button>
           </div>
           {grid}
         </div>
