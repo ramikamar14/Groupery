@@ -23,38 +23,63 @@ jobs:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
         run: |
           sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash -s << 'ENDSSH'
-          set -e
+          set -ex
 
-          echo "=== Current port 443 usage ==="
+          echo "=== OS info ==="
+          lsb_release -a 2>/dev/null || cat /etc/os-release
+
+          echo "=== What is listening on 443? ==="
           sudo ss -tlnp | grep :443 || echo "nothing on 443"
 
           echo "=== Installing sslh ==="
           export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get update -q
           sudo apt-get install -y sslh
 
-          echo "=== Detecting what is on port 443 ==="
+          echo "=== sslh binary location ==="
+          which sslh || which sslh-select || ls /usr/sbin/sslh* 2>/dev/null
+
+          echo "=== Move nginx off port 443 if needed ==="
           if sudo ss -tlnp | grep -q ":443"; then
+            echo "Port 443 is occupied, checking nginx..."
             if systemctl is-active --quiet nginx; then
               NGINX_CONF=$(grep -rl "listen 443" /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
               if [ -n "$NGINX_CONF" ]; then
-                echo "Moving nginx from 443 to 4443 in $NGINX_CONF"
-                sudo sed -i "s/listen 443 ssl/listen 4443 ssl/g; s/listen \[\:\:\]:443 ssl/listen [::]:4443 ssl/g" "$NGINX_CONF"
-                sudo nginx -t && sudo systemctl reload nginx
+                echo "Updating $NGINX_CONF"
+                sudo sed -i "s/listen 443 ssl/listen 4443 ssl/g" "$NGINX_CONF"
+                sudo sed -i "s/listen \[::\]:443 ssl/listen [::]:4443 ssl/g" "$NGINX_CONF"
+                sudo nginx -t
+                sudo systemctl reload nginx
+                echo "nginx moved to 4443"
+              else
+                echo "nginx running but no 443 vhost found in sites-enabled"
+                sudo grep -r "443" /etc/nginx/sites-enabled/ || true
               fi
             fi
           fi
 
-          echo "=== Configuring sslh ==="
-          printf '%s\n' \
-            'DAEMON_OPTS="--user sslh --listen 0.0.0.0:443 --ssh 127.0.0.1:22 --tls 127.0.0.1:4443 --pidfile /var/run/sslh/sslh.pid"' \
-            'RUN=yes' \
-            | sudo tee /etc/default/sslh > /dev/null
+          echo "=== Stop any existing sslh service ==="
+          sudo systemctl stop sslh 2>/dev/null || true
+          sudo pm2 delete sslh 2>/dev/null || true
 
-          echo "=== Starting sslh ==="
-          sudo systemctl enable sslh
-          sudo systemctl restart sslh
+          echo "=== Launch sslh via pm2 ==="
+          SSLH_BIN=$(which sslh-select 2>/dev/null || which sslh 2>/dev/null || echo "/usr/sbin/sslh-select")
+          echo "Using sslh binary: $SSLH_BIN"
+
+          sudo pm2 start "$SSLH_BIN" \
+            --name sslh \
+            -- -f \
+               --listen 0.0.0.0:443 \
+               --ssh 127.0.0.1:22 \
+               --tls 127.0.0.1:4443
+          sudo pm2 save
+
+          echo "=== pm2 status ==="
+          sudo pm2 list
+
+          echo "=== Verify port 443 ==="
           sleep 2
-          sudo systemctl status sslh --no-pager
+          sudo ss -tlnp | grep :443
 
-          echo "=== Done. SSH now accessible on port 443 ==="
+          echo "=== Done. SSH accessible on port 443 ==="
           ENDSSH
