@@ -1,0 +1,72 @@
+name: Setup SSH on port 443 (sslh)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    name: Configure sslh to multiplex SSH+HTTPS on port 443
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
+
+      - name: Configure sslh on server
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash << 'ENDSSH'
+          set -e
+
+          echo "=== Current port 443 usage ==="
+          sudo ss -tlnp | grep :443 || echo "nothing on 443"
+
+          echo "=== Installing sslh ==="
+          sudo apt-get install -y sslh
+
+          echo "=== Detecting nginx/app port 443 config ==="
+          # Find what's listening on 443 and move it to 4443
+          NGINX_CONF=""
+          if sudo ss -tlnp | grep -q ':443'; then
+            # Something is on 443 - find if it's nginx
+            if systemctl is-active --quiet nginx; then
+              NGINX_CONF=$(grep -rl 'listen 443' /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
+              if [ -n "$NGINX_CONF" ]; then
+                echo "Moving nginx from 443 to 4443 in $NGINX_CONF"
+                sudo sed -i 's/listen 443 ssl/listen 4443 ssl/g; s/listen \[::\]:443 ssl/listen [::]:4443 ssl/g' "$NGINX_CONF"
+                sudo nginx -t && sudo systemctl reload nginx
+              fi
+            fi
+          fi
+
+          echo "=== Writing sslh config ==="
+          sudo tee /etc/sslh.cfg << 'EOF'
+          foreground: false;
+          inetd: false;
+          numeric: false;
+          transparent: false;
+          timeout: 5;
+          log-level: 0;
+
+          listen:
+          (
+            { host: "0.0.0.0"; port: "443"; }
+          );
+
+          protocols:
+          (
+            { name: "ssh";   host: "127.0.0.1"; port: "22"; probe: "builtin"; },
+            { name: "tls";   host: "127.0.0.1"; port: "4443"; probe: "builtin"; }
+          );
+          EOF
+
+          echo "=== Enabling and starting sslh ==="
+          sudo systemctl enable sslh
+          sudo systemctl restart sslh
+          sleep 2
+          sudo systemctl status sslh --no-pager
+
+          echo "=== Done. SSH is now accessible on port 443 ==="
+          ENDSSH
