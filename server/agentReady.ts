@@ -7,45 +7,50 @@ const SITE_DESCRIPTION =
   "Grouperry is a group-sharing marketplace where people join collective deals on physical goods, digital subscriptions, and services — split costs and save money together.";
 
 // ── robots.txt ────────────────────────────────────────────────────────────────
-const ROBOTS_TXT = `# Content Signals — https://contentsignals.org/
-# search:   building a search index — YES
-# ai-input: real-time AI grounding / RAG — YES
-# ai-train: training or fine-tuning AI models — NO
+const ROBOTS_TXT = `User-agent: *
 Content-Signal: search=yes, ai-input=yes, ai-train=no
-
-User-agent: *
 Allow: /
 Disallow: /api/
 
 # AI crawlers — explicitly welcome
 User-agent: GPTBot
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 User-agent: ChatGPT-User
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 User-agent: ClaudeBot
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 User-agent: anthropic-ai
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 User-agent: PerplexityBot
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 User-agent: Google-Extended
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 User-agent: Googlebot
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 User-agent: Bingbot
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 User-agent: DuckAssistBot
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 User-agent: YouBot
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 Sitemap: ${BASE_URL}/sitemap.xml
