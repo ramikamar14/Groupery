@@ -435,11 +435,13 @@ export default function Profile() {
                     <Zap className="w-4 h-4 text-accent" />
                     {t("profile.reliabilityScoreTitle")}
                   </span>
-                  <span className="text-sm font-bold text-accent">{reliability.score}/100</span>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${reliability.score >= 80 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400" : reliability.score >= 60 ? "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}>
+                    {reliability.score >= 80 ? t("profile.scoreExcellent", "Excellent") : reliability.score >= 60 ? t("profile.scoreGood", "Good") : t("profile.scoreBuildingTrust", "Building trust")}
+                  </span>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-accent to-accent/70 rounded-full transition-all duration-700"
+                    className={`h-full rounded-full transition-all duration-700 ${reliability.score >= 80 ? "bg-emerald-500" : reliability.score >= 60 ? "bg-amber-500" : "bg-muted-foreground"}`}
                     style={{ width: `${Math.min(100, Math.max(0, reliability.score))}%` }}
                   />
                 </div>

@@ -400,48 +400,14 @@ export default function Home() {
         </div>
       )}
 
-      {/* Platform stats bar */}
-      {!isFiltering && platformStats && (platformStats.activeListings > 0 || platformStats.totalMembers > 0) && (
-        <div className="mb-6 flex flex-wrap items-center justify-center gap-6 py-3 px-4 rounded-2xl bg-muted/40 border border-border/50 text-sm" data-testid="stats-bar">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Package className="w-4 h-4 text-primary" />
-            <span>
-              <strong className="text-foreground font-semibold">{platformStats.activeListings}</strong>
-              {" "}active {platformStats.activeListings === 1 ? "deal" : "deals"}
-            </span>
-          </div>
-          <div className="w-px h-4 bg-border hidden sm:block" />
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Users className="w-4 h-4 text-primary" />
-            <span>
-              <strong className="text-foreground font-semibold">{platformStats.totalMembers}</strong>
-              {" "}{platformStats.totalMembers === 1 ? "member" : "members"}
-            </span>
-          </div>
-        </div>
-      )}
 
       <ExploreFiltersToolbar
         {...explore}
         titleBlock={
-          user ? (
-            <>
-              <h1 className="text-2xl font-display font-bold">
-                {(() => {
-                  const hour = new Date().getHours();
-                  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-                  const firstName = (user as any).firstName;
-                  return firstName ? `${greeting}, ${firstName}` : t("home.title");
-                })()}
-              </h1>
-              <p className="text-sm text-muted-foreground">{t("home.subtitle")}</p>
-            </>
-          ) : (
-            <>
-              <h1 className="text-2xl font-display font-bold">{t("home.title")}</h1>
-              <p className="text-sm text-muted-foreground">{t("home.subtitle")}</p>
-            </>
-          )
+          <>
+            <h1 className="text-2xl font-display font-bold">{t("home.title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("home.subtitle")}</p>
+          </>
         }
       />
 
@@ -453,18 +419,6 @@ export default function Home() {
             icon={<TrendingUp className="w-5 h-5 text-orange-500" />}
             queryKey="discover-trending"
             endpoint="/api/discover/trending"
-          />
-          <DiscoverySection
-            title={t("home.endingSoon", "Ending Soon")}
-            icon={<Clock className="w-5 h-5 text-amber-500" />}
-            queryKey="discover-expiring"
-            endpoint="/api/discover/expiring-soon"
-          />
-          <DiscoverySection
-            title={t("home.recentlyAdded", "Recently Added")}
-            icon={<Sparkles className="w-5 h-5 text-blue-500" />}
-            queryKey="discover-recent"
-            endpoint="/api/discover/recent"
           />
           <DiscoverySection
             title={t("home.nearCompletion", "Filling Up Fast")}

@@ -441,6 +441,34 @@ export default function ListingDetails() {
                 </div>
               )}
 
+              {/* Who has joined — participant avatars */}
+              {listing.participants && listing.participants.length > 0 && (
+                <div className="flex items-center gap-3 mb-4" data-testid="panel-participants">
+                  <div className="flex -space-x-2 shrink-0">
+                    {listing.participants.slice(0, 5).map((p: any) => (
+                      <Avatar key={p.userId} className="w-8 h-8 border-2 border-background">
+                        <AvatarImage src={p.user?.profileImageUrl} />
+                        <AvatarFallback className="text-xs">{p.user?.firstName?.[0] || "?"}</AvatarFallback>
+                      </Avatar>
+                    ))}
+                    {listing.participants.length > 5 && (
+                      <div className="w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                        +{listing.participants.length - 5}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">{listing.participants.length}</span>{" "}
+                    {listing.participants.length === 1 ? t("listing.personJoined", "person has joined") : t("listing.peopleJoined", "people have joined")}
+                    {listing.participants.filter((p: any) => p.user?.verificationStatus === "verified").length > 0 && (
+                      <span className="text-emerald-600 dark:text-emerald-400">
+                        {" · "}{listing.participants.filter((p: any) => p.user?.verificationStatus === "verified").length} {t("listing.verified", "verified")}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
+
               {/* Trust badges */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" data-testid="trust-badges">
                 <div className="flex items-start gap-3 p-3 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/30">
@@ -533,6 +561,21 @@ export default function ListingDetails() {
                   return null;
                 })()}
               </div>
+
+              {/* Money protection strip */}
+              {isActive && (
+                <div className="mb-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 p-3 space-y-1.5" data-testid="panel-money-protection">
+                  <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    {t("listing.moneyProtected", "Your participation is protected")}
+                  </p>
+                  <div className="space-y-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400/70">
+                    <p>✓ {t("listing.protectionPoint1", "Funds are held until the deal completes")}</p>
+                    <p>✓ {t("listing.protectionPoint2", "Full refund if the group doesn't fill")}</p>
+                    <p>✓ {t("listing.protectionPoint3", "ID-verified creators · dispute window after delivery")}</p>
+                  </div>
+                </div>
+              )}
 
               {/* CTA buttons */}
               <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 mb-3">
@@ -658,46 +701,41 @@ export default function ListingDetails() {
                 <ShareButton listing={listing} />
               </div>
 
-              {/* Reveal Contact Info button */}
-              {user && (isParticipant || isCreator) && (() => {
-                const fillPct = listing.totalSlots > 0 ? (listing.filledSlots / listing.totalSlots) * 100 : 0;
-                return (fillPct >= 80 || isCompleted) && (
-                  <div className="mb-4">
-                    {revealedPhoneVerified === null ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-950/30 gap-2"
-                        onClick={() => revealContactMutation.mutate()}
-                        disabled={revealContactMutation.isPending}
-                        data-testid="button-reveal-contact"
-                      >
-                        {revealContactMutation.isPending ? (
-                          <><Loader2 className="w-4 h-4 animate-spin" /> {t("common.loading")}</>
-                        ) : (
-                          <><Phone className="w-4 h-4" /> {t("listing.revealContact")}</>
-                        )}
-                      </Button>
-                    ) : revealedPhone && revealedPhoneVerified ? (
-                      <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-xl" data-testid="panel-revealed-phone">
-                        <Phone className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
-                        <div>
-                          <p className="text-xs font-semibold text-green-800 dark:text-green-200">{t("listing.creatorPhone")}</p>
-                          <p className="text-sm font-mono text-green-700 dark:text-green-300">{revealedPhone}</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-3 p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-xl" data-testid="panel-no-verified-phone">
-                        <Phone className="w-4 h-4 text-yellow-600 dark:text-yellow-400 shrink-0" />
-                        <div>
-                          <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-200">{t("listing.noVerifiedPhone", "No verified phone")}</p>
-                          <p className="text-xs text-yellow-700 dark:text-yellow-300">{t("listing.noVerifiedPhoneDesc", "The creator hasn't added a verified phone number yet.")}</p>
-                        </div>
-                      </div>
-                    )}
+              {/* Coordinate via in-app chat — no phone reveal for privacy */}
+              {user && (isParticipant || isCreator) && (
+                <div className="mb-4 flex items-start gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20" data-testid="panel-chat-cta">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Users className="w-4 h-4 text-primary" />
                   </div>
-                );
-              })()}
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">{t("listing.contactViaChat", "Coordinate in the group chat")}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{t("listing.contactViaChatDesc", "Message the creator and all participants directly in the Chat tab below.")}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* What happens next timeline — shown to non-participants */}
+              {isActive && !isParticipant && !isCreator && (
+                <div className="mb-4 pt-4 border-t border-border/40" data-testid="panel-what-happens-next">
+                  <p className="text-xs font-semibold text-foreground/70 mb-3">{t("listing.whatHappensNext", "What happens next")}</p>
+                  <div className="space-y-2">
+                    {[
+                      t("listing.stepJoin", "You commit to the deal"),
+                      t("listing.stepFills", "Group fills up"),
+                      t("listing.stepPay", "Everyone pays their share"),
+                      t("listing.stepCreator", "Creator fulfils the order"),
+                      t("listing.stepConfirm", "You confirm receipt → funds released"),
+                    ].map((label, i) => (
+                      <div key={i} className="flex items-center gap-2.5">
+                        <div className={cn("w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold", i === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                          {i + 1}
+                        </div>
+                        <span className={cn("text-xs", i === 0 ? "font-medium text-foreground" : "text-muted-foreground")}>{label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Post-join coach mark */}
               {showJoinCoach && (

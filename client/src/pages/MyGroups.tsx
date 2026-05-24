@@ -158,7 +158,7 @@ export default function MyGroups() {
       ) : myGroups.length === 0 ? (
         <EmptyState tab="joined" status="all" />
       ) : (
-        <Tabs defaultValue="all">
+        <Tabs defaultValue="joined">
           <TabsList className="mb-6 h-auto p-1 gap-1">
             <TabsTrigger value="all" className="gap-2 rounded-lg">
               <Users className="w-4 h-4" />
