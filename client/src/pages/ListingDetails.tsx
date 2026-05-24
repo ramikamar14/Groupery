@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useRoute, useLocation } from "wouter";
+import { useRoute } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Layout } from "@/components/Layout";
@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Loader2, Users, MapPin, Calendar, CheckCircle2, AlertCircle, Flag, ChevronLeft, ChevronRight, Bookmark, BookmarkCheck, Share2, Star, CheckCircle, Award, Trophy, Shield, ShieldCheck, Tag, Clock, Zap, PartyPopper, Info, DollarSign, Package, Truck, TrendingUp, CreditCard, Copy, CheckCheck, Monitor, Edit2, X, Phone, Eye, PlusCircle, Gift } from "lucide-react";
+import { Loader2, Users, MapPin, CheckCircle2, AlertCircle, Flag, ChevronLeft, ChevronRight, Bookmark, BookmarkCheck, Share2, Star, CheckCircle, Award, Trophy, Shield, ShieldCheck, Tag, Clock, Zap, PartyPopper, Info, Package, Truck, TrendingUp, CreditCard, Copy, CheckCheck, Monitor, Edit2, Eye, PlusCircle, Gift } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, formatDistanceToNow, differenceInHours, differenceInDays, differenceInMinutes } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -114,8 +114,6 @@ export default function ListingDetails() {
   const celebrationFiredRef = useRef(false);
   const [showJoinCoach, setShowJoinCoach] = useState(false);
   const prevParticipantRef = useRef(false);
-  const [revealedPhone, setRevealedPhone] = useState<string | null>(null);
-
   const isCreator = user?.id === listing?.creatorId;
   const isParticipant = listing?.participants?.some((p: any) => p.userId === user?.id);
   const isCoOrganizer = listing?.participants?.some((p: any) => p.userId === user?.id && p.role === "co-organizer");
@@ -159,23 +157,6 @@ export default function ListingDetails() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/listings", id, "waitlist"] });
       toast({ title: t("listing.waitlistLeft", "Left waitlist") });
-    },
-  });
-
-  const [revealedPhoneVerified, setRevealedPhoneVerified] = useState<boolean | null>(null);
-
-  const revealContactMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", `/api/listings/${id}/reveal-contact`, {});
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Failed"); }
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setRevealedPhone(data.phone || null);
-      setRevealedPhoneVerified(data.phoneVerified ?? false);
-    },
-    onError: (e: any) => {
-      toast({ title: t("common.error"), description: e.message, variant: "destructive" });
     },
   });
 

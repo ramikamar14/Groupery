@@ -278,26 +278,7 @@ function DiscoverySection({ title, icon, queryKey, endpoint }: { title: string, 
     );
   }
 
-  if (!sectionListings || sectionListings.length === 0) return (
-    <div className="mb-8" data-testid={`section-${queryKey}-empty`}>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-display font-bold flex items-center gap-2">
-          {icon}
-          {title}
-        </h2>
-      </div>
-      <div className="flex gap-4 overflow-hidden">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="min-w-[240px] flex-shrink-0 p-4 rounded-2xl border border-dashed border-border/50 bg-muted/20 flex items-center justify-center h-[160px]">
-            <div className="text-center">
-              <div className="text-2xl mb-1">✨</div>
-              <p className="text-xs text-muted-foreground">Coming soon</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  if (!sectionListings || sectionListings.length === 0) return null;
 
   return (
     <div className="mb-8" data-testid={`section-${queryKey}`}>
