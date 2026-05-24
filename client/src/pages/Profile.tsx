@@ -347,29 +347,33 @@ export default function Profile() {
           </div>
           <div className="px-6 sm:px-8 pb-8">
             <div className="relative -mt-16 mb-6 w-fit">
-              <Avatar className="w-28 h-28 sm:w-32 sm:h-32 border-4 border-card shadow-xl ring-2 ring-accent/30">
-                <AvatarImage src={user.profileImageUrl || undefined} />
-                <AvatarFallback className="text-4xl bg-muted text-muted-foreground">
-                  {user.firstName?.[0]}{user.lastName?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <input 
-                type="file" 
-                ref={fileInputRef}
-                className="hidden" 
-                accept="image/*"
-                onChange={handleProfilePictureChange}
-              />
-              <Button 
-                size="icon" 
-                variant="secondary"
-                className="absolute bottom-1 right-1 w-8 h-8 rounded-full shadow-md border border-border hover:bg-accent hover:text-accent-foreground transition-colors"
+              <button
+                type="button"
+                className="relative block rounded-full group/avatar cursor-pointer focus:outline-none"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingPicture}
                 data-testid="button-change-picture"
+                aria-label="Change profile picture"
               >
-                {uploadingPicture ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
-              </Button>
+                <Avatar className="w-28 h-28 sm:w-32 sm:h-32 border-4 border-card shadow-xl ring-2 ring-accent/30">
+                  <AvatarImage src={user.profileImageUrl || undefined} />
+                  <AvatarFallback className="text-4xl bg-muted text-muted-foreground">
+                    {user.firstName?.[0]}{user.lastName?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute inset-0 rounded-full bg-black/45 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center">
+                  {uploadingPicture
+                    ? <Loader2 className="w-7 h-7 text-white animate-spin" />
+                    : <Camera className="w-7 h-7 text-white" />}
+                </div>
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleProfilePictureChange}
+              />
             </div>
 
             <div className="space-y-1 mb-6">
@@ -431,11 +435,13 @@ export default function Profile() {
                     <Zap className="w-4 h-4 text-accent" />
                     {t("profile.reliabilityScoreTitle")}
                   </span>
-                  <span className="text-sm font-bold text-accent">{reliability.score}/100</span>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${reliability.score >= 80 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400" : reliability.score >= 60 ? "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}>
+                    {reliability.score >= 80 ? t("profile.scoreExcellent", "Excellent") : reliability.score >= 60 ? t("profile.scoreGood", "Good") : t("profile.scoreBuildingTrust", "Building trust")}
+                  </span>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-accent to-accent/70 rounded-full transition-all duration-700"
+                    className={`h-full rounded-full transition-all duration-700 ${reliability.score >= 80 ? "bg-emerald-500" : reliability.score >= 60 ? "bg-amber-500" : "bg-muted-foreground"}`}
                     style={{ width: `${Math.min(100, Math.max(0, reliability.score))}%` }}
                   />
                 </div>

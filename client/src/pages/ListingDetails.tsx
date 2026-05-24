@@ -255,6 +255,30 @@ export default function ListingDetails() {
     }
   }, [listing, id]);
 
+  const { data: escrowData, refetch: refetchEscrow } = useQuery<{ escrow: { id: string; status: string; amount?: number } | null }>({
+    queryKey: ["/api/listings", id, "escrow"],
+    queryFn: async () => {
+      const res = await fetch(`/api/listings/${id}/escrow`, { credentials: "include" });
+      if (!res.ok) return { escrow: null };
+      return res.json();
+    },
+    enabled: !!user && !!isParticipant && !isCreator,
+    staleTime: 60_000,
+  });
+
+  const releaseEscrowMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/listings/${id}/escrow/release`, { method: "POST", credentials: "include" });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.message || "Failed"); }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Funds released", description: "Payment has been released to the seller." });
+      refetchEscrow();
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
   if (isLoading) {
     return (
       <Layout>
@@ -441,6 +465,34 @@ export default function ListingDetails() {
                 </div>
               )}
 
+              {/* Who has joined — participant avatars */}
+              {listing.participants && listing.participants.length > 0 && (
+                <div className="flex items-center gap-3 mb-4" data-testid="panel-participants">
+                  <div className="flex -space-x-2 shrink-0">
+                    {listing.participants.slice(0, 5).map((p: any) => (
+                      <Avatar key={p.userId} className="w-8 h-8 border-2 border-background">
+                        <AvatarImage src={p.user?.profileImageUrl} />
+                        <AvatarFallback className="text-xs">{p.user?.firstName?.[0] || "?"}</AvatarFallback>
+                      </Avatar>
+                    ))}
+                    {listing.participants.length > 5 && (
+                      <div className="w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                        +{listing.participants.length - 5}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">{listing.participants.length}</span>{" "}
+                    {listing.participants.length === 1 ? t("listing.personJoined", "person has joined") : t("listing.peopleJoined", "people have joined")}
+                    {listing.participants.filter((p: any) => p.user?.verificationStatus === "verified").length > 0 && (
+                      <span className="text-emerald-600 dark:text-emerald-400">
+                        {" · "}{listing.participants.filter((p: any) => p.user?.verificationStatus === "verified").length} {t("listing.verified", "verified")}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
+
               {/* Trust badges */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" data-testid="trust-badges">
                 <div className="flex items-start gap-3 p-3 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/30">
@@ -534,8 +586,23 @@ export default function ListingDetails() {
                 })()}
               </div>
 
+              {/* Money protection strip */}
+              {isActive && (
+                <div className="mb-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 p-3 space-y-1.5" data-testid="panel-money-protection">
+                  <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    {t("listing.moneyProtected", "Your participation is protected")}
+                  </p>
+                  <div className="space-y-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400/70">
+                    <p>✓ {t("listing.protectionPoint1", "Funds are held until the deal completes")}</p>
+                    <p>✓ {t("listing.protectionPoint2", "Full refund if the group doesn't fill")}</p>
+                    <p>✓ {t("listing.protectionPoint3", "ID-verified creators · dispute window after delivery")}</p>
+                  </div>
+                </div>
+              )}
+
               {/* CTA buttons */}
-              <div className="flex flex-wrap items-center gap-3 mb-3">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 mb-3">
                 {!user && isActive && (
                   <a href="/api/login" className="w-full md:w-auto">
                     <Button
@@ -658,46 +725,80 @@ export default function ListingDetails() {
                 <ShareButton listing={listing} />
               </div>
 
-              {/* Reveal Contact Info button */}
-              {user && (isParticipant || isCreator) && (() => {
-                const fillPct = listing.totalSlots > 0 ? (listing.filledSlots / listing.totalSlots) * 100 : 0;
-                return (fillPct >= 80 || isCompleted) && (
-                  <div className="mb-4">
-                    {revealedPhoneVerified === null ? (
+              {/* Coordinate via in-app chat — no phone reveal for privacy */}
+              {user && (isParticipant || isCreator) && (
+                <div className="mb-4 flex items-start gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20" data-testid="panel-chat-cta">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Users className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">{t("listing.contactViaChat", "Coordinate in the group chat")}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{t("listing.contactViaChatDesc", "Message the creator and all participants directly in the Chat tab below.")}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Escrow status — shown to participants with an active escrow */}
+              {isParticipant && !isCreator && escrowData?.escrow && (
+                <div className="mb-4 rounded-xl border border-border/50 bg-card p-3" data-testid="panel-escrow-status">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-primary shrink-0" />
+                      <span className="text-xs font-semibold">Escrow #{escrowData.escrow.id}</span>
+                      <span className={cn(
+                        "text-[10px] px-2 py-0.5 rounded-full font-medium capitalize",
+                        escrowData.escrow.status === "released" ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400" :
+                        escrowData.escrow.status === "refunded" ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" :
+                        "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400"
+                      )}>
+                        {escrowData.escrow.status}
+                      </span>
+                    </div>
+                    {isCompleted && escrowData.escrow.status !== "released" && escrowData.escrow.status !== "refunded" && (
                       <Button
-                        variant="outline"
                         size="sm"
-                        className="w-full border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-950/30 gap-2"
-                        onClick={() => revealContactMutation.mutate()}
-                        disabled={revealContactMutation.isPending}
-                        data-testid="button-reveal-contact"
+                        variant="outline"
+                        className="text-xs h-7"
+                        onClick={() => releaseEscrowMutation.mutate()}
+                        disabled={releaseEscrowMutation.isPending}
+                        data-testid="button-release-escrow"
                       >
-                        {revealContactMutation.isPending ? (
-                          <><Loader2 className="w-4 h-4 animate-spin" /> {t("common.loading")}</>
-                        ) : (
-                          <><Phone className="w-4 h-4" /> {t("listing.revealContact")}</>
-                        )}
+                        {releaseEscrowMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Confirm receipt & release"}
                       </Button>
-                    ) : revealedPhone && revealedPhoneVerified ? (
-                      <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-xl" data-testid="panel-revealed-phone">
-                        <Phone className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
-                        <div>
-                          <p className="text-xs font-semibold text-green-800 dark:text-green-200">{t("listing.creatorPhone")}</p>
-                          <p className="text-sm font-mono text-green-700 dark:text-green-300">{revealedPhone}</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-3 p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-xl" data-testid="panel-no-verified-phone">
-                        <Phone className="w-4 h-4 text-yellow-600 dark:text-yellow-400 shrink-0" />
-                        <div>
-                          <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-200">{t("listing.noVerifiedPhone", "No verified phone")}</p>
-                          <p className="text-xs text-yellow-700 dark:text-yellow-300">{t("listing.noVerifiedPhoneDesc", "The creator hasn't added a verified phone number yet.")}</p>
-                        </div>
-                      </div>
                     )}
                   </div>
-                );
-              })()}
+                  <p className="text-[11px] text-muted-foreground mt-1.5">
+                    {escrowData.escrow.status === "released"
+                      ? "Payment released to the seller."
+                      : escrowData.escrow.status === "refunded"
+                      ? "You have been refunded."
+                      : "Funds are held in escrow until you confirm receipt after delivery."}
+                  </p>
+                </div>
+              )}
+
+              {/* What happens next timeline — shown to non-participants */}
+              {isActive && !isParticipant && !isCreator && (
+                <div className="mb-4 pt-4 border-t border-border/40" data-testid="panel-what-happens-next">
+                  <p className="text-xs font-semibold text-foreground/70 mb-3">{t("listing.whatHappensNext", "What happens next")}</p>
+                  <div className="space-y-2">
+                    {[
+                      t("listing.stepJoin", "You commit to the deal"),
+                      t("listing.stepFills", "Group fills up"),
+                      t("listing.stepPay", "Everyone pays their share"),
+                      t("listing.stepCreator", "Creator fulfils the order"),
+                      t("listing.stepConfirm", "You confirm receipt → funds released"),
+                    ].map((label, i) => (
+                      <div key={i} className="flex items-center gap-2.5">
+                        <div className={cn("w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold", i === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                          {i + 1}
+                        </div>
+                        <span className={cn("text-xs", i === 0 ? "font-medium text-foreground" : "text-muted-foreground")}>{label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Post-join coach mark */}
               {showJoinCoach && (
@@ -1014,7 +1115,7 @@ export default function ListingDetails() {
 
       {/* Sticky mobile join bar (U1) with confirmation (P1) */}
       {!user && isActive && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-signin-bar">
+        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-signin-bar">
           <a href="/api/login">
             <Button size="lg" className="w-full bg-primary hover:bg-primary/90 shadow-lg" data-testid="button-signin-sticky">
               <Zap className="w-4 h-4 mr-2" />
@@ -1024,7 +1125,7 @@ export default function ListingDetails() {
         </div>
       )}
       {user && isActive && !isParticipant && !isCreator && !isFull && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-join-bar">
+        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-join-bar">
           <CommitDialog
             listing={listing}
             trigger={
@@ -1037,7 +1138,7 @@ export default function ListingDetails() {
         </div>
       )}
       {user && isActive && !isParticipant && !isCreator && isFull && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-waitlist-bar">
+        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-waitlist-bar">
           <Button
             size="lg"
             variant="outline"
@@ -1171,27 +1272,159 @@ function ImageGallery({ images, title, category, status }: { images: string[]; t
 
 function ListingAdminControls({ listing }: { listing: any }) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const updateStatus = useUpdateListingStatus();
+  const queryClient = useQueryClient();
+  const [showExtend, setShowExtend] = useState(false);
+  const [newExpiry, setNewExpiry] = useState("");
+  const [showPostUpdate, setShowPostUpdate] = useState(false);
+  const [updateContent, setUpdateContent] = useState("");
+
+  const extendMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/listings/${listing.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ expiresAt: new Date(newExpiry + "T00:00:00") }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.message || "Failed"); }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/listings", listing.id] });
+      setShowExtend(false);
+      toast({ title: "Deadline extended!" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  const postUpdateMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/listings/${listing.id}/updates`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ content: updateContent }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.message || "Failed"); }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/listings", listing.id, "updates"] });
+      setShowPostUpdate(false);
+      setUpdateContent("");
+      toast({ title: "Update posted to all participants!" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/listings/${listing.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: listing.title, text: `Join my group deal: ${listing.title}`, url });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Link copied!", description: "Share it with your network." });
+    }
+  };
 
   return (
-    <div className="flex gap-2 w-full md:w-auto">
-      <Button
-        variant="outline"
-        className="flex-1 md:flex-none border-green-200 text-green-700 hover:bg-green-50"
-        onClick={() => updateStatus.mutate({ id: listing.id, status: "completed" })}
-        data-testid="button-complete"
-      >
-        <CheckCircle2 className="w-4 h-4 mr-2" />
-        {t("listing.markComplete")}
-      </Button>
-      <Button
-        variant="outline"
-        className="flex-1 md:flex-none"
-        onClick={() => updateStatus.mutate({ id: listing.id, status: "cancelled" })}
-        data-testid="button-cancel"
-      >
-        {t("listing.cancel")}
-      </Button>
+    <div className="flex flex-col gap-3 w-full">
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-green-200 text-green-700 hover:bg-green-50 dark:hover:bg-green-950/20"
+          onClick={() => updateStatus.mutate({ id: listing.id, status: "completed" })}
+          data-testid="button-complete"
+        >
+          <CheckCircle2 className="w-4 h-4 mr-1.5" />
+          {t("listing.markComplete")}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowExtend(!showExtend)}
+          data-testid="button-extend-deadline"
+        >
+          <Clock className="w-4 h-4 mr-1.5" />
+          Extend deadline
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowPostUpdate(!showPostUpdate)}
+          data-testid="button-post-update"
+        >
+          Post update
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleShare}
+          data-testid="button-share-creator"
+        >
+          <Share2 className="w-4 h-4 mr-1.5" />
+          Share
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-destructive border-destructive/30 hover:bg-destructive/5"
+          onClick={() => updateStatus.mutate({ id: listing.id, status: "cancelled" })}
+          data-testid="button-cancel"
+        >
+          {t("listing.cancel")}
+        </Button>
+      </div>
+
+      {showExtend && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 border border-border/50">
+          <Input
+            type="date"
+            className="flex-1 h-9 text-sm"
+            value={newExpiry}
+            onChange={(e) => setNewExpiry(e.target.value)}
+            min={new Date().toISOString().split("T")[0]}
+            data-testid="input-new-expiry"
+          />
+          <Button
+            size="sm"
+            onClick={() => extendMutation.mutate()}
+            disabled={!newExpiry || extendMutation.isPending}
+            data-testid="button-confirm-extend"
+          >
+            {extendMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setShowExtend(false)}>Cancel</Button>
+        </div>
+      )}
+
+      {showPostUpdate && (
+        <div className="flex flex-col gap-2 p-3 rounded-xl bg-muted/50 border border-border/50">
+          <Textarea
+            placeholder="Share an update with all participants…"
+            className="text-sm min-h-[80px] resize-none"
+            value={updateContent}
+            onChange={(e) => setUpdateContent(e.target.value)}
+            data-testid="input-update-content"
+          />
+          <div className="flex gap-2 justify-end">
+            <Button size="sm" variant="ghost" onClick={() => { setShowPostUpdate(false); setUpdateContent(""); }}>Cancel</Button>
+            <Button
+              size="sm"
+              onClick={() => postUpdateMutation.mutate()}
+              disabled={!updateContent.trim() || postUpdateMutation.isPending}
+              data-testid="button-confirm-post-update"
+            >
+              {postUpdateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Post update"}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

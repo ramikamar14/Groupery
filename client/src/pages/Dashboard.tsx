@@ -6,8 +6,11 @@ import { formatDistanceToNow } from "date-fns";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, ShoppingBag, TrendingUp, Clock, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Users, ShoppingBag, Bell, Loader2, Plus, Compass, ChevronRight, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { cn } from "@/lib/utils";
 
 type ListingRow = {
   id: number;
@@ -51,37 +54,6 @@ export default function Dashboard() {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const itemsPurchased = user?.completedParticipations ?? 0;
 
-  const stats = [
-    {
-      title: t("dashboard.statActiveGroups"),
-      value: loadingGroups ? "…" : String(activeGroupsCount),
-      icon: Users,
-      trend: t("dashboard.trendPlaceholder"),
-      trendMuted: true,
-    },
-    {
-      title: t("dashboard.statTotalSavings"),
-      value: t("dashboard.savingsPlaceholder"),
-      icon: TrendingUp,
-      trend: t("dashboard.savingsHint"),
-      trendMuted: true,
-    },
-    {
-      title: t("dashboard.statItemsPurchased"),
-      value: String(itemsPurchased),
-      icon: ShoppingBag,
-      trend: t("dashboard.trendPlaceholder"),
-      trendMuted: true,
-    },
-    {
-      title: t("dashboard.statPending"),
-      value: String(unreadCount),
-      icon: Clock,
-      trend: t("dashboard.trendPlaceholder"),
-      trendMuted: true,
-    },
-  ];
-
   const recentRows = useMemo(() => {
     const sorted = [...myGroups].sort((a, b) => {
       const ta = parseDate(a.updatedAt)?.getTime() ?? parseDate(a.createdAt)?.getTime() ?? 0;
@@ -114,72 +86,147 @@ export default function Dashboard() {
     }
   };
 
-  const loading = loadingGroups;
+  const fillPct = (listing: ListingRow) =>
+    listing.totalSlots > 0 ? Math.round((listing.filledSlots / listing.totalSlots) * 100) : 0;
+
+  const statusConfig = (listing: ListingRow) => {
+    if (listing.status === "completed") return { color: "text-green-600 dark:text-green-400", bg: "bg-green-500", icon: CheckCircle2 };
+    if (listing.status === "expired") return { color: "text-muted-foreground", bg: "bg-muted-foreground", icon: AlertCircle };
+    if (listing.filledSlots >= listing.totalSlots) return { color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500", icon: Clock };
+    return { color: "text-primary", bg: "bg-primary", icon: Users };
+  };
 
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold font-display tracking-tight text-balance">
-            {t("dashboard.welcomeBack", { name: displayName })}
-          </h1>
-          <p className="text-muted-foreground mt-1">{t("dashboard.subtitle")}</p>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold font-display tracking-tight text-balance">
+              {t("dashboard.welcomeBack", { name: displayName })}
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm">{t("dashboard.subtitle")}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button variant="outline" size="sm" className="rounded-full gap-1.5" asChild>
+              <Link href="/"><Compass className="w-3.5 h-3.5" />{t("nav.explore")}</Link>
+            </Button>
+            <Button size="sm" className="rounded-full gap-1.5" asChild>
+              <Link href="/create"><Plus className="w-3.5 h-3.5" />{t("nav.create")}</Link>
+            </Button>
+          </div>
         </div>
 
-        {loading ? (
+        {loadingGroups ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {stats.map((stat) => (
-                <Card key={stat.title} className="border-primary/15 dark:border-primary/25">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-                    <stat.icon className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold font-display">{stat.value}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      <span className={stat.trendMuted ? "text-muted-foreground" : "text-accent font-medium"}>
-                        {stat.trend}
-                      </span>{" "}
-                      {!stat.trendMuted && t("dashboard.trendFromLastMonth")}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
+            {/* Stat cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {/* Active Groups */}
+              <Card className="border-primary/15 dark:border-primary/25">
+                <CardContent className="pt-5 pb-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">{t("dashboard.statActiveGroups")}</p>
+                      <p className="text-3xl font-bold font-display tabular-nums leading-none">{activeGroupsCount}</p>
+                    </div>
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <Users className="w-4.5 h-4.5 text-primary" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {myGroups.length} {t("dashboard.totalGroups", "total groups")}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Items Purchased */}
+              <Card className="border-primary/15 dark:border-primary/25">
+                <CardContent className="pt-5 pb-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">{t("dashboard.statItemsPurchased")}</p>
+                      <p className="text-3xl font-bold font-display tabular-nums leading-none">{itemsPurchased}</p>
+                    </div>
+                    <div className="w-9 h-9 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0">
+                      <ShoppingBag className="w-4.5 h-4.5 text-green-600 dark:text-green-400" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">{t("dashboard.completedDeals", "completed deals")}</p>
+                </CardContent>
+              </Card>
+
+              {/* Notifications — full width on 2-col, normal on 3-col */}
+              <Card className={cn("border-primary/15 dark:border-primary/25 col-span-2 lg:col-span-1", unreadCount > 0 && "border-amber-300 dark:border-amber-700")}>
+                <CardContent className="pt-5 pb-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">{t("dashboard.statPending")}</p>
+                      <p className={cn("text-3xl font-bold font-display tabular-nums leading-none", unreadCount > 0 ? "text-amber-600 dark:text-amber-400" : "")}>{unreadCount}</p>
+                    </div>
+                    <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", unreadCount > 0 ? "bg-amber-500/10" : "bg-muted")}>
+                      <Bell className={cn("w-4.5 h-4.5", unreadCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground")} />
+                    </div>
+                  </div>
+                  <Link href="/notifications" className="text-xs text-primary hover:underline mt-2 inline-block">
+                    {t("dashboard.viewNotifications", "View notifications")} →
+                  </Link>
+                </CardContent>
+              </Card>
             </div>
 
+            {/* My Groups */}
             <Card className="border-primary/15 dark:border-primary/25">
-              <CardHeader>
-                <CardTitle className="font-display">{t("dashboard.recentActivity")}</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <CardTitle className="font-display text-base">{t("dashboard.myGroups", "My Groups")}</CardTitle>
+                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground" asChild>
+                  <Link href="/my-groups">{t("dashboard.viewAll", "View all")} <ChevronRight className="w-3 h-3" /></Link>
+                </Button>
               </CardHeader>
               <CardContent>
                 {recentRows.length === 0 ? (
-                  <div className="text-center py-10 text-muted-foreground">
-                    <p className="mb-4">{t("dashboard.emptyActivity")}</p>
-                    <Button asChild size="sm">
+                  <div className="text-center py-10 space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-muted mx-auto flex items-center justify-center">
+                      <Users className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">{t("dashboard.emptyActivity")}</p>
+                    <Button asChild size="sm" className="rounded-full">
                       <Link href="/">{t("dashboard.emptyActivityCta")}</Link>
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {recentRows.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between py-2 border-b border-border/40 last:border-0 gap-4"
-                      >
-                        <div className="min-w-0">
-                          <Link href={`/listings/${item.id}`} className="font-medium text-sm hover:text-primary transition-colors">
-                            {item.title}
-                          </Link>
-                          <p className="text-xs text-muted-foreground">{activitySubtitle(item)}</p>
-                        </div>
-                        <span className="text-xs text-muted-foreground shrink-0">{activityTime(item)}</span>
-                      </div>
-                    ))}
+                  <div className="space-y-3">
+                    {recentRows.map((item) => {
+                      const pct = fillPct(item);
+                      const { color, bg, icon: StatusIcon } = statusConfig(item);
+                      return (
+                        <Link
+                          key={item.id}
+                          href={`/listings/${item.id}`}
+                          className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors group -mx-1"
+                        >
+                          <div className={cn("mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center shrink-0", `${bg}/10`)}>
+                            <StatusIcon className={cn("w-3.5 h-3.5", color)} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="font-medium text-sm leading-snug group-hover:text-primary transition-colors line-clamp-1">{item.title}</p>
+                              <span className="text-[10px] text-muted-foreground shrink-0 mt-0.5 whitespace-nowrap">{activityTime(item)}</span>
+                            </div>
+                            <p className={cn("text-xs mt-0.5", color)}>{activitySubtitle(item)}</p>
+                            {item.status === "active" && item.totalSlots > 0 && (
+                              <div className="mt-1.5 flex items-center gap-2">
+                                <Progress value={pct} className="h-1 flex-1 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-accent" />
+                                <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">{item.filledSlots}/{item.totalSlots}</span>
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

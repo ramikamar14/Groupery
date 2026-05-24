@@ -240,6 +240,18 @@ export function Hero({ activeListings, totalMembers }: HeroProps) {
               </Button>
             </div>
 
+            {/* Trust strip */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground justify-center lg:justify-start mb-8"
+            >
+              <span className="flex items-center gap-1.5"><span className="text-emerald-500">✓</span> {t("v2.trustFundsHeld")}</span>
+              <span className="flex items-center gap-1.5"><span className="text-emerald-500">✓</span> {t("v2.trustIdVerified")}</span>
+              <span className="flex items-center gap-1.5"><span className="text-emerald-500">✓</span> {t("v2.trustFullRefund")}</span>
+            </motion.div>
+
             <div className="flex flex-wrap items-center gap-8 justify-center lg:justify-start">
               {heroStats.map((stat, i) => (
                 <motion.div

@@ -28,6 +28,7 @@ const schema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
+  ESCROW_API_KEY: z.string().optional(),
   PORT: z.string().default("5000"),
 });
 

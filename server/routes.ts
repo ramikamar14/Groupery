@@ -20,6 +20,7 @@ import { sendOtp, verifyOtp } from "./sms";
 import { processEmailQueue, isResendConfigured, sendViaResend } from "./email";
 import rateLimit from "express-rate-limit";
 import cron from "node-cron";
+import { createEscrowTransaction, releaseEscrow, cancelEscrow, getEscrowTransaction, isEscrowConfigured } from "./escrow";
 
 // Rate limiters
 const publicLimiter = rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false, message: { message: "Too many requests, please slow down." } });
@@ -485,16 +486,43 @@ export async function registerRoutes(
         await storage.joinListing(id, userId);
       }
 
+      let escrowMeta: Record<string, string> = {};
+      if (isEscrowConfigured() && listing.pricePerSlot && listing.pricePerSlot > 0) {
+        try {
+          const buyer = await authStorage.getUser(userId);
+          const seller = await authStorage.getUser(listing.creatorId);
+          if (buyer?.email && seller?.email) {
+            const escrowTx = await createEscrowTransaction({
+              buyerEmail: buyer.email,
+              sellerEmail: seller.email,
+              description: `Groupery: ${listing.title}`,
+              amountUsd: listing.pricePerSlot / 100,
+              reference: `listing-${id}-user-${userId}`,
+            });
+            escrowMeta = { escrowId: escrowTx.id, escrowStatus: escrowTx.status };
+          }
+        } catch (escrowErr: any) {
+          logger.error("Escrow creation failed (non-fatal):", escrowErr.message);
+        }
+      }
+
       const order = await storage.createOrder({
         listingId: id,
         userId,
         amountCents: listing.pricePerSlot ?? undefined,
+        notes: Object.keys(escrowMeta).length > 0 ? JSON.stringify(escrowMeta) : undefined,
       });
 
       cache.invalidatePrefix("discover:");
       cache.invalidate(`listing:${id}`);
 
-      res.status(201).json({ ...order, message: "You have committed to this deal. You will only be charged after the deal is completed." });
+      res.status(201).json({
+        ...order,
+        escrow: escrowMeta,
+        message: escrowMeta.escrowId
+          ? "Escrow transaction created. You will receive an email to fund the escrow."
+          : "You have committed to this deal. You will only be charged after the deal is completed.",
+      });
     } catch (e: any) {
       res.status(400).json({ message: e.message || "Failed to commit" });
     }
@@ -535,6 +563,67 @@ export async function registerRoutes(
     } catch (e: any) {
       res.status(400).json({ message: e.message || "Failed to update order" });
     }
+  });
+
+  // Escrow: get status for a listing's escrow transaction (current user's order)
+  app.get("/api/listings/:id/escrow", requireAuth, async (req, res) => {
+    const listingId = parseInt(req.params.id as string);
+    const userId = (req.user as any).claims.sub;
+    if (isNaN(listingId)) return res.status(400).json({ message: "Invalid listing ID" });
+    const order = await storage.getOrderByListingAndUser(listingId, userId);
+    if (!order) return res.status(404).json({ message: "No order found" });
+    let escrowMeta: Record<string, string> = {};
+    try { escrowMeta = order.notes ? JSON.parse(order.notes) : {}; } catch {}
+    if (!escrowMeta.escrowId) return res.json({ escrow: null });
+    try {
+      const tx = await getEscrowTransaction(escrowMeta.escrowId);
+      res.json({ escrow: { id: tx.id, status: tx.status, amount: tx.amount } });
+    } catch (e: any) {
+      res.json({ escrow: { id: escrowMeta.escrowId, status: escrowMeta.escrowStatus ?? "unknown" } });
+    }
+  });
+
+  // Escrow: buyer confirms receipt → release funds to seller
+  app.post("/api/listings/:id/escrow/release", requireAuth, async (req, res) => {
+    const listingId = parseInt(req.params.id as string);
+    const userId = (req.user as any).claims.sub;
+    if (isNaN(listingId)) return res.status(400).json({ message: "Invalid listing ID" });
+    const order = await storage.getOrderByListingAndUser(listingId, userId);
+    if (!order) return res.status(404).json({ message: "No order found" });
+    let escrowMeta: Record<string, string> = {};
+    try { escrowMeta = order.notes ? JSON.parse(order.notes) : {}; } catch {}
+    if (!escrowMeta.escrowId) return res.status(400).json({ message: "No escrow transaction for this order" });
+    try {
+      const buyer = await authStorage.getUser(userId);
+      if (!buyer?.email) return res.status(400).json({ message: "User email not found" });
+      await releaseEscrow(escrowMeta.escrowId, buyer.email);
+      await storage.updateOrderStatus(order.id, "released");
+      res.json({ success: true, message: "Funds released to seller." });
+    } catch (e: any) {
+      res.status(400).json({ message: e.message || "Failed to release escrow" });
+    }
+  });
+
+  // Escrow: cancel & refund (admin or system use for expired listings)
+  app.post("/api/listings/:id/escrow/refund", requireAuth, requireAdmin, async (req, res) => {
+    const listingId = parseInt(req.params.id as string);
+    if (isNaN(listingId)) return res.status(400).json({ message: "Invalid listing ID" });
+    const orders = await storage.getOrdersByListing(listingId);
+    const results: { orderId: number; status: string }[] = [];
+    for (const order of orders) {
+      let escrowMeta: Record<string, string> = {};
+      try { escrowMeta = order.notes ? JSON.parse(order.notes) : {}; } catch {}
+      if (escrowMeta.escrowId) {
+        try {
+          await cancelEscrow(escrowMeta.escrowId);
+          await storage.updateOrderStatus(order.id, "refunded");
+          results.push({ orderId: order.id, status: "refunded" });
+        } catch (e: any) {
+          results.push({ orderId: order.id, status: `error: ${e.message}` });
+        }
+      }
+    }
+    res.json({ results });
   });
 
   app.get("/api/admin/orders", requireAdmin, async (req, res) => {
@@ -2651,6 +2740,25 @@ Return ONLY valid JSON with this structure:
         if (listing.status === "active" && listing.expiresAt && new Date(listing.expiresAt) < now) {
           await storage.transitionListing(listing.id, "expired").catch(() => {});
           expiredCount++;
+
+          // Auto-cancel any open escrow transactions for this expired listing
+          if (isEscrowConfigured()) {
+            try {
+              const listingOrders = await storage.getOrdersByListing(listing.id);
+              for (const order of listingOrders) {
+                if (order.status !== "refunded" && order.notes) {
+                  let meta: any = {};
+                  try { meta = JSON.parse(order.notes); } catch {}
+                  if (meta.escrowId) {
+                    await cancelEscrow(meta.escrowId).catch(() => {});
+                    await storage.updateOrderStatus(order.id, "refunded").catch(() => {});
+                  }
+                }
+              }
+            } catch (escrowErr: any) {
+              logger.error("Cron", `Escrow cancel failed for expired listing ${listing.id}`, { error: escrowErr.message });
+            }
+          }
         }
       }
       if (expiredCount > 0) {

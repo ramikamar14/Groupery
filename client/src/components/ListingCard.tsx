@@ -272,36 +272,36 @@ export function ListingCard({ listing }: ListingCardProps) {
           </div>
 
           {/* Footer: location + countdown + actions */}
-          <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground pt-3 border-t border-border/50">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-3 border-t border-border/50">
             {listing.location && (
-              <div className="flex items-center truncate max-w-[40%]">
-                <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+              <div className="flex items-center min-w-0 flex-1">
+                <MapPin className="w-3.5 h-3.5 mr-1 flex-shrink-0" />
                 <span className="truncate">{listing.location}</span>
               </div>
             )}
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-1 ml-auto shrink-0">
               <div className={cn(
-                "flex items-center gap-1",
+                "flex items-center gap-1 mr-1",
                 countdown.urgent ? "text-amber-600 dark:text-amber-400 font-semibold" : ""
               )}>
-                <Clock className="w-3 h-3 flex-shrink-0" />
-                <span>{isExpired ? t("listing.expired") : countdown.label}</span>
+                <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="whitespace-nowrap">{isExpired ? t("listing.expired") : countdown.label}</span>
               </div>
               {user && (
                 <button
                   onClick={handleSaveClick}
-                  className="p-1 rounded-full hover:bg-muted transition-colors"
+                  className="p-2 rounded-full hover:bg-muted transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                   data-testid={`button-save-${listing.id}`}
                 >
-                  {isSaved ? <BookmarkCheck className="w-3.5 h-3.5 text-primary" /> : <Bookmark className="w-3.5 h-3.5" />}
+                  {isSaved ? <BookmarkCheck className="w-4 h-4 text-primary" /> : <Bookmark className="w-4 h-4" />}
                 </button>
               )}
               <button
                 onClick={handleShareClick}
-                className="p-1 rounded-full hover:bg-muted transition-colors"
+                className="p-2 rounded-full hover:bg-muted transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                 data-testid={`button-share-${listing.id}`}
               >
-                <Share2 className="w-3.5 h-3.5" />
+                <Share2 className="w-4 h-4" />
               </button>
             </div>
           </div>

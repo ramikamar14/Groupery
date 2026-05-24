@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Upload, CheckCircle2, ImageIcon, ShieldCheck } from "lucide-react";
+import { Loader2, Upload, CheckCircle2, ImageIcon, ShieldCheck, FolderOpen, Link2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -21,6 +21,32 @@ export function DealProofSection({ listingId, isCreator, isParticipant, currentU
   const { t } = useTranslation();
   const { toast } = useToast();
   const [imageUrl, setImageUrl] = useState("");
+  const [uploadMode, setUploadMode] = useState<"file" | "url">("file");
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: t("common.error"), description: t("upload.imageTooLarge"), variant: "destructive" });
+      return;
+    }
+    setUploadingFile(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", credentials: "include", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const { url } = await res.json();
+      uploadMutation.mutate(url);
+    } catch {
+      toast({ title: t("upload.uploadFailed"), description: t("upload.uploadFailedDesc"), variant: "destructive" });
+    } finally {
+      setUploadingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const { data: proofs = [], isLoading, isError } = useQuery<any[]>({
     queryKey: ["/api/listings", listingId, "proofs"],
@@ -35,8 +61,8 @@ export function DealProofSection({ listingId, isCreator, isParticipant, currentU
   });
 
   const uploadMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", `/api/listings/${listingId}/proofs`, { imageUrl });
+    mutationFn: async (url?: string) => {
+      const res = await apiRequest("POST", `/api/listings/${listingId}/proofs`, { imageUrl: url ?? imageUrl });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Failed"); }
       return res.json();
     },
@@ -96,24 +122,73 @@ export function DealProofSection({ listingId, isCreator, isParticipant, currentU
       </div>
 
       {canUpload && !alreadyUploaded && (
-        <div className="mb-4 flex gap-2" data-testid="form-upload-proof">
-          <Input
-            placeholder={t("proof.imageUrlPlaceholder", "Paste an image URL as your proof…")}
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            className="flex-1"
-            data-testid="input-proof-url"
-          />
-          <Button
-            size="sm"
-            onClick={() => uploadMutation.mutate()}
-            disabled={!imageUrl.trim() || uploadMutation.isPending}
-            data-testid="button-upload-proof"
-          >
-            {uploadMutation.isPending
-              ? <Loader2 className="w-4 h-4 animate-spin" />
-              : <><Upload className="w-4 h-4 mr-1" />{t("proof.upload", "Upload")}</>}
-          </Button>
+        <div className="mb-4 space-y-2" data-testid="form-upload-proof">
+          {/* Mode toggle */}
+          <div className="flex gap-1 p-1 bg-muted/50 rounded-lg w-fit">
+            <button
+              type="button"
+              onClick={() => setUploadMode("file")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${uploadMode === "file" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <FolderOpen className="w-3.5 h-3.5" />
+              {t("proof.fromDevice", "From device")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setUploadMode("url")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${uploadMode === "url" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <Link2 className="w-3.5 h-3.5" />
+              {t("proof.pasteUrl", "Paste URL")}
+            </button>
+          </div>
+
+          {uploadMode === "file" ? (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileUpload}
+                data-testid="input-proof-file"
+              />
+              <Button
+                variant="outline"
+                className="w-full h-20 flex-col gap-2 border-dashed border-2 hover:border-primary/50 hover:bg-primary/5"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingFile || uploadMutation.isPending}
+                data-testid="button-upload-proof-file"
+              >
+                {uploadingFile || uploadMutation.isPending
+                  ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  : <>
+                      <Upload className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">{t("proof.tapToUpload", "Tap to choose a photo")}</span>
+                    </>}
+              </Button>
+            </>
+          ) : (
+            <div className="flex gap-2">
+              <Input
+                placeholder={t("proof.imageUrlPlaceholder", "Paste an image URL as your proof…")}
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                className="flex-1"
+                data-testid="input-proof-url"
+              />
+              <Button
+                size="sm"
+                onClick={() => uploadMutation.mutate()}
+                disabled={!imageUrl.trim() || uploadMutation.isPending}
+                data-testid="button-upload-proof"
+              >
+                {uploadMutation.isPending
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <><Upload className="w-4 h-4 mr-1" />{t("proof.upload", "Upload")}</>}
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
