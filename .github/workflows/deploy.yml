@@ -37,4 +37,6 @@ jobs:
           tar czf dist.tar.gz dist/
           sshpass -e scp -o StrictHostKeyChecking=no dist.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/rami/Groupery/
           sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            "cd /home/rami/Groupery && tar xzf dist.tar.gz && rm dist.tar.gz && pm2 restart groupery && echo '✅ Deployed at \$(date)'"
+            "cd /home/rami/Groupery && tar xzf dist.tar.gz && rm dist.tar.gz && \
+             pm2 set groupery:ESCROW_API_KEY '${{ secrets.ESCROW_API_KEY }}' 2>/dev/null || true && \
+             pm2 restart groupery && echo '✅ Deployed at \$(date)'"

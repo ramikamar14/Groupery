@@ -674,7 +674,7 @@ export default function CreateListing() {
                   data-testid="button-toggle-advanced"
                 >
                   <span className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}>›</span>
-                  {showAdvanced ? "Hide advanced options" : "Add tags, location, language…"}
+                  {showAdvanced ? t("create.advancedHide") : t("create.advancedShow")}
                 </button>
               </div>
 
