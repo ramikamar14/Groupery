@@ -1129,145 +1129,136 @@ export default function Admin() {
                 <Card><CardContent className="py-12 text-center text-muted-foreground">{t("admin.noUsersMatch")}</CardContent></Card>
               );
 
+              const UserRoleBadge = ({ u }: { u: any }) => u.isPrimaryOwner ? (
+                <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30 text-xs"><Crown className="w-3 h-3 mr-1" />{t("admin.roleOwner")}</Badge>
+              ) : u.role === "admin" ? (
+                <Badge variant="destructive" className="text-xs"><Shield className="w-3 h-3 mr-1" />{t("admin.roleAdmin")}</Badge>
+              ) : u.role === "moderator" ? (
+                <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30 text-xs">{t("admin.roleModerator")}</Badge>
+              ) : (
+                <Badge variant="secondary" className="text-xs">{t("admin.roleUser")}</Badge>
+              );
+
+              const UserActions = ({ u }: { u: any }) => u.isPrimaryOwner ? (
+                <span className="text-xs text-muted-foreground italic">{t("admin.primaryOwnerLabel")}</span>
+              ) : (
+                <div className="flex items-center gap-1 flex-wrap">
+                  {!u.isAdmin ? (
+                    <Button size="sm" variant="outline" className="h-7 text-xs text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950" disabled={changeRoleMutation.isPending} onClick={() => changeRoleMutation.mutate({ userId: u.id, role: "admin" })} data-testid={`button-make-admin-${u.id}`}>
+                      <Shield className="w-3 h-3 mr-1" />{t("admin.makeAdmin")}
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" className="h-7 text-xs text-destructive border-destructive/30 hover:bg-destructive/10" disabled={changeRoleMutation.isPending} onClick={() => changeRoleMutation.mutate({ userId: u.id, role: "user" })} data-testid={`button-remove-admin-${u.id}`}>
+                      <ShieldOff className="w-3 h-3 mr-1" />{t("admin.removeAdmin")}
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setActivityUserId(u.id)} data-testid={`button-activity-${u.id}`}>
+                    <Eye className="w-3 h-3 mr-1" />{t("admin.viewActivity")}
+                  </Button>
+                  <Button size="sm" variant="outline" className={`h-7 text-xs ${u.isDisabled ? "text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950" : "text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950"}`} disabled={disableUserMutation.isPending} onClick={() => disableUserMutation.mutate(u.id)} data-testid={`button-ban-${u.id}`}>
+                    <Ban className="w-3 h-3 mr-1" />{u.isDisabled ? t("admin.unbanUser") : t("admin.banUser")}
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-7 text-xs text-blue-600 border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950" disabled={resetUserMutation.isPending} onClick={() => resetUserMutation.mutate(u.id)} data-testid={`button-reset-${u.id}`}>
+                    <RotateCcw className="w-3 h-3 mr-1" />{t("admin.resetUser")}
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-7 text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => setDeleteUserId(u.id)} data-testid={`button-delete-${u.id}`}>
+                    <Trash2 className="w-3 h-3 mr-1" />{t("admin.deleteUser")}
+                  </Button>
+                </div>
+              );
+
               return (
-                <div className="overflow-x-auto rounded-lg border">
-                  <div className="px-4 py-2 bg-muted/30 text-xs text-muted-foreground border-b">
+                <>
+                  <div className="px-1 py-1 text-xs text-muted-foreground">
                     {t("admin.showingUsers", { filtered: filtered.length, total: allUsers.length })}
                   </div>
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted/50">
-                      <tr>
-                        <th className="text-left px-4 py-3 font-medium">{t("admin.userColumn")}</th>
-                        <th className="text-left px-4 py-3 font-medium">{t("admin.emailColumn")}</th>
-                        <th className="text-left px-4 py-3 font-medium">{t("admin.roleColumn")}</th>
-                        <th className="text-left px-4 py-3 font-medium">{t("admin.statusColumn")}</th>
-                        <th className="text-left px-4 py-3 font-medium">{t("admin.joinedColumn")}</th>
-                        <th className="text-left px-4 py-3 font-medium">{t("admin.actionsColumn")}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {filtered.map((u: any) => (
-                        <tr key={u.id} className="hover:bg-muted/30" data-testid={`row-user-${u.id}`}>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <Avatar className="w-7 h-7">
-                                <AvatarImage src={u.profileImageUrl || undefined} />
-                                <AvatarFallback className="text-xs">{u.firstName?.[0]}{u.lastName?.[0]}</AvatarFallback>
-                              </Avatar>
-                              <div className="flex flex-col">
-                                <span className="font-medium" data-testid={`text-user-name-${u.id}`}>
+
+                  {/* Mobile: card layout */}
+                  <div className="md:hidden space-y-3">
+                    {filtered.map((u: any) => (
+                      <Card key={u.id} data-testid={`row-user-${u.id}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3 mb-3">
+                            <Avatar className="w-10 h-10 shrink-0">
+                              <AvatarImage src={u.profileImageUrl || undefined} />
+                              <AvatarFallback className="text-sm">{u.firstName?.[0]}{u.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-semibold text-sm" data-testid={`text-user-name-${u.id}`}>
                                   {u.firstName} {u.lastName}
-                                  {u.isPrimaryOwner && (
-                                    <Crown className="inline ml-1 w-3 h-3 text-amber-500" aria-label={t("admin.primaryOwner")} />
-                                  )}
+                                  {u.isPrimaryOwner && <Crown className="inline ml-1 w-3 h-3 text-amber-500" />}
                                 </span>
-                                {u.isDisabled && <Badge className="text-xs py-0 w-fit bg-gray-500">{t("admin.banned")}</Badge>}
+                                {u.isDisabled && <Badge className="text-[10px] py-0 bg-gray-500">{t("admin.banned")}</Badge>}
+                              </div>
+                              <p className="text-xs text-muted-foreground truncate mt-0.5" data-testid={`text-user-email-${u.id}`}>{u.email || "—"}</p>
+                              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                <UserRoleBadge u={u} />
+                                <Badge variant={u.verificationStatus === "verified" ? "default" : u.verificationStatus === "rejected" ? "destructive" : "secondary"} className="text-xs" data-testid={`badge-user-status-${u.id}`}>
+                                  {u.verificationStatus}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground" data-testid={`text-user-joined-${u.id}`}>
+                                  {u.createdAt ? format(new Date(u.createdAt), "MMM d, yyyy") : "—"}
+                                </span>
                               </div>
                             </div>
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground text-xs" data-testid={`text-user-email-${u.id}`}>{u.email || "—"}</td>
-                          <td className="px-4 py-3" data-testid={`badge-user-role-${u.id}`}>
-                            {u.isPrimaryOwner ? (
-                              <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
-                                <Crown className="w-3 h-3 mr-1" />{t("admin.roleOwner")}
-                              </Badge>
-                            ) : u.role === "admin" ? (
-                              <Badge variant="destructive" className="text-xs">
-                                <Shield className="w-3 h-3 mr-1" />{t("admin.roleAdmin")}
-                              </Badge>
-                            ) : u.role === "moderator" ? (
-                              <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30 text-xs">
-                                {t("admin.roleModerator")}
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary" className="text-xs">{t("admin.roleUser")}</Badge>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge
-                              variant={u.verificationStatus === "verified" ? "default" : u.verificationStatus === "rejected" ? "destructive" : "secondary"}
-                              data-testid={`badge-user-status-${u.id}`}
-                            >
-                              {u.verificationStatus}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground text-xs" data-testid={`text-user-joined-${u.id}`}>
-                            {u.createdAt ? format(new Date(u.createdAt), "MMM d, yyyy") : "—"}
-                          </td>
-                          <td className="px-4 py-3">
-                            {u.isPrimaryOwner ? (
-                              <span className="text-xs text-muted-foreground italic">{t("admin.primaryOwnerLabel")}</span>
-                            ) : (
-                              <div className="flex items-center gap-1 flex-wrap">
-                                {!u.isAdmin ? (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-7 text-xs text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950"
-                                    disabled={changeRoleMutation.isPending}
-                                    onClick={() => changeRoleMutation.mutate({ userId: u.id, role: "admin" })}
-                                    data-testid={`button-make-admin-${u.id}`}
-                                  >
-                                    <Shield className="w-3 h-3 mr-1" />{t("admin.makeAdmin")}
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-7 text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
-                                    disabled={changeRoleMutation.isPending}
-                                    onClick={() => changeRoleMutation.mutate({ userId: u.id, role: "user" })}
-                                    data-testid={`button-remove-admin-${u.id}`}
-                                  >
-                                    <ShieldOff className="w-3 h-3 mr-1" />{t("admin.removeAdmin")}
-                                  </Button>
-                                )}
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-7 text-xs"
-                                  onClick={() => setActivityUserId(u.id)}
-                                  data-testid={`button-activity-${u.id}`}
-                                >
-                                  <Eye className="w-3 h-3 mr-1" />{t("admin.viewActivity")}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className={`h-7 text-xs ${u.isDisabled ? "text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950" : "text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950"}`}
-                                  disabled={disableUserMutation.isPending}
-                                  onClick={() => disableUserMutation.mutate(u.id)}
-                                  data-testid={`button-ban-${u.id}`}
-                                >
-                                  <Ban className="w-3 h-3 mr-1" />{u.isDisabled ? t("admin.unbanUser") : t("admin.banUser")}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-7 text-xs text-blue-600 border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950"
-                                  disabled={resetUserMutation.isPending}
-                                  onClick={() => resetUserMutation.mutate(u.id)}
-                                  data-testid={`button-reset-${u.id}`}
-                                >
-                                  <RotateCcw className="w-3 h-3 mr-1" />{t("admin.resetUser")}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-7 text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
-                                  onClick={() => setDeleteUserId(u.id)}
-                                  data-testid={`button-delete-${u.id}`}
-                                >
-                                  <Trash2 className="w-3 h-3 mr-1" />{t("admin.deleteUser")}
-                                </Button>
-                              </div>
-                            )}
-                          </td>
+                          </div>
+                          <div className="pt-2 border-t border-border/50">
+                            <UserActions u={u} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {/* Desktop: table layout */}
+                  <div className="hidden md:block overflow-x-auto rounded-lg border">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted/50">
+                        <tr>
+                          <th className="text-left px-4 py-3 font-medium">{t("admin.userColumn")}</th>
+                          <th className="text-left px-4 py-3 font-medium">{t("admin.emailColumn")}</th>
+                          <th className="text-left px-4 py-3 font-medium">{t("admin.roleColumn")}</th>
+                          <th className="text-left px-4 py-3 font-medium">{t("admin.statusColumn")}</th>
+                          <th className="text-left px-4 py-3 font-medium">{t("admin.joinedColumn")}</th>
+                          <th className="text-left px-4 py-3 font-medium">{t("admin.actionsColumn")}</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y">
+                        {filtered.map((u: any) => (
+                          <tr key={u.id} className="hover:bg-muted/30" data-testid={`row-user-${u.id}`}>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-7 h-7">
+                                  <AvatarImage src={u.profileImageUrl || undefined} />
+                                  <AvatarFallback className="text-xs">{u.firstName?.[0]}{u.lastName?.[0]}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col">
+                                  <span className="font-medium" data-testid={`text-user-name-${u.id}`}>
+                                    {u.firstName} {u.lastName}
+                                    {u.isPrimaryOwner && <Crown className="inline ml-1 w-3 h-3 text-amber-500" aria-label={t("admin.primaryOwner")} />}
+                                  </span>
+                                  {u.isDisabled && <Badge className="text-xs py-0 w-fit bg-gray-500">{t("admin.banned")}</Badge>}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-muted-foreground text-xs" data-testid={`text-user-email-${u.id}`}>{u.email || "—"}</td>
+                            <td className="px-4 py-3" data-testid={`badge-user-role-${u.id}`}><UserRoleBadge u={u} /></td>
+                            <td className="px-4 py-3">
+                              <Badge variant={u.verificationStatus === "verified" ? "default" : u.verificationStatus === "rejected" ? "destructive" : "secondary"} data-testid={`badge-user-status-${u.id}`}>
+                                {u.verificationStatus}
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-3 text-muted-foreground text-xs" data-testid={`text-user-joined-${u.id}`}>
+                              {u.createdAt ? format(new Date(u.createdAt), "MMM d, yyyy") : "—"}
+                            </td>
+                            <td className="px-4 py-3"><UserActions u={u} /></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               );
             })()}
           </TabsContent>
