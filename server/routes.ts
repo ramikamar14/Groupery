@@ -1389,7 +1389,26 @@ export async function registerRoutes(
     try {
       const groups = await storage.getUserGroups(userId);
       const tagsMap = await storage.getTagsForListings(groups.map((l) => l.id));
-      const withTags = groups.map((l) => toPublicListing({ ...l, tags: tagsMap.get(l.id) ?? [] }));
+      // Bulk-fetch all orders for this user so we can attach escrow/order status to each card
+      const userOrders = await storage.getOrdersByUser(userId);
+      const orderByListing = new Map(userOrders.map((o) => [o.listingId, o]));
+      const withTags = groups.map((l) => {
+        const base = toPublicListing({ ...l, tags: tagsMap.get(l.id) ?? [] });
+        const order = orderByListing.get(l.id);
+        if (!order) return base;
+        let escrowMeta: Record<string, string> = {};
+        try { escrowMeta = order.notes ? JSON.parse(order.notes) : {}; } catch {}
+        return {
+          ...base,
+          myOrder: {
+            id: order.id,
+            status: order.status,
+            amountCents: order.amountCents,
+            escrowId: escrowMeta.escrowId ?? null,
+            escrowStatus: escrowMeta.escrowStatus ?? null,
+          },
+        };
+      });
       res.json(withTags);
     } catch (e: any) {
       res.status(500).json({ message: e.message || "Failed to load groups" });

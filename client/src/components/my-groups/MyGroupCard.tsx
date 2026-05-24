@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { Crown, UserCheck, Clock, Users } from "lucide-react";
+import { Crown, UserCheck, Clock, Users, ShieldCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { getCardDisplayStatus, getNextAction, type CardDisplayStatus } from "./group-utils";
@@ -55,11 +55,18 @@ export function MyGroupCard({
     <Link href={`/listings/${listing.id}`} className="block">
       <div className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:shadow-lg hover:border-accent/30 h-full">
         <div className="relative aspect-[4/3] overflow-hidden">
-          <img
-            src={listing.imageUrl || "https://placehold.co/600x400?text=Grouperry"}
-            alt={listing.title}
-            className="size-full object-cover transition-transform group-hover:scale-105"
-          />
+          {listing.imageUrl ? (
+            <img
+              src={listing.imageUrl}
+              alt={listing.title}
+              className="size-full object-cover transition-transform group-hover:scale-105"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          ) : (
+            <div className="size-full bg-gradient-to-br from-primary/10 via-accent/5 to-primary/15 flex items-center justify-center transition-transform group-hover:scale-105">
+              <span className="text-4xl select-none" aria-hidden>📦</span>
+            </div>
+          )}
 
           <div className="absolute left-3 top-3 flex flex-col gap-1.5 z-10">
             <Badge
@@ -123,6 +130,27 @@ export function MyGroupCard({
             </div>
             <Progress value={fillPct} className="h-1.5 bg-muted" />
           </div>
+
+          {listing.myOrder?.escrowId && (
+            <div className={cn(
+              "flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-lg border",
+              listing.myOrder.escrowStatus === "released"
+                ? "bg-green-50 border-green-200 text-green-700 dark:bg-green-950/30 dark:border-green-800 dark:text-green-400"
+                : listing.myOrder.escrowStatus === "refunded"
+                ? "bg-muted border-border text-muted-foreground"
+                : "bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400"
+            )}>
+              <ShieldCheck className="size-3 shrink-0" />
+              <span className="font-medium">
+                {listing.myOrder.escrowStatus === "released"
+                  ? "Funds released"
+                  : listing.myOrder.escrowStatus === "refunded"
+                  ? "Refunded"
+                  : "Held in escrow"}
+              </span>
+              <span className="opacity-60">· #{listing.myOrder.escrowId.slice(-6)}</span>
+            </div>
+          )}
 
           <div className="flex items-baseline justify-between pt-1 gap-2 flex-wrap">
             <div className="flex items-baseline gap-2">
