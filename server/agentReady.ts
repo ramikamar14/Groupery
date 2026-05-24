@@ -7,11 +7,11 @@ const SITE_DESCRIPTION =
   "Grouperry is a group-sharing marketplace where people join collective deals on physical goods, digital subscriptions, and services — split costs and save money together.";
 
 // ── robots.txt ────────────────────────────────────────────────────────────────
-const ROBOTS_TXT = `# Content Signals (https://contentcredentials.org/signals)
+const ROBOTS_TXT = `# Content Signals — https://contentsignals.org/
 # search:   building a search index — YES
 # ai-input: real-time AI grounding / RAG — YES
 # ai-train: training or fine-tuning AI models — NO
-Content-Signal: search=yes,ai-input=yes,ai-train=no
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 
 User-agent: *
 Allow: /
@@ -602,5 +602,59 @@ export function registerAgentReadyRoutes(app: Express): void {
   // ── OpenAPI schema ──────────────────────────────────────────────────────────
   app.get("/.well-known/openapi.json", (_req: Request, res: Response) => {
     res.json(OPENAPI_SCHEMA);
+  });
+
+  // ── API Catalog — RFC 9727 (linkset+json) ────────────────────────────────────
+  app.get("/.well-known/api-catalog", (_req: Request, res: Response) => {
+    res.type("application/linkset+json").json({
+      linkset: [
+        {
+          anchor: `${BASE_URL}/api/listings`,
+          "service-desc": [{ href: `${BASE_URL}/.well-known/openapi.json`, type: "application/schema+json" }],
+          "service-doc": [{ href: `${BASE_URL}/.well-known/openapi.json` }],
+          status: [{ href: `${BASE_URL}/health` }],
+        },
+      ],
+    });
+  });
+
+  // ── OAuth Authorization Server metadata — RFC 8414 ───────────────────────────
+  app.get("/.well-known/oauth-authorization-server", (_req: Request, res: Response) => {
+    res.json({
+      issuer: BASE_URL,
+      authorization_endpoint: `${BASE_URL}/api/auth/login`,
+      token_endpoint: `${BASE_URL}/api/auth/token`,
+      userinfo_endpoint: `${BASE_URL}/api/auth/user`,
+      grant_types_supported: ["authorization_code"],
+      response_types_supported: ["code"],
+      code_challenge_methods_supported: ["S256"],
+      scopes_supported: ["read:listings", "write:listings", "read:profile", "write:profile"],
+    });
+  });
+
+  // ── OpenID Connect Discovery — https://openid.net/specs/openid-connect-discovery-1_0.html
+  app.get("/.well-known/openid-configuration", (_req: Request, res: Response) => {
+    res.json({
+      issuer: BASE_URL,
+      authorization_endpoint: `${BASE_URL}/api/auth/login`,
+      token_endpoint: `${BASE_URL}/api/auth/token`,
+      userinfo_endpoint: `${BASE_URL}/api/auth/user`,
+      grant_types_supported: ["authorization_code"],
+      response_types_supported: ["code"],
+      subject_types_supported: ["public"],
+      id_token_signing_alg_values_supported: ["RS256"],
+      scopes_supported: ["openid", "profile", "email"],
+    });
+  });
+
+  // ── OAuth Protected Resource Metadata — RFC 9728 ─────────────────────────────
+  app.get("/.well-known/oauth-protected-resource", (_req: Request, res: Response) => {
+    res.json({
+      resource: BASE_URL,
+      authorization_servers: [BASE_URL],
+      scopes_supported: ["read:listings", "write:listings", "read:profile", "write:profile"],
+      bearer_methods_supported: ["header", "cookie"],
+      resource_documentation: `${BASE_URL}/.well-known/openapi.json`,
+    });
   });
 }
