@@ -36,7 +36,7 @@ export function DiscoverListingCard({ listing, compact = false, joinLabel }: Pro
     <div
       className={cn(
         "group bg-card rounded-3xl border border-border overflow-hidden transition-all hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30",
-        compact ? "flex-shrink-0 w-[280px]" : "w-full",
+        compact ? "flex-shrink-0 w-[240px] sm:w-[280px]" : "w-full",
       )}
     >
       <Link href={`/listings/${listing.id}`} className="block">

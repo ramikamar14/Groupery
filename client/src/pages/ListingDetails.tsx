@@ -535,7 +535,7 @@ export default function ListingDetails() {
               </div>
 
               {/* CTA buttons */}
-              <div className="flex flex-wrap items-center gap-3 mb-3">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 mb-3">
                 {!user && isActive && (
                   <a href="/api/login" className="w-full md:w-auto">
                     <Button
@@ -1014,7 +1014,7 @@ export default function ListingDetails() {
 
       {/* Sticky mobile join bar (U1) with confirmation (P1) */}
       {!user && isActive && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-signin-bar">
+        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-signin-bar">
           <a href="/api/login">
             <Button size="lg" className="w-full bg-primary hover:bg-primary/90 shadow-lg" data-testid="button-signin-sticky">
               <Zap className="w-4 h-4 mr-2" />
@@ -1024,7 +1024,7 @@ export default function ListingDetails() {
         </div>
       )}
       {user && isActive && !isParticipant && !isCreator && !isFull && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-join-bar">
+        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-join-bar">
           <CommitDialog
             listing={listing}
             trigger={
@@ -1037,7 +1037,7 @@ export default function ListingDetails() {
         </div>
       )}
       {user && isActive && !isParticipant && !isCreator && isFull && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-waitlist-bar">
+        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-waitlist-bar">
           <Button
             size="lg"
             variant="outline"

@@ -23,13 +23,12 @@ export function BottomNav() {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const isAdmin = !!(user as { isAdmin?: boolean } | undefined)?.isAdmin;
 
+  // Keep bottom nav to 5 items max for comfortable tap targets
   const navItems = [
     { href: "/", icon: Home, label: t("nav.explore") },
-    { href: "/dashboard", icon: LayoutDashboard, label: t("nav.dashboard") },
     { href: "/my-groups", icon: Users, label: t("nav.myGroups") },
     { href: "/create", icon: PlusSquare, label: t("nav.create") },
     { href: "/notifications", icon: Bell, label: t("nav.notifications"), badge: unreadCount > 0 ? unreadCount : undefined },
-    ...(isAuthenticated && isAdmin ? [{ href: "/admin", icon: ShieldAlert, label: t("nav.adminCrm") }] : []),
     { href: "/profile", icon: User, label: t("nav.profile") },
   ];
 
@@ -40,30 +39,30 @@ export function BottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 glass border-t md:hidden pb-safe">
-      <div className="flex justify-around items-center h-16 px-1">
+      <div className="flex justify-around items-stretch h-[4.25rem] px-1">
         {navItems.map((item) => {
           const isActive = location === item.href;
           const inner = (
             <Link
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full space-y-0.5 transition-all duration-200 relative rounded-lg mx-0.5",
+                "flex flex-col items-center justify-center flex-1 min-h-[44px] h-full space-y-1 transition-all duration-200 relative rounded-xl mx-0.5 px-1",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
               data-testid={`nav-mobile-${item.href.replace("/", "") || "home"}`}
             >
               {isActive && (
-                <span className="absolute top-1.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-primary" />
+                <span className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-primary" />
               )}
               <div className="relative mt-1">
-                <item.icon className={cn("w-5 h-5 transition-transform duration-150", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 1.75} />
+                <item.icon className={cn("w-6 h-6 transition-transform duration-150", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 1.75} />
                 {"badge" in item && item.badge && (
-                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm px-0.5">
                     {item.badge > 9 ? "9+" : item.badge}
                   </span>
                 )}
               </div>
-              <span className={cn("text-[9px] font-medium tracking-wide", isActive ? "font-semibold" : "")}>{item.label}</span>
+              <span className={cn("text-[11px] font-medium leading-none", isActive ? "font-semibold text-primary" : "text-muted-foreground")}>{item.label}</span>
             </Link>
           );
           if (item.href === "/create" && createBlocked) {
