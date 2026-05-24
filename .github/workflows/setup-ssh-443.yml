@@ -22,7 +22,7 @@ jobs:
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
         run: |
-          sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
+          sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash -s << 'ENDSSH'
           set -e
 
           echo "=== Current port 443 usage ==="
@@ -38,17 +38,17 @@ jobs:
               NGINX_CONF=$(grep -rl "listen 443" /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
               if [ -n "$NGINX_CONF" ]; then
                 echo "Moving nginx from 443 to 4443 in $NGINX_CONF"
-                sudo sed -i "s/listen 443 ssl/listen 4443 ssl/g; s/listen \[\:\:\]\:443 ssl/listen [::]:4443 ssl/g" "$NGINX_CONF"
+                sudo sed -i "s/listen 443 ssl/listen 4443 ssl/g; s/listen \[\:\:\]:443 ssl/listen [::]:4443 ssl/g" "$NGINX_CONF"
                 sudo nginx -t && sudo systemctl reload nginx
               fi
             fi
           fi
 
           echo "=== Configuring sslh ==="
-          sudo tee /etc/default/sslh > /dev/null << EOF
-DAEMON_OPTS="--user sslh --listen 0.0.0.0:443 --ssh 127.0.0.1:22 --tls 127.0.0.1:4443 --pidfile /var/run/sslh/sslh.pid"
-RUN=yes
-EOF
+          printf '%s\n' \
+            'DAEMON_OPTS="--user sslh --listen 0.0.0.0:443 --ssh 127.0.0.1:22 --tls 127.0.0.1:4443 --pidfile /var/run/sslh/sslh.pid"' \
+            'RUN=yes' \
+            | sudo tee /etc/default/sslh > /dev/null
 
           echo "=== Starting sslh ==="
           sudo systemctl enable sslh
@@ -57,4 +57,4 @@ EOF
           sudo systemctl status sslh --no-pager
 
           echo "=== Done. SSH now accessible on port 443 ==="
-          '
+          ENDSSH
