@@ -7,7 +7,13 @@ const SITE_DESCRIPTION =
   "Grouperry is a group-sharing marketplace where people join collective deals on physical goods, digital subscriptions, and services — split costs and save money together.";
 
 // ── robots.txt ────────────────────────────────────────────────────────────────
-const ROBOTS_TXT = `User-agent: *
+const ROBOTS_TXT = `# Content Signals (https://contentcredentials.org/signals)
+# search:   building a search index — YES
+# ai-input: real-time AI grounding / RAG — YES
+# ai-train: training or fine-tuning AI models — NO
+Content-Signal: search=yes,ai-input=yes,ai-train=no
+
+User-agent: *
 Allow: /
 Disallow: /api/
 
