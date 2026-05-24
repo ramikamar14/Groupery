@@ -18,54 +18,46 @@ jobs:
       - name: Install sshpass
         run: sudo apt-get install -y sshpass
 
-      - name: Diagnostics
-        env:
-          SSHPASS: ${{ secrets.SSH_PASSWORD }}
-        run: |
-          sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash -s << 'ENDSSH'
-          echo "--- OS ---"
-          cat /etc/os-release | grep PRETTY
-          echo "--- Ports in use ---"
-          sudo ss -tlnp
-          echo "--- nginx sites-enabled ---"
-          ls /etc/nginx/sites-enabled/ 2>/dev/null || echo "no nginx"
-          echo "--- sshd config ---"
-          grep -i "^Port" /etc/ssh/sshd_config || echo "no explicit port (default 22)"
-          ENDSSH
-
-      - name: Configure SSH on port 443
+      - name: Setup sslh on port 443
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
         run: |
           sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash -s << 'ENDSSH'
           set -e
 
-          # Move nginx off 443 -> 4443 if needed
-          if sudo ss -tlnp | grep -q ":443 "; then
-            echo "Something on 443, checking nginx..."
-            for f in /etc/nginx/sites-enabled/*; do
-              if sudo grep -q "443" "$f" 2>/dev/null; then
-                echo "Patching $f"
-                sudo sed -i 's/listen 443/listen 4443/g' "$f"
-                sudo sed -i 's/listen \[::\]:443/listen [::]:4443/g' "$f"
-              fi
-            done
-            sudo nginx -t && sudo systemctl reload nginx
-            echo "nginx moved to 4443"
-            sleep 1
-          fi
+          echo "=== Installing sslh ==="
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get install -y sslh
 
-          # Add Port 443 to sshd if not already there
-          if ! sudo grep -q "^Port 443" /etc/ssh/sshd_config; then
-            echo "Port 443" | sudo tee -a /etc/ssh/sshd_config
-            echo "Added Port 443 to sshd_config"
-          else
-            echo "Port 443 already in sshd_config"
-          fi
+          SSLH_BIN=$(ls /usr/sbin/sslh-select /usr/sbin/sslh-fork /usr/sbin/sslh 2>/dev/null | head -1)
+          echo "Using binary: $SSLH_BIN"
 
-          sudo sshd -t
-          sudo systemctl restart sshd
+          echo "=== Moving nginx from 443 to 4443 ==="
+          for f in /etc/nginx/sites-enabled/*; do
+            if grep -q "listen 443" "$f" 2>/dev/null; then
+              echo "Patching $f"
+              sudo sed -i 's/listen 443/listen 4443/g' "$f"
+              sudo sed -i 's/listen \[::\]:443/listen [::]:4443/g' "$f"
+            fi
+          done
+          sudo nginx -t
+          sudo systemctl reload nginx
+          echo "nginx moved to 4443"
+
+          echo "=== Creating sslh systemd override ==="
+          sudo mkdir -p /etc/systemd/system/sslh.service.d
+          printf '[Service]\nExecStart=\nExecStart=%s --foreground --user sslh --listen 0.0.0.0:443 --ssh 127.0.0.1:22 --tls 127.0.0.1:4443\n' "$SSLH_BIN" \
+            | sudo tee /etc/systemd/system/sslh.service.d/override.conf
+
+          echo "=== Starting sslh ==="
+          sudo systemctl daemon-reload
+          sudo systemctl enable sslh
+          sudo systemctl restart sslh
           sleep 2
-          sudo ss -tlnp | grep sshd
-          echo "Done - sshd now on port 22 and 443"
+          sudo systemctl status sslh --no-pager
+
+          echo "=== Verify port 443 ==="
+          sudo ss -tlnp | grep :443
+
+          echo "=== Done - SSH now accessible on port 443 ==="
           ENDSSH
