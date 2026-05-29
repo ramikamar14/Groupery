@@ -29,6 +29,7 @@ import { SimilarDealsSection } from "@/components/listing/SimilarDealsSection";
 import { EditHistorySection } from "@/components/listing/EditHistorySection";
 import { MilestoneTracker } from "@/components/listing/MilestoneTracker";
 import { DealProofSection } from "@/components/listing/DealProofSection";
+import { DisputeButton } from "@/components/listing/DisputeButton";
 import { api } from "@shared/routes";
 
 export default function ListingDetails() {
@@ -808,6 +809,11 @@ export default function ListingDetails() {
                       : "Funds are held in escrow until you confirm receipt after delivery."}
                   </p>
                 </div>
+              )}
+
+              {/* Dispute / report a problem — for participants who committed */}
+              {isParticipant && !isCreator && (
+                <DisputeButton listingId={listing.id} />
               )}
 
               {/* What happens next timeline — shown to non-participants */}

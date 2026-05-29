@@ -762,6 +762,35 @@ export async function registerRoutes(
     res.status(result.ok ? 200 : 400).json(result);
   });
 
+  // Buyer-facing dispute: opens a report (category "dispute") for admin review
+  app.post("/api/orders/:id/dispute", requireAuth, reportLimiter, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.id as string);
+      if (isNaN(orderId)) return res.status(400).json({ message: "Invalid order ID" });
+      const userId = (req.user as any).claims.sub;
+      const order = await storage.getOrderById(orderId);
+      if (!order) return res.status(404).json({ message: "Order not found" });
+      if (order.userId !== userId) return res.status(403).json({ message: "Not your order" });
+
+      const reason = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+      if (reason.length < 5) return res.status(400).json({ message: "Please describe the problem (min 5 characters)" });
+
+      const listing = await storage.getListing(order.listingId);
+      const report = await storage.createReport({
+        reporterId: userId,
+        listingId: order.listingId,
+        reportedUserId: listing?.creatorId ?? undefined,
+        reason: `[Order #${orderId} dispute] ${reason}`,
+        category: "dispute",
+      } as any);
+
+      await storage.createSystemEvent("order_disputed", userId, { orderId, listingId: order.listingId });
+      res.status(201).json({ ok: true, report, message: "Dispute submitted. Our team will review it shortly." });
+    } catch (e: any) {
+      res.status(400).json({ message: e?.message || "Failed to submit dispute" });
+    }
+  });
+
   // Stripe webhook — verifies signature against the raw request body
   app.post("/api/stripe/webhook", async (req, res) => {
     if (!isStripeConfigured() || !env.STRIPE_WEBHOOK_SECRET) return res.status(503).end();
@@ -1049,6 +1078,8 @@ export async function registerRoutes(
     const ALLOWED_PROFILE_FIELDS = new Set([
       "firstName", "lastName", "bio", "location", "username",
       "profileImageUrl", "notificationPreferences", "preferredLanguage",
+      // KYC documents — submitted alongside verificationStatus="pending"
+      "idDocumentUrl", "selfieUrl",
     ]);
 
     const updates: Record<string, any> = {};

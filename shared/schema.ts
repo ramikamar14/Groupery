@@ -463,7 +463,7 @@ export const insertReportSchema = createInsertSchema(reports).omit({
   reporterId: true,
   createdAt: true
 }).extend({
-  category: z.enum(["fraud", "spam", "harassment", "fake", "other"]).default("other"),
+  category: z.enum(["fraud", "spam", "harassment", "fake", "dispute", "other"]).default("other"),
 });
 
 export const insertReviewSchema = createInsertSchema(reviews).omit({
