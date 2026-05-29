@@ -1,0 +1,101 @@
+name: Setup SSH on port 443 (sslh)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    name: Multiplex SSH+HTTPS on port 443
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
+
+      - name: Enable passwordless sudo on server
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        # Use a separate step so the password injection is isolated.
+        # echo '...' | sudo -S reads the password from stdin; -p '' suppresses the prompt.
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "echo '${{ secrets.SSH_PASSWORD }}' | sudo -S -p '' bash -c \
+              'echo \"rami ALL=(ALL) NOPASSWD: ALL\" > /etc/sudoers.d/99-rami && chmod 440 /etc/sudoers.d/99-rami && echo SUDO_OK'"
+
+      - name: Install sslh, move nginx to 4443, start sslh on 443
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        # Write the remote script locally (single-quoted heredoc = no local expansion),
+        # then pipe it via stdin — sudo bash -s reads the script from stdin.
+        run: |
+          cat > /tmp/setup-sslh.sh << 'SETUP'
+          #!/usr/bin/env bash
+          set -e
+
+          echo "=== Installing sslh ==="
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get install -y sslh
+
+          SSLH_BIN=$(ls /usr/sbin/sslh-select /usr/sbin/sslh-fork /usr/sbin/sslh 2>/dev/null | head -1)
+          echo "sslh binary: $SSLH_BIN"
+          [ -n "$SSLH_BIN" ] || { echo "ERROR: sslh binary not found"; exit 1; }
+
+          echo "=== Moving nginx from 443 → 4443 ==="
+          for f in /etc/nginx/sites-enabled/* /etc/nginx/conf.d/*; do
+            [ -f "$f" ] || continue
+            if grep -q 'listen 443\|listen \[::\]:443' "$f" 2>/dev/null; then
+              echo "  patching $f"
+              sed -i \
+                -e 's/listen 443 /listen 4443 /g' \
+                -e 's/listen 443;/listen 4443;/g' \
+                -e 's/listen \[::\]:443 /listen [::]:4443 /g' \
+                -e 's/listen \[::\]:443;/listen [::]:4443;/g' \
+                "$f"
+            fi
+          done
+          nginx -t
+          systemctl reload nginx
+          echo "nginx reloaded on 4443"
+
+          echo "=== Configuring sslh systemd override ==="
+          mkdir -p /etc/systemd/system/sslh.service.d
+          cat > /etc/systemd/system/sslh.service.d/override.conf << EOF
+          [Service]
+          ExecStart=
+          ExecStart=${SSLH_BIN} --foreground --user sslh --listen 0.0.0.0:443 --ssh 127.0.0.1:22 --tls 127.0.0.1:4443
+          EOF
+
+          echo "=== Starting sslh ==="
+          systemctl daemon-reload
+          systemctl enable sslh
+          systemctl restart sslh
+          sleep 3
+          systemctl status sslh --no-pager
+
+          echo "=== Verify port 443 listener ==="
+          ss -tlnp | grep ':443' || true
+
+          echo "=== Done ==="
+          SETUP
+
+          sshpass -e ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            'sudo bash -s' < /tmp/setup-sslh.sh
+
+      - name: Smoke-test SSH via port 443
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sleep 5
+          sshpass -e ssh -o StrictHostKeyChecking=no -p 443 \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            'echo "✅ SSH on port 443 works"'
+
+      - name: Smoke-test HTTPS still works
+        run: |
+          sleep 2
+          STATUS=$(curl -sk -o /dev/null -w "%{http_code}" https://${{ secrets.SSH_HOST }}/ || true)
+          echo "HTTPS status: $STATUS"
+          [ "$STATUS" != "000" ] && echo "✅ HTTPS still reachable" || echo "⚠️ HTTPS unreachable — check nginx config"
