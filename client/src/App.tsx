@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Switch, Route, Redirect } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
+import { pageview } from "@/lib/analytics";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -63,11 +64,18 @@ function Router() {
     return p && p.startsWith("/") && !p.startsWith("//") ? p : null;
   });
 
+  const [location] = useLocation();
+
   useEffect(() => {
     const handleLoginEvent = () => setShowLogin(true);
     window.addEventListener("open-login", handleLoginEvent);
     return () => window.removeEventListener("open-login", handleLoginEvent);
   }, []);
+
+  // Track SPA pageviews on route change (no-op unless analytics configured)
+  useEffect(() => {
+    pageview(location);
+  }, [location]);
 
   if (isLoading) {
     return (

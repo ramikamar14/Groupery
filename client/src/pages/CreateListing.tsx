@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { Layout } from "@/components/Layout";
 import { useCreateListing } from "@/hooks/use-listings";
+import { track } from "@/lib/analytics";
 import { insertListingSchema, type InsertListing } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -442,6 +443,7 @@ export default function CreateListing() {
     createListing.mutate({ ...data, additionalImages, tags, pricePerSlot, marketPrice, distributionType, distributionDetails } as any, {
       onSuccess: (listing: { id?: number }) => {
         try { localStorage.removeItem(draftKey); } catch {}
+        track("listing_created", { listingId: listing?.id ?? 0 });
         if (listing?.id != null) {
           setLocation(`/listings/${listing.id}`);
         } else {

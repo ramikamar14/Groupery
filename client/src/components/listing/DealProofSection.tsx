@@ -179,7 +179,7 @@ export function DealProofSection({ listingId, isCreator, isParticipant, currentU
               />
               <Button
                 size="sm"
-                onClick={() => uploadMutation.mutate()}
+                onClick={() => uploadMutation.mutate(undefined)}
                 disabled={!imageUrl.trim() || uploadMutation.isPending}
                 data-testid="button-upload-proof"
               >

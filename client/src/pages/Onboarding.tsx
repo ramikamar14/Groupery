@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { track } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -187,6 +188,7 @@ export default function Onboarding() {
 
   const handleComplete = async () => {
     await updateProfileMutation.mutateAsync({ onboardingComplete: true });
+    track("onboarding_complete");
     toast({ title: "Welcome!", description: "Your account setup is complete. Start exploring group deals!" });
     setLocation("/");
   };

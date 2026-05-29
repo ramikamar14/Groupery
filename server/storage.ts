@@ -175,10 +175,12 @@ export interface IStorage {
   // Orders (Commit to Buy)
   createOrder(order: { listingId: number; userId: string; amountCents?: number; notes?: string }): Promise<Order>;
   getOrder(id: number): Promise<Order | null>;
+  getOrderById(id: number): Promise<Order | undefined>;
   getOrderByListingAndUser(listingId: number, userId: string): Promise<Order | undefined>;
   getOrdersByUser(userId: string): Promise<(Order & { listing?: any })[]>;
   getOrdersByListing(listingId: number): Promise<(Order & { user?: any })[]>;
   updateOrderStatus(id: number, status: Order["status"]): Promise<Order>;
+  updateOrder(id: number, updates: Partial<Order>): Promise<Order>;
   getAllOrders(limit?: number): Promise<(Order & { listing?: any; user?: any })[]>;
 
   // Referrals
@@ -1340,6 +1342,11 @@ export class DatabaseStorage implements IStorage {
     return order ?? null;
   }
 
+  async getOrderById(id: number): Promise<Order | undefined> {
+    const [order] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+    return order;
+  }
+
   async getOrderByListingAndUser(listingId: number, userId: string): Promise<Order | undefined> {
     const [order] = await db.select().from(orders)
       .where(and(eq(orders.listingId, listingId), eq(orders.userId, userId)))
@@ -1366,6 +1373,14 @@ export class DatabaseStorage implements IStorage {
   async updateOrderStatus(id: number, status: Order["status"]): Promise<Order> {
     const [updated] = await db.update(orders)
       .set({ status, updatedAt: new Date() })
+      .where(eq(orders.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateOrder(id: number, updates: Partial<Order>): Promise<Order> {
+    const [updated] = await db.update(orders)
+      .set({ ...updates, updatedAt: new Date() })
       .where(eq(orders.id, id))
       .returning();
     return updated;

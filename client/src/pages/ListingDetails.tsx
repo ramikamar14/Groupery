@@ -19,6 +19,7 @@ import { format, formatDistanceToNow, differenceInHours, differenceInDays, diffe
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { track } from "@/lib/analytics";
 import confetti from "canvas-confetti";
 import { ChatInterface } from "@/components/listing/ChatInterface";
 import { ParticipantsManagement } from "@/components/listing/ParticipantsManagement";
@@ -28,6 +29,7 @@ import { SimilarDealsSection } from "@/components/listing/SimilarDealsSection";
 import { EditHistorySection } from "@/components/listing/EditHistorySection";
 import { MilestoneTracker } from "@/components/listing/MilestoneTracker";
 import { DealProofSection } from "@/components/listing/DealProofSection";
+import { DisputeButton } from "@/components/listing/DisputeButton";
 import { api } from "@shared/routes";
 
 export default function ListingDetails() {
@@ -92,10 +94,61 @@ export default function ListingDetails() {
       setMeta("description", desc);
       setMeta("og:title", listing.title, true);
       setMeta("og:description", desc, true);
+      setMeta("og:type", "product", true);
       if ((listing as any).imageUrl) setMeta("og:image", (listing as any).imageUrl, true);
+
+      // Canonical URL
+      const canonicalHref = `${window.location.origin}/listings/${listing.id}`;
+      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+      if (!canonical) {
+        canonical = document.createElement("link");
+        canonical.setAttribute("rel", "canonical");
+        document.head.appendChild(canonical);
+      }
+      canonical.setAttribute("href", canonicalHref);
+
+      // JSON-LD structured data (Product + Offer) for rich search results
+      const priceCents = (listing as any).pricePerSlot ?? 0;
+      const slotsLeft = listing.totalSlots - listing.filledSlots;
+      const ratingCount = (listing as any).creator?.ratingCount ?? 0;
+      const ratingValue = (listing as any).creator?.rating ?? 0;
+      const ld: Record<string, any> = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: listing.title,
+        description: desc,
+        ...((listing as any).imageUrl ? { image: (listing as any).imageUrl } : {}),
+        offers: {
+          "@type": "Offer",
+          url: canonicalHref,
+          priceCurrency: "USD",
+          price: (priceCents / 100).toFixed(2),
+          availability:
+            slotsLeft > 0 && listing.status === "active"
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+        },
+      };
+      if (ratingCount > 0 && ratingValue > 0) {
+        ld.aggregateRating = {
+          "@type": "AggregateRating",
+          ratingValue: Number(ratingValue).toFixed(1),
+          reviewCount: ratingCount,
+        };
+      }
+      let ldScript = document.getElementById("listing-jsonld") as HTMLScriptElement | null;
+      if (!ldScript) {
+        ldScript = document.createElement("script");
+        ldScript.id = "listing-jsonld";
+        ldScript.type = "application/ld+json";
+        document.head.appendChild(ldScript);
+      }
+      ldScript.textContent = JSON.stringify(ld);
     }
     return () => {
       document.title = "Grouperry — Group Buying, Made Simple";
+      document.getElementById("listing-jsonld")?.remove();
+      document.querySelector('link[rel="canonical"]')?.remove();
     };
   }, [listing]);
 
@@ -756,6 +809,11 @@ export default function ListingDetails() {
                       : "Funds are held in escrow until you confirm receipt after delivery."}
                   </p>
                 </div>
+              )}
+
+              {/* Dispute / report a problem — for participants who committed */}
+              {isParticipant && !isCreator && (
+                <DisputeButton listingId={listing.id} />
               )}
 
               {/* What happens next timeline — shown to non-participants */}
@@ -1515,6 +1573,7 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
           });
         } catch { /* preference save is best-effort */ }
         queryClient.invalidateQueries({ queryKey: [api.listings.get.path, listing.id] });
+        track("deal_commit", { listingId: listing.id, price: (listing as any).pricePerSlot ?? 0 });
         setOpen(false);
         reset();
         if (data?.justCompleted) localStorage.removeItem(`celebration-seen-${listing.id}`);

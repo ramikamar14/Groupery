@@ -21,6 +21,12 @@ import { processEmailQueue, isResendConfigured, sendViaResend } from "./email";
 import rateLimit from "express-rate-limit";
 import cron from "node-cron";
 import { createEscrowTransaction, releaseEscrow, cancelEscrow, getEscrowTransaction, isEscrowConfigured } from "./escrow";
+import {
+  isStripeConfigured, ensureCustomer, createSetupIntent, getDefaultPaymentMethod,
+  ensureConnectAccount, createConnectOnboardingLink, getConnectAccount, constructWebhookEvent,
+} from "./stripe";
+import { triggerChargeCompletedListing, refundOrder } from "./payments";
+import { env } from "./env";
 
 // Rate limiters
 const publicLimiter = rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false, message: { message: "Too many requests, please slow down." } });
@@ -290,6 +296,7 @@ export async function registerRoutes(
         if (input.status === "completed") {
           notifyWatchlistUsers(id, "Listing Completed", `"${existing.title}" has been marked as completed.`, userId);
           storage.createSystemEvent("listing_completed", userId, { listingId: id, title: existing.title });
+          triggerChargeCompletedListing(id);
         }
       }
       if (input.totalSlots && input.totalSlots !== existing.totalSlots) {
@@ -371,6 +378,7 @@ export async function registerRoutes(
           notifyWatchlistUsers(id, "Group Complete", `"${listingTitle}" is now complete! All ${total} slots are filled.`, userId);
           await storage.updateListing(id, { status: "completed" });
           storage.createSystemEvent("listing_completed", null, { listingId: id, title: listingTitle, trigger: "auto_filled" });
+          triggerChargeCompletedListing(id);
 
           const allParticipants = await storage.getParticipationsByListing(id);
           for (const p of allParticipants) {
@@ -513,12 +521,37 @@ export async function registerRoutes(
         notes: Object.keys(escrowMeta).length > 0 ? JSON.stringify(escrowMeta) : undefined,
       });
 
+      // Stripe: attach the buyer's saved card so they can be charged on completion
+      let stripePending = false;
+      if (isStripeConfigured() && listing.pricePerSlot && listing.pricePerSlot > 0) {
+        try {
+          const buyer = await authStorage.getUser(userId);
+          if (buyer?.stripeCustomerId) {
+            const pmId = await getDefaultPaymentMethod(buyer.stripeCustomerId);
+            if (pmId) {
+              await storage.updateOrder(order.id, { stripePaymentMethodId: pmId, chargeStatus: "authorized" });
+            } else {
+              stripePending = true; // no card on file yet — client should prompt to add one
+            }
+          } else {
+            stripePending = true;
+          }
+        } catch (stripeErr: any) {
+          logger.error("billing", `attach payment method failed (non-fatal): ${stripeErr?.message ?? stripeErr}`);
+        }
+      }
+
       cache.invalidatePrefix("discover:");
       cache.invalidate(`listing:${id}`);
+
+      // If this commit completed the deal, charge eligible orders (fire-and-forget)
+      const refreshed = await storage.getListing(id);
+      if (refreshed?.status === "completed") triggerChargeCompletedListing(id);
 
       res.status(201).json({
         ...order,
         escrow: escrowMeta,
+        stripePending,
         message: escrowMeta.escrowId
           ? "Escrow transaction created. You will receive an email to fund the escrow."
           : "You have committed to this deal. You will only be charged after the deal is completed.",
@@ -629,6 +662,175 @@ export async function registerRoutes(
   app.get("/api/admin/orders", requireAdmin, async (req, res) => {
     const allOrders = await storage.getAllOrders(200);
     res.json(allOrders);
+  });
+
+  /* ── Stripe payments ─────────────────────────────────────────────────────
+   * All routes no-op gracefully (503) when Stripe is not configured so the
+   * existing escrow / manual-payment flow keeps working unchanged.
+   */
+  app.get("/api/billing/config", (_req, res) => {
+    res.json({ enabled: isStripeConfigured() });
+  });
+
+  // Buyer: create a SetupIntent to save a card (charged later on completion)
+  app.post("/api/billing/setup-intent", requireAuth, async (req, res) => {
+    if (!isStripeConfigured()) return res.status(503).json({ message: "Payments not enabled" });
+    try {
+      const userId = (req.user as any).claims.sub;
+      const user = await authStorage.getUser(userId);
+      const customerId = await ensureCustomer({
+        existingCustomerId: user?.stripeCustomerId,
+        email: user?.email,
+        name: [user?.firstName, user?.lastName].filter(Boolean).join(" ") || null,
+        userId,
+      });
+      if (customerId !== user?.stripeCustomerId) {
+        await authStorage.updateUser(userId, { stripeCustomerId: customerId } as any);
+      }
+      const { clientSecret } = await createSetupIntent(customerId);
+      res.json({ clientSecret });
+    } catch (e: any) {
+      logger.error("billing", `setup-intent failed: ${e?.message ?? e}`);
+      res.status(500).json({ message: "Could not start card setup" });
+    }
+  });
+
+  // Buyer: confirm the saved payment method is attached (after client confirms SetupIntent)
+  app.post("/api/billing/payment-method", requireAuth, async (req, res) => {
+    if (!isStripeConfigured()) return res.status(503).json({ message: "Payments not enabled" });
+    try {
+      const userId = (req.user as any).claims.sub;
+      const user = await authStorage.getUser(userId);
+      if (!user?.stripeCustomerId) return res.status(400).json({ message: "No customer on file" });
+      const pmId = await getDefaultPaymentMethod(user.stripeCustomerId);
+      res.json({ hasPaymentMethod: !!pmId, paymentMethodId: pmId });
+    } catch (e: any) {
+      res.status(500).json({ message: "Could not load payment method" });
+    }
+  });
+
+  // Organizer: start Stripe Connect onboarding to receive payouts
+  app.post("/api/billing/connect/onboard", requireAuth, async (req, res) => {
+    if (!isStripeConfigured()) return res.status(503).json({ message: "Payments not enabled" });
+    try {
+      const userId = (req.user as any).claims.sub;
+      const user = await authStorage.getUser(userId);
+      const accountId = await ensureConnectAccount({
+        existingAccountId: user?.stripeAccountId,
+        email: user?.email,
+        country: user?.country,
+        userId,
+      });
+      if (accountId !== user?.stripeAccountId) {
+        await authStorage.updateUser(userId, { stripeAccountId: accountId } as any);
+      }
+      const base = env.APP_ORIGIN;
+      const url = await createConnectOnboardingLink(
+        accountId,
+        `${base}/profile?onboarding=complete`,
+        `${base}/profile?onboarding=refresh`,
+      );
+      res.json({ url });
+    } catch (e: any) {
+      logger.error("billing", `connect onboard failed: ${e?.message ?? e}`);
+      res.status(500).json({ message: "Could not start payout onboarding" });
+    }
+  });
+
+  // Organizer: refresh and persist Connect payout status
+  app.get("/api/billing/connect/status", requireAuth, async (req, res) => {
+    if (!isStripeConfigured()) return res.json({ enabled: false, payoutsEnabled: false });
+    try {
+      const userId = (req.user as any).claims.sub;
+      const user = await authStorage.getUser(userId);
+      if (!user?.stripeAccountId) return res.json({ enabled: true, payoutsEnabled: false, onboarded: false });
+      const { payoutsEnabled, detailsSubmitted } = await getConnectAccount(user.stripeAccountId);
+      if (payoutsEnabled !== user.stripePayoutsEnabled) {
+        await authStorage.updateUser(userId, { stripePayoutsEnabled: payoutsEnabled } as any);
+      }
+      res.json({ enabled: true, payoutsEnabled, onboarded: detailsSubmitted });
+    } catch (e: any) {
+      res.status(500).json({ message: "Could not load payout status" });
+    }
+  });
+
+  // Admin/organizer: refund a single order
+  app.post("/api/orders/:id/refund", requireAuth, requireAdmin, async (req, res) => {
+    const orderId = parseInt(req.params.id as string);
+    if (isNaN(orderId)) return res.status(400).json({ message: "Invalid order ID" });
+    const result = await refundOrder(orderId);
+    res.status(result.ok ? 200 : 400).json(result);
+  });
+
+  // Buyer-facing dispute: opens a report (category "dispute") for admin review
+  app.post("/api/orders/:id/dispute", requireAuth, reportLimiter, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.id as string);
+      if (isNaN(orderId)) return res.status(400).json({ message: "Invalid order ID" });
+      const userId = (req.user as any).claims.sub;
+      const order = await storage.getOrderById(orderId);
+      if (!order) return res.status(404).json({ message: "Order not found" });
+      if (order.userId !== userId) return res.status(403).json({ message: "Not your order" });
+
+      const reason = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+      if (reason.length < 5) return res.status(400).json({ message: "Please describe the problem (min 5 characters)" });
+
+      const listing = await storage.getListing(order.listingId);
+      const report = await storage.createReport({
+        reporterId: userId,
+        listingId: order.listingId,
+        reportedUserId: listing?.creatorId ?? undefined,
+        reason: `[Order #${orderId} dispute] ${reason}`,
+        category: "dispute",
+      } as any);
+
+      await storage.createSystemEvent("order_disputed", userId, { orderId, listingId: order.listingId });
+      res.status(201).json({ ok: true, report, message: "Dispute submitted. Our team will review it shortly." });
+    } catch (e: any) {
+      res.status(400).json({ message: e?.message || "Failed to submit dispute" });
+    }
+  });
+
+  // Stripe webhook — verifies signature against the raw request body
+  app.post("/api/stripe/webhook", async (req, res) => {
+    if (!isStripeConfigured() || !env.STRIPE_WEBHOOK_SECRET) return res.status(503).end();
+    const sig = req.headers["stripe-signature"] as string | undefined;
+    const raw = (req as any).rawBody;
+    if (!sig || !raw) return res.status(400).send("Missing signature or body");
+    try {
+      const event = constructWebhookEvent(raw, sig);
+      switch (event.type) {
+        case "account.updated": {
+          const acct = event.data.object as any;
+          const userId = acct.metadata?.grouperyUserId;
+          if (userId) {
+            await authStorage.updateUser(userId, { stripePayoutsEnabled: !!acct.payouts_enabled } as any);
+          }
+          break;
+        }
+        case "payment_intent.succeeded": {
+          const pi = event.data.object as any;
+          const orderId = pi.metadata?.orderId ? parseInt(pi.metadata.orderId) : null;
+          if (orderId) {
+            await storage.updateOrder(orderId, {
+              chargeStatus: "paid", paidAt: new Date(), status: "confirmed",
+              stripePaymentIntentId: pi.id,
+            });
+          }
+          break;
+        }
+        case "payment_intent.payment_failed": {
+          const pi = event.data.object as any;
+          const orderId = pi.metadata?.orderId ? parseInt(pi.metadata.orderId) : null;
+          if (orderId) await storage.updateOrder(orderId, { chargeStatus: "failed" });
+          break;
+        }
+      }
+      res.json({ received: true });
+    } catch (e: any) {
+      logger.error("stripe", `webhook error: ${e?.message ?? e}`);
+      res.status(400).send(`Webhook Error: ${e?.message ?? e}`);
+    }
   });
 
   // Messages Routes
@@ -876,6 +1078,8 @@ export async function registerRoutes(
     const ALLOWED_PROFILE_FIELDS = new Set([
       "firstName", "lastName", "bio", "location", "username",
       "profileImageUrl", "notificationPreferences", "preferredLanguage",
+      // KYC documents — submitted alongside verificationStatus="pending"
+      "idDocumentUrl", "selfieUrl",
     ]);
 
     const updates: Record<string, any> = {};
@@ -1255,6 +1459,7 @@ export async function registerRoutes(
 
   // Ensure primary admin has admin access on startup
   (async () => {
+    if (!PRIMARY_ADMIN_EMAIL) return;
     try {
       const primaryAdmin = await authStorage.getUserByEmail(PRIMARY_ADMIN_EMAIL);
       if (primaryAdmin && (!primaryAdmin.isAdmin || primaryAdmin.role !== "admin")) {

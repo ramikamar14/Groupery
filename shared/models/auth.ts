@@ -51,6 +51,10 @@ export const users = pgTable("users", {
   passwordHash: varchar("password_hash"),
   googleId: varchar("google_id").unique(),
   authProvider: varchar("auth_provider").default("local"),
+  // Stripe: customer (buyer payment methods) + connected account (organizer payouts)
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripeAccountId: varchar("stripe_account_id"),
+  stripePayoutsEnabled: boolean("stripe_payouts_enabled").default(false),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 

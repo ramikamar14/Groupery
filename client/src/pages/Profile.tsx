@@ -12,7 +12,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
-import { Calendar, User as UserIcon, Store, CheckCircle, Clock, XCircle, Settings, Loader2, Edit, Camera, Shield, Star, Award, Trophy, TrendingUp, Upload, Image, MapPin, Gift, Copy, Users, Zap, Phone } from "lucide-react";
+import { Calendar, User as UserIcon, Store, CheckCircle, Clock, XCircle, Settings, Loader2, Edit, Camera, Shield, Star, Award, Trophy, TrendingUp, Upload, Image, MapPin, Gift, Copy, Users, Zap, Phone, Banknote } from "lucide-react";
+import { PayoutOnboarding } from "@/components/billing/PayoutOnboarding";
+import { isStripeEnabledClient } from "@/lib/stripe";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { Link } from "wouter";
@@ -331,6 +333,17 @@ export default function Profile() {
             </div>
           </div>
         )}
+        {/* Payouts (Stripe Connect) — only renders when payments are enabled */}
+        {isStripeEnabledClient && (
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Banknote className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              {t("billing.payoutsTitle", "Payouts")}
+            </h3>
+            <PayoutOnboarding />
+          </div>
+        )}
+
         {user.verificationStatus === "pending" && (
           <div className="rounded-2xl border border-blue-200 dark:border-blue-800 bg-blue-50/60 dark:bg-blue-950/30 p-4 flex gap-3 items-center">
             <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
