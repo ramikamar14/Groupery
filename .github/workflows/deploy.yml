@@ -58,8 +58,9 @@ jobs:
 
       - name: Upload dist & restart
         # The app reads env from /home/rami/Groupery/.env (loaded by
-        # ecosystem.config.cjs). We upsert ONLY non-empty secrets so existing
-        # values (DATABASE_URL, SESSION_SECRET, RESEND, TWILIO…) are preserved.
+        # ecosystem.config.cjs). Secrets are written to a DATA file
+        # (env-updates.txt) — never interpolated into a shell command — then
+        # merged atomically server-side, preserving existing keys.
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
           ESCROW_API_KEY: ${{ secrets.ESCROW_API_KEY }}
@@ -67,17 +68,17 @@ jobs:
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
           STRIPE_PLATFORM_FEE_BPS: ${{ secrets.STRIPE_PLATFORM_FEE_BPS }}
         run: |
-          tar czf dist.tar.gz dist/ ecosystem.config.cjs
+          # Build env-updates.txt as pure data (printf, no shell interpretation).
+          : > env-updates.txt
+          add_kv() { [ -n "$2" ] && printf '%s=%s\n' "$1" "$2" >> env-updates.txt || true; }
+          add_kv ESCROW_API_KEY "$ESCROW_API_KEY"
+          add_kv STRIPE_SECRET_KEY "$STRIPE_SECRET_KEY"
+          add_kv STRIPE_WEBHOOK_SECRET "$STRIPE_WEBHOOK_SECRET"
+          add_kv STRIPE_PLATFORM_FEE_BPS "$STRIPE_PLATFORM_FEE_BPS"
+
+          tar czf dist.tar.gz dist/ ecosystem.config.cjs script/apply-env.sh env-updates.txt
           sshpass -e scp -o StrictHostKeyChecking=no dist.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/rami/Groupery/
-          # Build an upsert script that only writes keys whose value is non-empty
-          UPSERT=""
-          for kv in "ESCROW_API_KEY=$ESCROW_API_KEY" "STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY" "STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET" "STRIPE_PLATFORM_FEE_BPS=$STRIPE_PLATFORM_FEE_BPS"; do
-            key="${kv%%=*}"; val="${kv#*=}"
-            if [ -n "$val" ]; then
-              UPSERT="$UPSERT touch .env; grep -v '^${key}=' .env > .env.tmp 2>/dev/null || true; mv .env.tmp .env 2>/dev/null || true; echo '${key}=${val}' >> .env;"
-            fi
-          done
           sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
             "cd /home/rami/Groupery && tar xzf dist.tar.gz && rm dist.tar.gz && \
-             $UPSERT \
+             sh script/apply-env.sh && \
              pm2 startOrReload ecosystem.config.cjs --update-env && echo '✅ Deployed at \$(date)'"

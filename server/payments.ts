@@ -54,8 +54,18 @@ export async function chargeCompletedListing(listingId: number): Promise<void> {
       });
       logger.info("payments", `charged order ${order.id} (${status})`);
     } catch (err: any) {
-      await storage.updateOrder(order.id, { chargeStatus: "failed" });
-      logger.error("payments", `charge failed for order ${order.id}: ${err?.message ?? err}`);
+      // Off-session confirm failures may still carry a PaymentIntent. Persist its
+      // id so the Stripe webhook can reconcile the true outcome, and if it
+      // actually succeeded, record that rather than masking it as failed.
+      const pi = err?.payment_intent ?? err?.raw?.payment_intent;
+      const piSucceeded = pi?.status === "succeeded";
+      await storage.updateOrder(order.id, {
+        stripePaymentIntentId: pi?.id ?? undefined,
+        chargeStatus: piSucceeded ? "paid" : "failed",
+        paidAt: piSucceeded ? new Date() : null,
+        status: piSucceeded ? "confirmed" : order.status,
+      });
+      logger.error("payments", `charge ${piSucceeded ? "recovered" : "failed"} for order ${order.id}: ${err?.message ?? err}`);
     }
   }
 }
