@@ -46,9 +46,12 @@ export async function chargeCompletedListing(listingId: number): Promise<void> {
         idempotencyKey: `charge-order-${order.id}`,
         metadata: { listingId: String(listingId), orderId: String(order.id), userId: order.userId },
       });
+      // Normalize to the documented set: succeeded → paid, anything non-terminal
+      // (requires_action/processing/…) → authorized; the webhook finalizes it.
+      const normalized = status === "succeeded" ? "paid" : "authorized";
       await storage.updateOrder(order.id, {
         stripePaymentIntentId: paymentIntentId,
-        chargeStatus: status === "succeeded" ? "paid" : status,
+        chargeStatus: normalized,
         paidAt: status === "succeeded" ? new Date() : null,
         status: status === "succeeded" ? "confirmed" : order.status,
       });

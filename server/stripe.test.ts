@@ -5,15 +5,18 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { applicationFeeCents, platformFeeBps } from "./stripe";
 
 describe("platform fee math", () => {
-  it("defaults to 5% (500 bps)", () => {
-    // env default is 500 in env.ts; applicationFeeCents uses it
-    expect(platformFeeBps()).toBeGreaterThanOrEqual(0);
+  // vitest.config.ts sets STRIPE_PLATFORM_FEE_BPS=500 for the test env
+  it("defaults to exactly 5% (500 bps)", () => {
+    expect(platformFeeBps()).toBe(500);
   });
 
-  it("applicationFeeCents computes the correct cut", () => {
-    const bps = platformFeeBps();
-    // 10000 cents at bps → round(10000 * bps / 10000) = bps cents
-    expect(applicationFeeCents(10000)).toBe(Math.round((10000 * bps) / 10000));
+  it("takes a concrete 5% cut of a $100 charge", () => {
+    expect(applicationFeeCents(10000)).toBe(500); // 5% of 10000 cents
+  });
+
+  it("rounds the fee to the nearest cent", () => {
+    expect(applicationFeeCents(199)).toBe(10); // 5% of 199 = 9.95 → 10
+    expect(applicationFeeCents(150)).toBe(8);  // 5% of 150 = 7.5 → 8
   });
 
   it("never exceeds the charge amount for sane fees", () => {

@@ -60,14 +60,38 @@ export function initAnalytics(): void {
       const key = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
       if (!key) return;
       const host = (import.meta.env.VITE_POSTHOG_HOST as string) || "https://us.i.posthog.com";
-      // Minimal PostHog snippet loader
-      (function (h: any) {
-        h.posthog = h.posthog || [];
+      // Official PostHog snippet: stubs every queued method (capture, identify,
+      // …) so events fired before array.js loads are queued, not dropped.
+      (function (t: any, e: any) {
+        let p: any, u: any;
+        t.posthog = e = e || [];
+        e._i = [];
+        e.init = function (i: string, s: any, a: string) {
+          function g(t2: any, e2: string) {
+            const o = e2.split(".");
+            o.length === 2 && ((t2 = t2[o[0]]), (e2 = o[1]));
+            t2[e2] = function () {
+              t2.push([e2].concat(Array.prototype.slice.call(arguments, 0)));
+            };
+          }
+          let o: any = e;
+          a !== undefined ? ((o = e[a] = []), (o._i = [])) : (a = "posthog");
+          o.people = o.people || [];
+          o.toString = function (t2?: boolean) {
+            let e2 = "posthog";
+            a !== "posthog" && (e2 += "." + a);
+            t2 || (e2 += " (stub)");
+            return e2;
+          };
+          o.people.toString = function () { return o.toString(1) + ".people (stub)"; };
+          const methods = "init capture register register_once unregister identify alias people.set people.set_once set_config get_distinct_id reset group on off".split(" ");
+          for (p = 0; p < methods.length; p++) g(o, methods[p]);
+          e._i.push([i, s, a]);
+        };
+        e.__SV = 1;
         injectScript(`${host}/static/array.js`);
-        h.posthog._i = h.posthog._i || [];
-        h.posthog.init = (apiKey: string, opts: any) => h.posthog._i.push([apiKey, opts]);
-        h.posthog.init(key, { api_host: host });
-      })(window);
+        e.init(key, { api_host: host }, undefined as any);
+      })(window, (window as any).posthog);
     }
   } catch {
     /* analytics must never break the app */
