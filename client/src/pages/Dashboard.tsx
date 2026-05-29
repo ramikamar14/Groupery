@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Users, ShoppingBag, Bell, Loader2, Plus, Compass, ChevronRight, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Users, ShoppingBag, Bell, Loader2, Plus, Compass, ChevronRight, CheckCircle2, Clock, AlertCircle, PiggyBank } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +19,8 @@ type ListingRow = {
   filledSlots: number;
   totalSlots: number;
   creatorId?: string | null;
+  pricePerSlot?: number | null;
+  marketPrice?: number | null;
   updatedAt?: string | Date | null;
   createdAt?: string | Date | null;
 };
@@ -53,6 +55,17 @@ export default function Dashboard() {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const itemsPurchased = user?.completedParticipations ?? 0;
+
+  // Realized savings: sum of (market price − group price) across completed deals
+  const totalSavings = useMemo(() => {
+    return myGroups.reduce((sum, l) => {
+      if (l.status !== "completed") return sum;
+      const group = l.pricePerSlot ?? 0;
+      const market = l.marketPrice ?? 0;
+      const saved = market > group ? market - group : 0;
+      return sum + saved;
+    }, 0);
+  }, [myGroups]);
 
   const recentRows = useMemo(() => {
     const sorted = [...myGroups].sort((a, b) => {
@@ -124,7 +137,7 @@ export default function Dashboard() {
         ) : (
           <>
             {/* Stat cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {/* Active Groups */}
               <Card className="border-primary/15 dark:border-primary/25">
                 <CardContent className="pt-5 pb-4">
@@ -159,8 +172,28 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              {/* Notifications — full width on 2-col, normal on 3-col */}
-              <Card className={cn("border-primary/15 dark:border-primary/25 col-span-2 lg:col-span-1", unreadCount > 0 && "border-amber-300 dark:border-amber-700")}>
+              {/* Total Savings */}
+              <Card className="border-primary/15 dark:border-primary/25">
+                <CardContent className="pt-5 pb-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">{t("dashboard.statTotalSavings")}</p>
+                      <p className="text-3xl font-bold font-display tabular-nums leading-none text-emerald-600 dark:text-emerald-400">
+                        {totalSavings > 0 ? `$${(totalSavings / 100).toFixed(2)}` : t("dashboard.savingsPlaceholder")}
+                      </p>
+                    </div>
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                      <PiggyBank className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {totalSavings > 0 ? t("dashboard.savingsRealized", "vs. market price") : t("dashboard.savingsEmpty", "Complete a deal to start saving")}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Notifications */}
+              <Card className={cn("border-primary/15 dark:border-primary/25", unreadCount > 0 && "border-amber-300 dark:border-amber-700")}>
                 <CardContent className="pt-5 pb-4">
                   <div className="flex items-start justify-between">
                     <div>
