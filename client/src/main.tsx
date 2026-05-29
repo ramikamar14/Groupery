@@ -5,6 +5,10 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import App from "./App";
 import "./index.css";
 import "./lib/i18n";
+import { initAnalytics } from "./lib/analytics";
+
+// Load analytics provider (no-op unless configured via env)
+initAnalytics();
 
 // Native-only startup setup
 if (Capacitor.isNativePlatform()) {

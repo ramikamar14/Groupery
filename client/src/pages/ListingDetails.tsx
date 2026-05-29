@@ -19,6 +19,7 @@ import { format, formatDistanceToNow, differenceInHours, differenceInDays, diffe
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { track } from "@/lib/analytics";
 import confetti from "canvas-confetti";
 import { ChatInterface } from "@/components/listing/ChatInterface";
 import { ParticipantsManagement } from "@/components/listing/ParticipantsManagement";
@@ -1566,6 +1567,7 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
           });
         } catch { /* preference save is best-effort */ }
         queryClient.invalidateQueries({ queryKey: [api.listings.get.path, listing.id] });
+        track("deal_commit", { listingId: listing.id, price: (listing as any).pricePerSlot ?? 0 });
         setOpen(false);
         reset();
         if (data?.justCompleted) localStorage.removeItem(`celebration-seen-${listing.id}`);
