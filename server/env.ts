@@ -29,6 +29,10 @@ const schema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   ESCROW_API_KEY: z.string().optional(),
+  // Stripe — all optional so the app boots without payments configured
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PLATFORM_FEE_BPS: z.string().default("500"), // platform fee in basis points (500 = 5%)
   PORT: z.string().default("5000"),
 });
 

@@ -270,6 +270,11 @@ export const orders = pgTable("orders", {
   status: orderStatusEnum("status").default("committed").notNull(),
   amountCents: integer("amount_cents"),
   notes: text("notes"),
+  // Stripe charge-on-completion: saved payment method + the charge intent
+  stripePaymentMethodId: varchar("stripe_payment_method_id"),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"),
+  chargeStatus: varchar("charge_status"), // null | authorized | paid | refunded | failed
+  paidAt: timestamp("paid_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (t) => [

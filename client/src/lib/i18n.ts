@@ -43,6 +43,19 @@ const resources = {
         fillingFast: "Filling Fast",
         allListings: "All Listings"
       },
+      billing: {
+        payoutsTitle: "Payouts",
+        payoutPrompt: "Set up payouts to automatically receive funds (minus platform fee) when your group deals complete.",
+        setUpPayouts: "Set up payouts",
+        finishPayoutSetup: "Finish payout setup",
+        payoutsActive: "Payouts active — you'll receive funds when your deals complete.",
+        payoutError: "Could not start payout setup",
+        saveCard: "Save card",
+        cardSaved: "Card saved",
+        cardOnFile: "Card on file",
+        cardError: "Could not save card",
+        unavailable: "Payments are not available right now."
+      },
       dashboard: {
         welcomeBack: "Welcome back, {{name}}",
         welcomeGeneric: "Welcome back",
