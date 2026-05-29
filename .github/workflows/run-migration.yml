@@ -1,0 +1,22 @@
+name: Run DB Migration (manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    name: Push schema to production DB
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
+
+      - name: Run db:push on server
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "cd /home/rami/Groupery && npm run db:push && echo '✅ Migration done'"

@@ -463,8 +463,11 @@ export async function registerRoutes(
     if (listingBefore) {
       const newFilled = Math.max(0, listingBefore.filledSlots - 1);
       notifyWatchlistUsers(id, "Slot Opened", `A spot opened up in "${listingBefore.title}" (${newFilled}/${listingBefore.totalSlots} slots filled).`, userId);
-      // Notify first waiter that a slot opened
-      await storage.notifyFirstWaiter(id).catch(() => {});
+      // Notify the first waiter (FIFO) that a slot opened and email them
+      const waiterId = await storage.notifyFirstWaiter(id).catch(() => null);
+      if (waiterId) {
+        await storage.enqueueEmail(waiterId, "waitlist_spot_available", { listingId: id, listingTitle: listingBefore.title }).catch(() => {});
+      }
     }
 
     cache.invalidatePrefix("discover:");
@@ -543,6 +546,19 @@ export async function registerRoutes(
 
       cache.invalidatePrefix("discover:");
       cache.invalidate(`listing:${id}`);
+
+      // Commit confirmation email (fire-and-forget)
+      storage.enqueueEmail(userId, "group_commit_confirmed", { listingId: id, listingTitle: listing.title }).catch(() => {});
+
+      // Grant referral reward if this is the user's first commit
+      const existingOrders = await storage.getOrdersByUser(userId);
+      if (existingOrders.length === 1) {
+        // This is their first-ever order; grant the referrer's reward
+        const referrerId = await storage.grantReferralReward(userId).catch(() => null);
+        if (referrerId) {
+          storage.enqueueEmail(referrerId, "referral_reward", {}).catch(() => {});
+        }
+      }
 
       // If this commit completed the deal, charge eligible orders (fire-and-forget)
       const refreshed = await storage.getListing(id);

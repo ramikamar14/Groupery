@@ -133,6 +133,28 @@ function buildEmailTemplate(emailType: string, payload: any): { subject: string;
         ),
       };
 
+    case "waitlist_spot_available":
+      return {
+        subject: `🎯 A spot opened up — "${listingTitle}"`,
+        html: wrapHtml(
+          "Your waitlist spot is ready!",
+          `<p>Good news — a slot has opened up in <strong>${listingTitle}</strong>, and you're next on the waitlist.</p>
+           <p>Act fast — this spot may be taken by someone else if you don't commit soon.</p>
+           <a href="${listingUrl}" class="cta">Claim Your Spot</a>`
+        ),
+      };
+
+    case "referral_reward":
+      return {
+        subject: `🎁 You earned a referral reward!`,
+        html: wrapHtml(
+          "Your referral earned you a reward",
+          `<p>Someone you referred just made their first commitment on Grouperry. Thank you for spreading the word!</p>
+           <p>Your referral reward has been granted to your account.</p>
+           <a href="${baseUrl}/profile" class="cta">View Your Profile</a>`
+        ),
+      };
+
     default:
       return null;
   }

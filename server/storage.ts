@@ -19,7 +19,7 @@ import {
   type Invitation
 } from "@shared/schema";
 import { users } from "@shared/models/auth";
-import { eq, and, desc, ilike, sql, gte, count, inArray, or } from "drizzle-orm";
+import { eq, and, desc, asc, ilike, sql, gte, count, inArray, or } from "drizzle-orm";
 
 export interface IStorage {
   // Listings
@@ -187,6 +187,7 @@ export interface IStorage {
   createReferral(referrerId: string, referredUserId: string): Promise<Referral>;
   getReferralStats(userId: string): Promise<{ totalReferrals: number; rewardedReferrals: number; referredUsers: any[] }>;
   hasBeenReferred(userId: string): Promise<boolean>;
+  grantReferralReward(referredUserId: string): Promise<string | null>;
 
   // State machine — enforces valid transitions inside a transaction
   transitionListing(id: number, newStatus: "active" | "completed" | "expired" | "cancelled"): Promise<Listing>;
@@ -577,7 +578,7 @@ export class DatabaseStorage implements IStorage {
   async notifyFirstWaiter(listingId: number): Promise<string | null> {
     const first = await db.query.waitlists.findFirst({
       where: and(eq(waitlists.listingId, listingId), eq(waitlists.notified, false)),
-      orderBy: [desc(waitlists.joinedAt)],
+      orderBy: [asc(waitlists.joinedAt)], // FIFO: oldest waiter first
     });
     if (!first) return null;
     await db.update(waitlists).set({ notified: true }).where(eq(waitlists.id, first.id));
@@ -1502,6 +1503,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(referrals.referredUserId, userId))
       .limit(1);
     return !!existing;
+  }
+
+  async grantReferralReward(referredUserId: string): Promise<string | null> {
+    const [row] = await db.update(referrals)
+      .set({ rewardGranted: true })
+      .where(and(eq(referrals.referredUserId, referredUserId), eq(referrals.rewardGranted, false)))
+      .returning({ referrerId: referrals.referrerId });
+    return row?.referrerId ?? null;
   }
 
   async transitionListing(id: number, newStatus: "active" | "completed" | "expired" | "cancelled"): Promise<Listing> {
