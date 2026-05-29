@@ -69,6 +69,9 @@ export default function ListingDetails() {
 
   // SEO: dynamic page title + Open Graph meta for listing pages
   useEffect(() => {
+    // Snapshot original meta content (hoisted so the cleanup can restore it) to
+    // avoid leaking this listing's title/description/image onto other SPA pages.
+    const originalMeta: Array<{ el: HTMLMetaElement; prev: string | null }> = [];
     if (listing) {
       const price = (listing as any).pricePerSlot
         ? ` — $${((listing as any).pricePerSlot / 100).toFixed(0)}/person`
@@ -84,6 +87,7 @@ export default function ListingDetails() {
           prop ? el.setAttribute("property", name) : el.setAttribute("name", name);
           document.head.appendChild(el);
         }
+        originalMeta.push({ el, prev: el.getAttribute("content") });
         el.setAttribute("content", content);
       };
 
@@ -147,6 +151,11 @@ export default function ListingDetails() {
     }
     return () => {
       document.title = "Grouperry — Group Buying, Made Simple";
+      // Restore meta tags to their pre-listing values (or clear if newly added)
+      for (const { el, prev } of originalMeta) {
+        if (prev === null) el.removeAttribute("content");
+        else el.setAttribute("content", prev);
+      }
       document.getElementById("listing-jsonld")?.remove();
       document.querySelector('link[rel="canonical"]')?.remove();
     };

@@ -772,8 +772,9 @@ export async function registerRoutes(
       if (!order) return res.status(404).json({ message: "Order not found" });
       if (order.userId !== userId) return res.status(403).json({ message: "Not your order" });
 
-      const reason = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
-      if (reason.length < 5) return res.status(400).json({ message: "Please describe the problem (min 5 characters)" });
+      const rawReason = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+      if (rawReason.length < 5) return res.status(400).json({ message: "Please describe the problem (min 5 characters)" });
+      const reason = rawReason.slice(0, 2000); // bound stored text
 
       const listing = await storage.getListing(order.listingId);
       const report = await storage.createReport({
@@ -811,18 +812,34 @@ export async function registerRoutes(
         case "payment_intent.succeeded": {
           const pi = event.data.object as any;
           const orderId = pi.metadata?.orderId ? parseInt(pi.metadata.orderId) : null;
-          if (orderId) {
-            await storage.updateOrder(orderId, {
-              chargeStatus: "paid", paidAt: new Date(), status: "confirmed",
-              stripePaymentIntentId: pi.id,
-            });
+          if (orderId && Number.isFinite(orderId)) {
+            // Trust the signed event, but still verify the PI belongs to this
+            // order and the amount matches before moving money state forward.
+            const order = await storage.getOrderById(orderId);
+            const expected = order?.amountCents ?? null;
+            const matchesAmount = expected != null && pi.amount === expected;
+            const ownsIntent = !order?.stripePaymentIntentId || order.stripePaymentIntentId === pi.id;
+            if (order && matchesAmount && ownsIntent && order.chargeStatus !== "refunded") {
+              await storage.updateOrder(orderId, {
+                chargeStatus: "paid", paidAt: new Date(), status: "confirmed",
+                stripePaymentIntentId: pi.id,
+              });
+            } else {
+              logger.warn("stripe", `webhook PI ${pi.id} ignored for order ${orderId} (amount/ownership/state mismatch)`);
+            }
           }
           break;
         }
         case "payment_intent.payment_failed": {
           const pi = event.data.object as any;
           const orderId = pi.metadata?.orderId ? parseInt(pi.metadata.orderId) : null;
-          if (orderId) await storage.updateOrder(orderId, { chargeStatus: "failed" });
+          if (orderId && Number.isFinite(orderId)) {
+            const order = await storage.getOrderById(orderId);
+            // Don't override an already-paid/refunded order on a stray failure event
+            if (order && order.chargeStatus !== "paid" && order.chargeStatus !== "refunded") {
+              await storage.updateOrder(orderId, { chargeStatus: "failed" });
+            }
+          }
           break;
         }
       }

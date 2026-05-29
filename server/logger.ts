@@ -13,6 +13,9 @@ const PII_KEYS = new Set([
   "otp", "token", "password", "address", "lat", "lng",
   "latitude", "longitude", "profileImageUrl", "ip",
   "paymentDetails", "paymentNotes", "paymentMethod",
+  // KYC documents and payment secrets must never appear in logs
+  "idDocumentUrl", "selfieUrl",
+  "stripeCustomerId", "stripeAccountId", "stripePaymentMethodId",
 ]);
 
 function sanitizeValue(k: string, v: any): any {
