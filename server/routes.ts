@@ -1459,6 +1459,7 @@ export async function registerRoutes(
 
   // Ensure primary admin has admin access on startup
   (async () => {
+    if (!PRIMARY_ADMIN_EMAIL) return;
     try {
       const primaryAdmin = await authStorage.getUserByEmail(PRIMARY_ADMIN_EMAIL);
       if (primaryAdmin && (!primaryAdmin.isAdmin || primaryAdmin.role !== "admin")) {

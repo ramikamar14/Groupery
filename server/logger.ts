@@ -59,12 +59,26 @@ function log(level: LogLevel, category: string, message: string, meta?: Record<s
   }
 }
 
+// Allow callers to pass either (category, message, meta) or the looser
+// (category, meta) form where the second argument is the metadata object.
+type MsgOrMeta = string | Record<string, any> | undefined;
+function normalize(messageOrMeta: MsgOrMeta, meta?: Record<string, any>): { message: string; meta?: Record<string, any> } {
+  if (typeof messageOrMeta === "string") return { message: messageOrMeta, meta };
+  return { message: "", meta: messageOrMeta ?? meta };
+}
+
 export const logger = {
-  info: (category: string, message: string, meta?: Record<string, any>) => log("info", category, message, meta),
-  warn: (category: string, message: string, meta?: Record<string, any>) => log("warn", category, message, meta),
-  error: (category: string, message: string, meta?: Record<string, any>) => log("error", category, message, meta),
-  debug: (category: string, message: string, meta?: Record<string, any>) => {
-    if (process.env.NODE_ENV !== "production") log("debug", category, message, meta);
+  info: (category: string, messageOrMeta?: MsgOrMeta, meta?: Record<string, any>) => {
+    const n = normalize(messageOrMeta, meta); log("info", category, n.message, n.meta);
+  },
+  warn: (category: string, messageOrMeta?: MsgOrMeta, meta?: Record<string, any>) => {
+    const n = normalize(messageOrMeta, meta); log("warn", category, n.message, n.meta);
+  },
+  error: (category: string, messageOrMeta?: MsgOrMeta, meta?: Record<string, any>) => {
+    const n = normalize(messageOrMeta, meta); log("error", category, n.message, n.meta);
+  },
+  debug: (category: string, messageOrMeta?: MsgOrMeta, meta?: Record<string, any>) => {
+    if (process.env.NODE_ENV !== "production") { const n = normalize(messageOrMeta, meta); log("debug", category, n.message, n.meta); }
   },
 
   adminAction: (adminId: string, action: string, meta?: Record<string, any>) =>
