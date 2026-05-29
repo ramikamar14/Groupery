@@ -93,6 +93,26 @@ app.get("/health", async (_req, res) => {
 });
 
 (async () => {
+  // Add missing columns that weren't in the DB when deployed without DATABASE_URL secret.
+  // ADD COLUMN IF NOT EXISTS is idempotent — safe to run on every boot.
+  try {
+    await pool.query(`
+      ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR,
+        ADD COLUMN IF NOT EXISTS stripe_account_id  VARCHAR,
+        ADD COLUMN IF NOT EXISTS stripe_payouts_enabled BOOLEAN DEFAULT FALSE
+    `);
+    await pool.query(`
+      ALTER TABLE orders
+        ADD COLUMN IF NOT EXISTS stripe_payment_method_id VARCHAR,
+        ADD COLUMN IF NOT EXISTS stripe_payment_intent_id VARCHAR,
+        ADD COLUMN IF NOT EXISTS charge_status VARCHAR,
+        ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP
+    `);
+  } catch (e: any) {
+    console.error("[startup] schema migration error:", e.message);
+  }
+
   await registerRoutes(httpServer, app);
 
   // ── Global error handler ──────────────────────────────────────────────────
