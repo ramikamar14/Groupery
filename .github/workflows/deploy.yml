@@ -30,19 +30,54 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Apply DB migrations (only if DATABASE_URL secret is set)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -n "$DATABASE_URL" ]; then
+            echo "Running drizzle-kit push…"
+            npm run db:push || echo "⚠️ db:push reported an issue (non-fatal)"
+          else
+            echo "DATABASE_URL secret not set — skipping migrations. Run 'npm run db:push' on the server before enabling Stripe."
+          fi
+
       - name: Build
+        # VITE_* are baked into the client bundle at build time. Unset secrets
+        # resolve to empty → analytics stays "none" and Stripe UI stays hidden.
+        env:
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_ANALYTICS_PROVIDER: ${{ secrets.VITE_ANALYTICS_PROVIDER }}
+          VITE_PLAUSIBLE_DOMAIN: ${{ secrets.VITE_PLAUSIBLE_DOMAIN }}
+          VITE_GA4_ID: ${{ secrets.VITE_GA4_ID }}
+          VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
+          VITE_POSTHOG_HOST: ${{ secrets.VITE_POSTHOG_HOST }}
         run: npm run build
 
       - name: Install sshpass
         run: sudo apt-get install -y sshpass
 
       - name: Upload dist & restart
+        # The app reads env from /home/rami/Groupery/.env (loaded by
+        # ecosystem.config.cjs). We upsert ONLY non-empty secrets so existing
+        # values (DATABASE_URL, SESSION_SECRET, RESEND, TWILIO…) are preserved.
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          ESCROW_API_KEY: ${{ secrets.ESCROW_API_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          STRIPE_PLATFORM_FEE_BPS: ${{ secrets.STRIPE_PLATFORM_FEE_BPS }}
         run: |
-          tar czf dist.tar.gz dist/
+          tar czf dist.tar.gz dist/ ecosystem.config.cjs
           sshpass -e scp -o StrictHostKeyChecking=no dist.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/rami/Groupery/
+          # Build an upsert script that only writes keys whose value is non-empty
+          UPSERT=""
+          for kv in "ESCROW_API_KEY=$ESCROW_API_KEY" "STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY" "STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET" "STRIPE_PLATFORM_FEE_BPS=$STRIPE_PLATFORM_FEE_BPS"; do
+            key="${kv%%=*}"; val="${kv#*=}"
+            if [ -n "$val" ]; then
+              UPSERT="$UPSERT touch .env; grep -v '^${key}=' .env > .env.tmp 2>/dev/null || true; mv .env.tmp .env 2>/dev/null || true; echo '${key}=${val}' >> .env;"
+            fi
+          done
           sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
             "cd /home/rami/Groupery && tar xzf dist.tar.gz && rm dist.tar.gz && \
-             pm2 set groupery:ESCROW_API_KEY '${{ secrets.ESCROW_API_KEY }}' 2>/dev/null || true && \
-             pm2 restart groupery && echo '✅ Deployed at \$(date)'"
+             $UPSERT \
+             pm2 startOrReload ecosystem.config.cjs --update-env && echo '✅ Deployed at \$(date)'"
