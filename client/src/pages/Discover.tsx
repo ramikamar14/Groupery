@@ -16,7 +16,7 @@ import { DiscoverListingCard } from "@/components/discover/DiscoverListingCard";
 import { mapListingForDiscover } from "@/components/discover/mapListing";
 import type { ListingWithCreator } from "@shared/schema";
 import { api } from "@shared/routes";
-import { Loader2, TrendingUp, Clock, MapPin, Flame } from "lucide-react";
+import { Loader2, TrendingUp, Clock, MapPin, Flame, PackageSearch } from "lucide-react";
 
 function mapDiscoverListings(rows: unknown): ReturnType<typeof mapListingForDiscover>[] {
   if (!Array.isArray(rows)) return [];
@@ -129,18 +129,34 @@ export default function Discover() {
       ) : error ? (
         <div className="text-center p-12 bg-destructive/5 rounded-2xl border border-destructive/20 text-destructive">{t("common.error")}</div>
       ) : allListings.length === 0 ? (
-        <div className="text-center py-14 bg-muted/30 rounded-3xl border border-dashed border-border/70 space-y-3 px-6" data-testid="no-results-state">
-          <div className="w-14 h-14 rounded-2xl bg-muted mx-auto flex items-center justify-center text-2xl">🔍</div>
-          <h3 className="text-lg font-bold font-display">{t("home.noListings", "No deals found")}</h3>
-          <p className="text-muted-foreground text-sm max-w-xs mx-auto">
-            {search ? t("home.noListingsSearchHint", "Try different keywords or fewer filters.") : t("home.noListingsHint", "Try adjusting your filters.")}
-          </p>
+        <div className="text-center py-16 bg-muted/30 rounded-3xl border border-dashed border-border/70 space-y-4 px-6" data-testid="no-results-state">
+          <div className="w-16 h-16 rounded-2xl bg-muted mx-auto flex items-center justify-center">
+            <PackageSearch className="w-8 h-8 text-muted-foreground/60" />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-lg font-bold font-display">
+              {isFiltering || search
+                ? t("home.noListings", "No deals found")
+                : t("home.noDealsYet", "No deals yet")}
+            </h3>
+            <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+              {isFiltering || search
+                ? (search ? t("home.noListingsSearchHint", "Try different keywords or fewer filters.") : t("home.noListingsHint", "Try adjusting your filters."))
+                : t("home.noDealsYetHint", "Be the first to start one!")}
+            </p>
+          </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
-            <Button variant="outline" size="sm" className="rounded-full w-full sm:w-auto" onClick={clearAllFilters} data-testid="button-clear-filters">
-              {t("home.clearFilters", "Clear filters")}
-            </Button>
+            {(isFiltering || search) && (
+              <Button variant="outline" size="sm" className="rounded-full w-full sm:w-auto" onClick={clearAllFilters} data-testid="button-clear-filters">
+                {t("home.clearFilters", "Clear filters")}
+              </Button>
+            )}
             <Button size="sm" className="rounded-full w-full sm:w-auto" asChild>
-              <Link href="/create" data-testid="button-create-deal-empty">{t("home.createDeal", "Create a Deal")}</Link>
+              <Link href="/create" data-testid="button-create-deal-empty">
+                {isFiltering || search
+                  ? t("home.createDeal", "Create a Deal")
+                  : t("home.startGroupBuy", "Start a Group Buy")}
+              </Link>
             </Button>
           </div>
         </div>

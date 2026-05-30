@@ -25,6 +25,14 @@ export function DealProofSection({ listingId, isCreator, isParticipant, currentU
   const [uploadingFile, setUploadingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const toBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -34,9 +42,13 @@ export function DealProofSection({ listingId, isCreator, isParticipant, currentU
     }
     setUploadingFile(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", credentials: "include", body: formData });
+      const dataUrl = await toBase64(file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: dataUrl, name: file.name }),
+      });
       if (!res.ok) throw new Error("Upload failed");
       const { url } = await res.json();
       uploadMutation.mutate(url);

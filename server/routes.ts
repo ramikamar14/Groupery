@@ -1,7 +1,12 @@
 import type { Express } from "express";
+import express from "express";
 import type { Server } from "http";
+import { randomUUID } from "crypto";
+import fs from "fs/promises";
+import path from "path";
 // Routes use explicit try/catch; no external async-error package needed
 import { registerAgentReadyRoutes } from "./agentReady";
+import { objectStorageClient } from "./replit_integrations/object_storage/objectStorage";
 import { storage, isFeatureEnabled, seedFeatureFlags } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
@@ -46,6 +51,10 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Serve local uploads directory as static files
+  const uploadsDir = path.join(process.cwd(), "uploads");
+  app.use("/uploads", express.static(uploadsDir));
+
   // Agent-ready routes must be registered first so they take priority over
   // the SPA catch-all that would otherwise swallow well-known paths.
   registerAgentReadyRoutes(app);
@@ -53,7 +62,7 @@ export async function registerRoutes(
   // Setup Replit Auth
   await setupAuth(app);
   registerAuthRoutes(app);
-  
+
   // Setup Object Storage routes
   registerObjectStorageRoutes(app);
 
@@ -86,6 +95,56 @@ export async function registerRoutes(
   app.use("/api/auth", authLimiter);
   app.use("/api/listings/:id/join", joinLimiter);
   app.use("/api/listings/:id/waitlist", joinLimiter);
+
+  // Upload endpoint — accepts base64 data URI, stores to GCS or local disk
+  app.post("/api/upload", requireAuth, async (req, res) => {
+    try {
+      const { data, name } = req.body as { data?: string; name?: string };
+      if (!data || typeof data !== "string") {
+        return res.status(400).json({ message: "Missing data field" });
+      }
+
+      const match = data.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,(.+)$/);
+      if (!match) {
+        return res.status(400).json({ message: "Invalid data URI. Must be image/jpeg, image/png, image/webp, or image/gif in base64 format." });
+      }
+
+      const mimeType = match[1];
+      const base64Data = match[2];
+      const buffer = Buffer.from(base64Data, "base64");
+
+      const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+      if (buffer.length > MAX_SIZE) {
+        return res.status(400).json({ message: "Image exceeds 5MB limit" });
+      }
+
+      const extMap: Record<string, string> = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "image/gif": "gif",
+      };
+      const ext = extMap[mimeType] ?? "bin";
+      const filename = `${randomUUID()}.${ext}`;
+
+      const gcsBucket = process.env.GCS_BUCKET_NAME;
+      if (gcsBucket) {
+        const bucket = objectStorageClient.bucket(gcsBucket);
+        const file = bucket.file(`uploads/${filename}`);
+        await file.save(buffer, { contentType: mimeType, resumable: false });
+        const url = `https://storage.googleapis.com/${gcsBucket}/uploads/${filename}`;
+        return res.json({ url });
+      } else {
+        const localUploadsDir = path.join(process.cwd(), "uploads");
+        await fs.mkdir(localUploadsDir, { recursive: true });
+        await fs.writeFile(path.join(localUploadsDir, filename), buffer);
+        return res.json({ url: `/uploads/${filename}` });
+      }
+    } catch (err: any) {
+      console.error("[/api/upload] error:", err);
+      return res.status(500).json({ message: "Upload failed" });
+    }
+  });
 
   // Listings Routes
   app.get(api.listings.list.path, async (req, res) => {
@@ -1111,6 +1170,7 @@ export async function registerRoutes(
     const ALLOWED_PROFILE_FIELDS = new Set([
       "firstName", "lastName", "bio", "location", "username",
       "profileImageUrl", "notificationPreferences", "preferredLanguage",
+      "city", "country", "language",
       // KYC documents — submitted alongside verificationStatus="pending"
       "idDocumentUrl", "selfieUrl",
     ]);

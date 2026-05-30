@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Loader2, Users, MapPin, CheckCircle2, AlertCircle, Flag, ChevronLeft, ChevronRight, Bookmark, BookmarkCheck, Share2, Star, CheckCircle, Award, Trophy, Shield, ShieldCheck, Tag, Clock, Zap, PartyPopper, Info, Package, Truck, TrendingUp, CreditCard, Copy, CheckCheck, Monitor, Edit2, Eye, PlusCircle, Gift } from "lucide-react";
+import { Loader2, Users, MapPin, CheckCircle2, AlertCircle, Flag, ChevronLeft, ChevronRight, Bookmark, BookmarkCheck, Share2, Star, CheckCircle, Award, Trophy, Shield, ShieldCheck, Tag, Clock, Zap, PartyPopper, Info, Package, Truck, TrendingUp, CreditCard, Copy, CheckCheck, Monitor, Edit2, Eye, PlusCircle, Gift, BadgeCheck, RefreshCcw, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, formatDistanceToNow, differenceInHours, differenceInDays, differenceInMinutes } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -366,8 +366,11 @@ export default function ListingDetails() {
             )}
 
             <div className="p-6 md:p-8">
-              <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">{listing.title}</h1>
-              
+              <h1 className="text-3xl md:text-4xl font-display font-bold mb-3">{listing.title}</h1>
+
+              {/* Share row */}
+              <ShareRow listing={listing} />
+
               {/* Price / savings display (P5) */}
               {(listing as any).pricePerSlot && (
                 <div className="flex flex-wrap items-center gap-3 pb-3" data-testid="price-display">
@@ -628,6 +631,9 @@ export default function ListingDetails() {
                   return null;
                 })()}
               </div>
+
+              {/* Trust badge chips */}
+              <TrustBadgeRow listing={listing} />
 
               {/* Money protection strip */}
               {isActive && (
@@ -1964,6 +1970,66 @@ function SaveButton({ listingId }: { listingId: number }) {
       {isSaved ? <BookmarkCheck className="w-4 h-4 mr-1" /> : <Bookmark className="w-4 h-4 mr-1" />}
       {isSaved ? t("listing.saved") : t("listing.save")}
     </Button>
+  );
+}
+
+function ShareRow({ listing }: { listing: any }) {
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      toast({ title: "Copied!", description: "Link copied to clipboard." });
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      toast({ title: "Error", description: "Could not copy link.", variant: "destructive" });
+    });
+  };
+
+  const handleWhatsApp = () => {
+    const url = `https://wa.me/?text=${encodeURIComponent("Join this group deal: " + window.location.href)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <div className="flex items-center gap-2 mb-4" data-testid="share-row">
+      <span className="text-xs text-muted-foreground font-medium">Share:</span>
+      <Button size="sm" variant="outline" onClick={handleCopyLink} data-testid="button-copy-link" className="h-7 px-2.5 text-xs gap-1">
+        {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+        {copied ? "Copied!" : "Copy Link"}
+      </Button>
+      <Button size="sm" variant="outline" onClick={handleWhatsApp} data-testid="button-whatsapp-share" className="h-7 px-2.5 text-xs gap-1">
+        <Share2 className="w-3.5 h-3.5 text-green-600" />
+        WhatsApp
+      </Button>
+    </div>
+  );
+}
+
+function TrustBadgeRow({ listing }: { listing: any }) {
+  const isEscrowEnabled = !!(listing as any).escrowEnabled;
+  const isOrganizerVerified = listing.creator?.verificationStatus === "verified";
+
+  return (
+    <div className="flex flex-wrap gap-2 mb-4" data-testid="trust-badge-row">
+      {isEscrowEnabled && (
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" data-testid="badge-escrow">
+          <Shield className="w-3 h-3" />
+          Escrow Protected
+        </span>
+      )}
+      {isOrganizerVerified && (
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400" data-testid="badge-organizer-verified">
+          <BadgeCheck className="w-3 h-3" />
+          Organiser Verified
+        </span>
+      )}
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400" data-testid="badge-money-back">
+        <RefreshCcw className="w-3 h-3" />
+        Money-back if cancelled
+      </span>
+    </div>
   );
 }
 

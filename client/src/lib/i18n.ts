@@ -1217,6 +1217,14 @@ const resources = {
         submit: "Submit",
         uploading: "Uploading...",
         menu: "Menu"
+      },
+      hiw: {
+        step1Title: "Browse deals",
+        step1Desc: "Explore hundreds of group deals across electronics, software, food, and more. Find exactly what you need.",
+        step2Title: "Join & commit",
+        step2Desc: "Commit to the deal in one tap. Your spot is reserved and the group fills up together.",
+        step3Title: "Deal fills, you save",
+        step3Desc: "Once enough members join, the deal unlocks and everyone pays the lower group price. No surprises."
       }
     }
   },
@@ -2356,6 +2364,14 @@ const resources = {
         submit: "إرسال",
         uploading: "جارٍ الرفع...",
         menu: "القائمة"
+      },
+      hiw: {
+        step1Title: "تصفح الصفقات",
+        step1Desc: "استكشف مئات صفقات الشراء الجماعي في الإلكترونيات والبرامج والطعام وغيرها.",
+        step2Title: "انضم والتزم",
+        step2Desc: "احجز مكانك بنقرة واحدة وتكامل المجموعة معًا حتى اكتمال الصفقة.",
+        step3Title: "اكتمل الفريق، وفّر المال",
+        step3Desc: "بمجرد انضمام عدد كافٍ من الأعضاء، تُفتح الصفقة ويدفع الجميع السعر الجماعي المخفّض."
       }
     }
   },
@@ -3500,6 +3516,14 @@ const resources = {
         submit: "Soumettre",
         uploading: "Téléchargement...",
         menu: "Menu"
+      },
+      hiw: {
+        step1Title: "Parcourir les offres",
+        step1Desc: "Explorez des centaines d'offres groupées en électronique, logiciels, alimentation et plus encore.",
+        step2Title: "Rejoindre et s'engager",
+        step2Desc: "Réservez votre place en un tap et le groupe se remplit ensemble jusqu'à l'activation.",
+        step3Title: "Objectif atteint, économies réalisées",
+        step3Desc: "Dès que suffisamment de membres rejoignent, l'offre se débloque et tout le monde paie le prix de groupe."
       }
     }
   },

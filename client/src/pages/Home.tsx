@@ -27,6 +27,7 @@ import {
   BadgePercent,
   Star,
   Flame,
+  PackageSearch,
 } from "lucide-react";
 
 function DealOfTheDaySkeleton() {
@@ -423,9 +424,9 @@ export default function Home() {
             </div>
           ) : allListings.length === 0 ? (
             <div className="text-center py-16 bg-secondary/30 rounded-3xl border border-dashed border-border space-y-4" data-testid="no-results-state">
-              <div className="text-5xl mb-2">🔍</div>
-              <h3 className="text-xl font-bold font-display">{t("home.noListings", "No deals found")}</h3>
-              <p className="text-muted-foreground max-w-sm mx-auto">{t("home.noListingsHint", "Try adjusting your search or filters.")}</p>
+              <PackageSearch className="w-14 h-14 mx-auto text-muted-foreground/40" />
+              <h3 className="text-xl font-bold font-display">{search ? t("home.noListings", "No deals found") : "No deals yet — be the first to start one!"}</h3>
+              <p className="text-muted-foreground max-w-sm mx-auto">{search ? t("home.noListingsSearchHint", "Try different keywords or fewer filters.") : t("home.noListingsHint", "Try adjusting your search or filters.")}</p>
               {search && (
                 <div className="text-sm text-muted-foreground space-y-0.5">
                   <p className="font-medium">Try:</p>
@@ -436,7 +437,7 @@ export default function Home() {
                 <Button variant="outline" onClick={clearAllFilters} data-testid="button-clear-filters">
                   Clear all filters
                 </Button>
-                <Link href="/create"><Button data-testid="button-create-deal-empty">Create a Deal</Button></Link>
+                <Link href="/create"><Button data-testid="button-create-deal-empty">Start a Group Buy</Button></Link>
               </div>
             </div>
           ) : (
@@ -470,8 +471,8 @@ export default function Home() {
             </div>
           ) : allListings.length === 0 ? (
             <div className="text-center py-16 bg-secondary/30 rounded-3xl border border-dashed border-border space-y-4" data-testid="no-results-state">
-              <div className="text-5xl mb-2">🔍</div>
-              <h3 className="text-xl font-bold font-display">{t("home.noListings", "No deals found")}</h3>
+              <PackageSearch className="w-14 h-14 mx-auto text-muted-foreground/40" />
+              <h3 className="text-xl font-bold font-display">{t("home.noListings", "No deals yet — be the first to start one!")}</h3>
               <p className="text-muted-foreground max-w-sm mx-auto">{t("home.noListingsHint", "Try adjusting your search or filters.")}</p>
               {search && (
                 <div className="text-sm text-muted-foreground space-y-0.5">
@@ -483,7 +484,7 @@ export default function Home() {
                 <Button variant="outline" onClick={clearAllFilters} data-testid="button-clear-filters">
                   Clear all filters
                 </Button>
-                <Link href="/create"><Button data-testid="button-create-deal-empty">Create a Deal</Button></Link>
+                <Link href="/create"><Button data-testid="button-create-deal-empty">Start a Group Buy</Button></Link>
               </div>
             </div>
           ) : (

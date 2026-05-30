@@ -171,10 +171,18 @@ export default function Profile() {
     },
   });
 
+  const toBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
   const handleProfilePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     if (file.size > 10 * 1024 * 1024) {
       toast({ title: t("common.error"), description: t("upload.imageTooLarge"), variant: "destructive" });
       return;
@@ -182,18 +190,17 @@ export default function Profile() {
 
     setUploadingPicture(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      
+      const dataUrl = await toBase64(file);
       const uploadRes = await fetch("/api/upload", {
         method: "POST",
         credentials: "include",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: dataUrl, name: file.name }),
       });
-      
+
       if (!uploadRes.ok) throw new Error("Upload failed");
       const { url } = await uploadRes.json();
-      
+
       await updateProfileMutation.mutateAsync({ profileImageUrl: url });
       toast({ title: t("profile.pictureUpdated"), description: t("profile.pictureChanged") });
     } catch (error) {
@@ -216,12 +223,12 @@ export default function Profile() {
     if (type === "id") setUploadingId(true);
     else setUploadingSelfie(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const dataUrl = await toBase64(file);
       const res = await fetch("/api/upload", {
         method: "POST",
         credentials: "include",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: dataUrl, name: file.name }),
       });
       if (!res.ok) throw new Error("Upload failed");
       const { url } = await res.json();

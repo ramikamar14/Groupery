@@ -184,16 +184,23 @@ export function ListingCard({ listing }: ListingCardProps) {
             </div>
             <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
               <div
-                className={cn("h-full transition-all duration-500 ease-out rounded-full", getProgressColor(percentFilled))}
+                className={cn("h-full transition-all duration-700 ease-out rounded-full", getProgressColor(percentFilled))}
                 style={{ width: `${percentFilled}%` }}
               />
             </div>
-            {showSpotsLeft && (
-              <p className="text-[11px] font-semibold text-destructive mt-1 flex items-center gap-1" data-testid={`spots-left-${listing.id}`}>
-                <Zap className="w-3 h-3" />
-                {t("listing.onlySpotsLeft", { count: slotsLeft })}
-              </p>
-            )}
+            <div className="flex items-center justify-between mt-1 min-h-[16px]">
+              {showSpotsLeft && (
+                <p className="text-[11px] font-semibold text-destructive flex items-center gap-1" data-testid={`spots-left-${listing.id}`}>
+                  <Zap className="w-3 h-3" />
+                  {t("listing.onlySpotsLeft", { count: slotsLeft })}
+                </p>
+              )}
+              {slotsLeft <= 3 && slotsLeft > 0 && listing.status === "active" && (
+                <span className="ml-auto text-[10px] font-bold bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-1.5 py-0.5 rounded-full" data-testid={`badge-only-left-${listing.id}`}>
+                  Only {slotsLeft} left!
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Price display (P5) */}
