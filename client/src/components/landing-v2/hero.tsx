@@ -270,10 +270,29 @@ export function Hero({ activeListings, totalMembers }: HeroProps) {
             </div>
           </motion.div>
 
+          {/* Desktop: Live deal card */}
           <div className="hidden lg:flex justify-center items-center [perspective:1000px]">
             <LiveDealCard />
           </div>
         </div>
+
+        {/* Mobile-only stat strip — shown instead of the card */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.75 }}
+          className="lg:hidden flex items-center justify-center gap-3 mt-2"
+        >
+          <div className="flex items-center gap-2 bg-card/80 backdrop-blur border border-border/50 rounded-2xl px-4 py-2.5 shadow-sm">
+            <span className="text-lg font-bold font-display text-primary">500+</span>
+            <span className="text-sm text-muted-foreground">active deals</span>
+          </div>
+          <div className="text-muted-foreground/40 text-lg font-light">·</div>
+          <div className="flex items-center gap-2 bg-card/80 backdrop-blur border border-border/50 rounded-2xl px-4 py-2.5 shadow-sm">
+            <span className="text-lg font-bold font-display text-emerald-500">40%</span>
+            <span className="text-sm text-muted-foreground">avg saving</span>
+          </div>
+        </motion.div>
       </div>
 
       <motion.div
