@@ -283,26 +283,26 @@ function DiscoverySection({ title, icon, queryKey, endpoint }: { title: string, 
   return (
     <div className="mb-8" data-testid={`section-${queryKey}`}>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-display font-bold flex items-center gap-2">
+        <h2 className="text-lg font-display font-bold flex items-center gap-2 tracking-tight">
           {icon}
           {title}
         </h2>
-        <div className="hidden md:flex items-center gap-1">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => scroll("left")}
-            className="p-1.5 rounded-full border border-border hover:bg-secondary transition-colors"
+            className="w-8 h-8 rounded-full border border-border/70 bg-card hover:bg-secondary hover:border-border flex items-center justify-center transition-all"
             aria-label="Scroll left"
             data-testid={`button-scroll-left-${queryKey}`}
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => scroll("right")}
-            className="p-1.5 rounded-full border border-border hover:bg-secondary transition-colors"
+            className="w-8 h-8 rounded-full border border-border/70 bg-card hover:bg-secondary hover:border-border flex items-center justify-center transition-all"
             aria-label="Scroll right"
             data-testid={`button-scroll-right-${queryKey}`}
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -346,33 +346,39 @@ export default function Home() {
 
       {/* Hero section — only shown when not filtering */}
       {!isFiltering && !user && (
-        <div className="mb-8 rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 border border-primary/15 p-8 text-center overflow-hidden relative" data-testid="hero-banner">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <Users className="w-5 h-5 text-primary" />
-              <span className="text-sm font-semibold text-primary">{t("home.heroPlatform")}</span>
+        <div className="mb-8 rounded-3xl overflow-hidden relative" data-testid="hero-banner">
+          {/* Background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-accent/80" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_20%_50%,hsl(var(--accent)/0.3),transparent)]" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 p-8 md:p-10 text-center">
+            <div className="inline-flex items-center gap-2 mb-4 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+              <Users className="w-3.5 h-3.5 text-white/80" />
+              <span className="text-xs font-semibold text-white/90 tracking-wide">{t("home.heroPlatform")}</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-display font-extrabold mb-3">{t("home.heroTitle")}</h2>
-            <p className="text-muted-foreground text-lg mb-6 max-w-md mx-auto">
+            <h2 className="text-3xl md:text-4xl font-display font-bold mb-3 text-white tracking-tight">{t("home.heroTitle")}</h2>
+            <p className="text-white/75 text-base md:text-lg mb-6 max-w-md mx-auto leading-relaxed">
               {t("home.heroDesc")}
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground mb-6">
+            <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-white/70 mb-7">
               <div className="flex items-center gap-1.5">
-                <Package className="w-4 h-4 text-primary" />
+                <Package className="w-3.5 h-3.5 text-white/60" />
                 <span>{t("home.heroFeature1")}</span>
               </div>
+              <span className="text-white/30">·</span>
               <div className="flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-primary" />
+                <Users className="w-3.5 h-3.5 text-white/60" />
                 <span>{t("home.heroFeature2")}</span>
               </div>
+              <span className="text-white/30">·</span>
               <div className="flex items-center gap-1.5">
-                <BadgePercent className="w-4 h-4 text-primary" />
+                <BadgePercent className="w-3.5 h-3.5 text-white/60" />
                 <span>{t("home.heroFeature3")}</span>
               </div>
             </div>
             <Link href="/api/login">
-              <Button size="lg" className="px-8 shadow-lg shadow-primary/25" data-testid="button-hero-cta">
+              <Button size="lg" className="px-8 bg-white text-primary hover:bg-white/90 font-semibold shadow-xl shadow-black/20 rounded-full" data-testid="button-hero-cta">
                 {t("home.heroCta")}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
@@ -461,8 +467,11 @@ export default function Home() {
 
       {!isFiltering && (
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-display font-bold">{t("home.allListings", "All Listings")}</h2>
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-xl font-display font-bold tracking-tight">{t("home.allListings", "All Listings")}</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">{t("home.allListingsSubtitle", "Browse every open group deal")}</p>
+            </div>
           </div>
           {isLoading && page === 1 ? (
             <div className="flex justify-center items-center h-64">
