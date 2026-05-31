@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Users, MapPin, Clock, Share2, Star, Flame, Timer, Bookmark, BookmarkCheck, CheckCircle, Tag, Sparkles, TrendingUp, Zap, ShieldCheck, ShieldAlert, ShieldQuestion } from "lucide-react";
+import { Users, MapPin, Clock, Share2, Star, Flame, Timer, Bookmark, BookmarkCheck, CheckCircle, Sparkles, TrendingUp, Zap, ShieldCheck, ShieldAlert, ShieldQuestion } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
@@ -58,6 +58,9 @@ export function ListingCard({ listing }: ListingCardProps) {
   const slotsLeft = listing.totalSlots - listing.filledSlots;
   const showSpotsLeft = slotsLeft <= Math.max(3, Math.round(listing.totalSlots * 0.15)) && slotsLeft > 0 && listing.status === "active";
   const countdown = getCountdownLabel(listing.expiresAt, t);
+  const savingsPct = (listing as any).pricePerSlot && (listing as any).marketPrice
+    ? Math.round((1 - (listing as any).pricePerSlot / (listing as any).marketPrice) * 100)
+    : null;
 
   const { data: savedListings } = useQuery<number[]>({
     queryKey: ["/api/user/saved-listings"],
@@ -100,126 +103,137 @@ export function ListingCard({ listing }: ListingCardProps) {
     } catch {}
   };
 
-  let statusBadge = null;
-  if (isCompleted) {
-    statusBadge = <span className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md z-10 flex items-center gap-1" data-testid={`badge-completed-${listing.id}`}><CheckCircle className="w-3 h-3" />{t("listing.complete")}</span>;
-  } else if (isExpired || listing.status === "expired") {
-    statusBadge = <span className="absolute top-3 right-3 bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md z-10" data-testid={`badge-expired-${listing.id}`}>{t("listing.expired")}</span>;
-  } else if (listing.status === "cancelled") {
-    statusBadge = <span className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md z-10" data-testid={`badge-cancelled-${listing.id}`}>{t("listing.cancelled")}</span>;
-  }
-
   return (
-    <Link href={`/listings/${listing.id}`} className="block group">
-      <div className="bg-card rounded-2xl overflow-hidden shadow-sm border border-border/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 h-full flex flex-col relative">
-        {statusBadge}
+    <Link href={`/listings/${listing.id}`} className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-2xl">
+      <div className="bg-card rounded-2xl overflow-hidden border border-border/60 hover:border-border hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col relative">
 
-        <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+        {/* ── Image area ── */}
+        <div className="aspect-video bg-muted relative overflow-hidden">
           <img
-            src={listing.imageUrl || "https://placehold.co/600x400?text=Grouperry"}
+            src={listing.imageUrl || "https://placehold.co/600x338?text=Grouperry"}
             alt={listing.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+          {/* Scrim for readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
 
-          <div className="absolute bottom-3 left-3 text-white">
-            <div className="flex items-center space-x-1 text-xs font-medium bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full w-fit mb-1">
-              <span className="capitalize">{listing.category}</span>
-            </div>
+          {/* Top-left: status badge */}
+          {isCompleted ? (
+            <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm z-10" data-testid={`badge-completed-${listing.id}`}>
+              <CheckCircle className="w-3 h-3" /> {t("listing.complete")}
+            </span>
+          ) : listing.status === "expired" || isExpired ? (
+            <span className="absolute top-3 left-3 bg-neutral-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm z-10" data-testid={`badge-expired-${listing.id}`}>{t("listing.expired")}</span>
+          ) : listing.status === "cancelled" ? (
+            <span className="absolute top-3 left-3 bg-red-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm z-10" data-testid={`badge-cancelled-${listing.id}`}>{t("listing.cancelled")}</span>
+          ) : (listing as any).isFeatured ? (
+            <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-amber-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm z-10" data-testid={`badge-featured-${listing.id}`}>
+              <Sparkles className="w-3 h-3" /> {t("listing.featured")}
+            </span>
+          ) : (listing as any).isTrending ? (
+            <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-orange-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm z-10" data-testid={`badge-trending-${listing.id}`}>
+              <TrendingUp className="w-3 h-3" /> {t("listing.trending")}
+            </span>
+          ) : isAlmostFull ? (
+            <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-red-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm animate-pulse z-10" data-testid={`badge-almost-full-${listing.id}`}>
+              <Flame className="w-3 h-3" /> {t("listing.almostFull")}
+            </span>
+          ) : isExpiringSoon ? (
+            <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-amber-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm z-10" data-testid={`badge-expiring-soon-${listing.id}`}>
+              <Timer className="w-3 h-3" /> {t("listing.endingSoon")}
+            </span>
+          ) : null}
+
+          {/* Top-right: save + share */}
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1 z-10">
+            {user && (
+              <button
+                onClick={handleSaveClick}
+                className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 flex items-center justify-center transition-colors"
+                data-testid={`button-save-${listing.id}`}
+              >
+                {isSaved
+                  ? <BookmarkCheck className="w-4 h-4 text-white" />
+                  : <Bookmark className="w-4 h-4 text-white" />}
+              </button>
+            )}
+            <button
+              onClick={handleShareClick}
+              className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 flex items-center justify-center transition-colors"
+              data-testid={`button-share-${listing.id}`}
+            >
+              <Share2 className="w-4 h-4 text-white" />
+            </button>
           </div>
 
-          {(listing as any).isFeatured && (
-            <div className="absolute top-3 left-3 z-10" data-testid={`badge-featured-${listing.id}`}>
-              <Badge className="text-xs font-semibold bg-amber-500/90 hover:bg-amber-500/90 text-white border-0 shadow-md gap-1">
-                <Sparkles className="w-3 h-3" />
-                {t("listing.featured")}
-              </Badge>
-            </div>
-          )}
+          {/* Bottom-left: category pill */}
+          <div className="absolute bottom-3 left-3 z-10">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-white/80 bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded-full">
+              {listing.category}
+            </span>
+          </div>
 
-          {(listing as any).isTrending && !(listing as any).isFeatured && (
-            <div className="absolute top-3 left-3 z-10" data-testid={`badge-trending-${listing.id}`}>
-              <Badge className="text-xs font-semibold bg-orange-500/90 hover:bg-orange-500/90 text-white border-0 shadow-md gap-1">
-                <TrendingUp className="w-3 h-3" />
-                {t("listing.trending")}
-              </Badge>
-            </div>
-          )}
-
-          {isAlmostFull && !(listing as any).isFeatured && !(listing as any).isTrending && (
-            <div className="absolute top-3 left-3 z-10" data-testid={`badge-almost-full-${listing.id}`}>
-              <Badge variant="destructive" className="text-xs font-bold animate-pulse">
-                <Flame className="w-3 h-3 mr-1" />
-                {t("listing.almostFull")}
-              </Badge>
-            </div>
-          )}
-
-          {isExpiringSoon && !isAlmostFull && !(listing as any).isFeatured && !(listing as any).isTrending && (
-            <div className="absolute top-3 left-3 z-10" data-testid={`badge-expiring-soon-${listing.id}`}>
-              <Badge variant="secondary" className="text-xs font-bold bg-amber-500 text-white border-amber-600">
-                <Timer className="w-3 h-3 mr-1" />
-                {t("listing.endingSoon")}
-              </Badge>
+          {/* Bottom-right: savings badge */}
+          {savingsPct && savingsPct > 0 && (
+            <div className="absolute bottom-3 right-3 z-10" data-testid={`price-savings-${listing.id}`}>
+              <span className="text-[11px] font-bold text-white bg-emerald-600 px-2 py-0.5 rounded-full shadow-sm">
+                Save {savingsPct}%
+              </span>
             </div>
           )}
         </div>
 
-        <div className="p-4 flex-1 flex flex-col">
-          <h3 className="font-display font-bold text-lg leading-tight mb-1.5 line-clamp-2 group-hover:text-primary transition-colors">
+        {/* ── Content area ── */}
+        <div className="p-4 flex-1 flex flex-col gap-3">
+
+          {/* Title */}
+          <h3 className="font-semibold text-[15px] leading-snug line-clamp-2 group-hover:text-primary transition-colors">
             {listing.title}
           </h3>
 
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-3 flex-1 leading-relaxed">
-            {listing.description}
-          </p>
-
-          {/* Progress bar with urgency */}
-          <div className="mb-3">
-            <div className="flex justify-between items-center text-xs font-medium mb-1.5">
-              <span className={cn(isAlmostFull ? "text-destructive font-bold" : "text-foreground/80")}>
-                {listing.filledSlots} {t("listing.joinedLabel")}
+          {/* Price row */}
+          {(listing as any).pricePerSlot && (
+            <div className="flex items-center gap-2" data-testid={`price-${listing.id}`}>
+              <span className="text-xl font-bold text-primary font-display">
+                ${((listing as any).pricePerSlot / 100).toFixed(0)}
               </span>
-              <span className="text-muted-foreground">{t("listing.of")} {listing.totalSlots}</span>
+              <span className="text-sm text-muted-foreground">/ person</span>
+              {(listing as any).marketPrice && (
+                <span className="text-xs text-muted-foreground line-through ml-auto">
+                  ${((listing as any).marketPrice / 100).toFixed(0)} retail
+                </span>
+              )}
             </div>
-            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+          )}
+
+          {/* Progress */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-medium text-foreground/80">
+                <span className={cn("font-bold", isAlmostFull ? "text-destructive" : "text-foreground")}>{listing.filledSlots}</span>
+                <span className="text-muted-foreground"> / {listing.totalSlots} joined</span>
+              </span>
+              <span className={cn("font-semibold tabular-nums", percentFilled >= 75 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground")}>
+                {percentFilled}%
+              </span>
+            </div>
+            <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
               <div
                 className={cn("h-full transition-all duration-700 ease-out rounded-full", getProgressColor(percentFilled))}
                 style={{ width: `${percentFilled}%` }}
               />
             </div>
-            <div className="flex items-center justify-between mt-1 min-h-[16px]">
-              {showSpotsLeft && (
-                <p className="text-[11px] font-semibold text-destructive flex items-center gap-1" data-testid={`spots-left-${listing.id}`}>
-                  <Zap className="w-3 h-3" />
-                  {t("listing.onlySpotsLeft", { count: slotsLeft })}
-                </p>
-              )}
-              {slotsLeft <= 3 && slotsLeft > 0 && listing.status === "active" && (
-                <span className="ml-auto text-[10px] font-bold bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-1.5 py-0.5 rounded-full" data-testid={`badge-only-left-${listing.id}`}>
-                  Only {slotsLeft} left!
-                </span>
-              )}
-            </div>
+            {showSpotsLeft && (
+              <p className="text-[11px] font-semibold text-destructive flex items-center gap-1" data-testid={`spots-left-${listing.id}`}>
+                <Zap className="w-3 h-3" />
+                {slotsLeft <= 3 ? `Only ${slotsLeft} spot${slotsLeft !== 1 ? "s" : ""} left!` : t("listing.onlySpotsLeft", { count: slotsLeft })}
+              </p>
+            )}
           </div>
 
-          {/* Price display (P5) */}
-          {(listing as any).pricePerSlot && (
-            <div className="flex items-center gap-2 mb-3" data-testid={`price-${listing.id}`}>
-              <span className="text-sm font-bold text-primary">${((listing as any).pricePerSlot / 100).toFixed(2)}/slot</span>
-              {(listing as any).marketPrice && (
-                <>
-                  <span className="text-xs text-muted-foreground line-through">${((listing as any).marketPrice / 100).toFixed(2)}</span>
-                  <Badge variant="secondary" className="text-[10px] text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5">
-                    Save {Math.round((1 - (listing as any).pricePerSlot / (listing as any).marketPrice) * 100)}%
-                  </Badge>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Compact creator + tags row */}
-          <div className="flex flex-wrap items-center gap-1.5 mb-3 min-h-[20px]">
+          {/* Creator + trust row */}
+          <div className="flex items-center gap-1.5 flex-wrap min-h-[20px]">
             {(listing as any).creator && (
               <RankBadge rank={computeRank((listing as any).creator)} size="sm" />
             )}
@@ -238,7 +252,6 @@ export function ListingCard({ listing }: ListingCardProps) {
               <span className="flex items-center gap-0.5 text-xs text-muted-foreground" data-testid={`rating-creator-${listing.id}`}>
                 <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                 {((listing as any).creator.rating as number).toFixed(1)}
-                <span className="text-muted-foreground/60">({(listing as any).creator.ratingCount})</span>
               </span>
             )}
             {listing.status === "active" && (
@@ -264,52 +277,22 @@ export function ListingCard({ listing }: ListingCardProps) {
                 </TooltipContent>
               </Tooltip>
             )}
-            {(listing as any).tags && (listing as any).tags.length > 0 && (
-              <>
-                {(listing as any).tags.slice(0, 2).map((tag: any) => (
-                  <Badge key={tag.id || tag.tag} variant="secondary" className="text-[10px] px-1.5 py-0" data-testid={`card-tag-${tag.tag}-${listing.id}`}>
-                    {tag.tag}
-                  </Badge>
-                ))}
-                {(listing as any).tags.length > 2 && (
-                  <span className="text-[10px] text-muted-foreground">+{(listing as any).tags.length - 2}</span>
-                )}
-              </>
-            )}
           </div>
 
-          {/* Footer: location + countdown + actions */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-3 border-t border-border/50">
-            {listing.location && (
+          {/* Footer: location + countdown */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border/40 mt-auto">
+            {listing.location ? (
               <div className="flex items-center min-w-0 flex-1">
-                <MapPin className="w-3.5 h-3.5 mr-1 flex-shrink-0" />
+                <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
                 <span className="truncate">{listing.location}</span>
               </div>
-            )}
-            <div className="flex items-center gap-1 ml-auto shrink-0">
-              <div className={cn(
-                "flex items-center gap-1 mr-1",
-                countdown.urgent ? "text-amber-600 dark:text-amber-400 font-semibold" : ""
-              )}>
-                <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="whitespace-nowrap">{isExpired ? t("listing.expired") : countdown.label}</span>
-              </div>
-              {user && (
-                <button
-                  onClick={handleSaveClick}
-                  className="p-2 rounded-full hover:bg-muted transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
-                  data-testid={`button-save-${listing.id}`}
-                >
-                  {isSaved ? <BookmarkCheck className="w-4 h-4 text-primary" /> : <Bookmark className="w-4 h-4" />}
-                </button>
-              )}
-              <button
-                onClick={handleShareClick}
-                className="p-2 rounded-full hover:bg-muted transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
-                data-testid={`button-share-${listing.id}`}
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
+            ) : <div className="flex-1" />}
+            <div className={cn(
+              "flex items-center gap-1 shrink-0",
+              countdown.urgent ? "text-amber-600 dark:text-amber-400 font-semibold" : ""
+            )}>
+              <Clock className="w-3 h-3 flex-shrink-0" />
+              <span className="whitespace-nowrap">{isExpired ? t("listing.expired") : countdown.label}</span>
             </div>
           </div>
         </div>
