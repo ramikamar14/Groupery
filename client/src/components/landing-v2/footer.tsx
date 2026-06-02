@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { Heart } from "lucide-react";
 import { Link } from "wouter";
 import { Logo } from "./logo";
-import { NewsletterSection } from "./newsletter-section";
 
 /** SVG icon components for social platforms */
 function TwitterXIcon({ className }: { className?: string }) {
@@ -76,8 +75,6 @@ export function Footer() {
 
   return (
     <footer className="relative overflow-hidden">
-      <NewsletterSection />
-
       <div className="bg-card border-t py-16">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-12">

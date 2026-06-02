@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -130,12 +129,10 @@ function LiveDealCard() {
           ) : null}
         </div>
 
-        <Button style={{ width: "100%", height: 48, borderRadius: 14, fontSize: 15, fontWeight: 700, background: "linear-gradient(120deg, #7c3aed, #5b21b6)", color: "#fff", border: "none", boxShadow: "0 8px 24px -8px rgba(109,40,217,0.65)" }} asChild>
-          <Link href={ctaHref} className="inline-flex items-center justify-center gap-0">
-            {ctaLabel}
-            <ArrowRight className="ml-2 size-4 shrink-0" />
-          </Link>
-        </Button>
+        <Link href={ctaHref} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", height: 48, borderRadius: 14, fontSize: 15, fontWeight: 700, background: "linear-gradient(120deg, #7c3aed, #5b21b6)", color: "#fff", textDecoration: "none", boxShadow: "0 8px 24px -8px rgba(109,40,217,0.65)" }}>
+          {ctaLabel}
+          <ArrowRight style={{ width: 16, height: 16, flexShrink: 0 }} />
+        </Link>
       </div>
     </motion.div>
   );
@@ -197,28 +194,24 @@ export function Hero({ activeListings, totalMembers }: HeroProps) {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10">
-              <Button
-                size="lg"
-                className="rounded-full h-14 px-8 text-base font-semibold transition-all hover:-translate-y-0.5"
-                style={{ background: "#fff", color: "#6d28d9", boxShadow: "0 8px 30px -8px rgba(0,0,0,0.35)" }}
-                asChild
+              <a
+                href="/api/login"
                 data-testid="button-get-started"
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#fff", color: "#6d28d9", fontWeight: 700, fontSize: 16, padding: "0 32px", height: 56, borderRadius: 999, textDecoration: "none", boxShadow: "0 8px 30px -8px rgba(0,0,0,0.35)", transition: "transform 0.15s, box-shadow 0.15s" }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 36px -8px rgba(0,0,0,0.4)"; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.transform = ""; (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 30px -8px rgba(0,0,0,0.35)"; }}
               >
-                <a href="/api/login" className="inline-flex items-center justify-center">
-                  {t("landing.getStarted")}
-                  <ArrowRight className="ml-2 size-5 shrink-0" />
-                </a>
-              </Button>
-              <Button
-                size="lg"
-                className="rounded-full h-14 px-8 text-base font-semibold transition-all hover:-translate-y-0.5"
-                style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.25)" }}
-                asChild
+                {t("landing.getStarted")}
+                <ArrowRight style={{ width: 20, height: 20, flexShrink: 0 }} />
+              </a>
+              <a
+                href="#how-it-works"
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.14)", color: "#fff", fontWeight: 600, fontSize: 16, padding: "0 28px", height: 56, borderRadius: 999, textDecoration: "none", border: "1.5px solid rgba(255,255,255,0.3)", transition: "background 0.15s" }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.22)"; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.14)"; }}
               >
-                <a href="#how-it-works" className="inline-flex items-center justify-center">
-                  {t("v2.seeHowItWorks")}
-                </a>
-              </Button>
+                {t("v2.seeHowItWorks")}
+              </a>
             </div>
 
             {/* Stats */}
