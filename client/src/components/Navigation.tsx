@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, LayoutDashboard, PlusSquare, Users, User, LogOut, Bell, Bookmark, ShieldAlert, Clock, CheckCircle, ChevronRight } from "lucide-react";
+import { Home, LayoutDashboard, PlusSquare, Users, User, LogOut, Bell, Bookmark, ShieldAlert, Clock, CheckCircle, ChevronRight, Tag } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -112,6 +112,7 @@ export function Sidebar() {
     { href: "/my-groups", icon: Users, label: t("nav.myGroups") },
     { href: "/create", icon: PlusSquare, label: t("nav.create") },
     { href: "/saved", icon: Bookmark, label: t("nav.saved") },
+    { href: "/vouchers", icon: Tag, label: "Vouchers" },
     { href: "/notifications", icon: Bell, label: t("nav.notifications"), badge: unreadCount > 0 ? unreadCount : undefined },
     { href: "/expired", icon: Clock, label: t("nav.pastListings") },
     { href: "/profile", icon: User, label: t("nav.profile") },

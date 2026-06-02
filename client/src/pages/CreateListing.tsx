@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MapPin, Upload, X, Plus, Tag, Sparkles, DollarSign, FileText, Globe, Image as ImageIcon, Truck, Monitor, CheckCheck, Zap, ShoppingCart, Dumbbell, BookOpen, Cpu, ShieldAlert, TrendingDown } from "lucide-react";
+import { Loader2, MapPin, Upload, X, Plus, Tag, Sparkles, DollarSign, FileText, Globe, Image as ImageIcon, Truck, Monitor, CheckCheck, Zap, ShoppingCart, Dumbbell, BookOpen, Cpu, ShieldAlert, TrendingDown, Gift } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
@@ -188,6 +188,8 @@ export default function CreateListing() {
   const [draftSaved, setDraftSaved] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [offerType, setOfferType] = useState<"standard" | "voucher" | "percent_off" | "bogo" | "gift">("standard");
+  const [voucherDiscountPct, setVoucherDiscountPct] = useState("");
   const draftKey = "grouperry-create-listing-draft";
 
   const applyTemplate = (tpl: typeof DEAL_TEMPLATES[number]) => {
@@ -440,7 +442,8 @@ export default function CreateListing() {
     const additionalImages = uploadedImages.slice(1).map(img => img.url);
     const pricePerSlot = pricePerSlotDollars ? Math.round(parseFloat(pricePerSlotDollars) * 100) : null;
     const marketPrice = marketPriceDollars ? Math.round(parseFloat(marketPriceDollars) * 100) : null;
-    createListing.mutate({ ...data, additionalImages, tags, pricePerSlot, marketPrice, distributionType, distributionDetails } as any, {
+    const discountPct = voucherDiscountPct ? parseInt(voucherDiscountPct, 10) : null;
+    createListing.mutate({ ...data, additionalImages, tags, pricePerSlot, marketPrice, distributionType, distributionDetails, offerType: offerType !== "standard" ? offerType : undefined, voucherDiscountPct: discountPct } as any, {
       onSuccess: (listing: { id?: number }) => {
         try { localStorage.removeItem(draftKey); } catch {}
         track("listing_created", { listingId: listing?.id ?? 0 });
@@ -1039,9 +1042,80 @@ export default function CreateListing() {
                 />
               </div>
 
+              {/* ── Offer & Reward Type ────────────────────────────── */}
+              <div className="pt-2 pb-2">
+                <div style={{ borderTop:"1px solid #ede9fe", paddingTop:24, marginBottom:20 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
+                    <div style={{ width:32, height:32, borderRadius:10, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <Gift style={{ width:16, height:16, color:"#fff" }} />
+                    </div>
+                    <div>
+                      <p style={{ fontSize:14, fontWeight:700, color:"#191320", margin:0 }}>Offer & Reward Type</p>
+                      <p style={{ fontSize:12, color:"#9b95a6", margin:0 }}>Choose how participants are rewarded when the group unlocks</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-4" data-testid="offer-type-selector">
+                    {([
+                      { id:"standard", emoji:"🤝", label:"Standard", desc:"Commit & pay" },
+                      { id:"voucher", emoji:"🎟️", label:"Voucher", desc:"Get a code" },
+                      { id:"percent_off", emoji:"%", label:"% Off", desc:"Discount pct" },
+                      { id:"bogo", emoji:"2️⃣", label:"BOGO", desc:"Buy 1 get 1" },
+                      { id:"gift", emoji:"🎁", label:"Gift Card", desc:"Gift code" },
+                    ] as const).map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setOfferType(opt.id)}
+                        data-testid={`offer-type-${opt.id}`}
+                        style={{
+                          padding:"12px 8px", borderRadius:14, textAlign:"center",
+                          border: offerType === opt.id ? "2px solid #6d28d9" : "1.5px solid #e5e7eb",
+                          background: offerType === opt.id ? "#f5f3ff" : "#fff",
+                          cursor:"pointer", transition:"all 0.15s",
+                        }}
+                      >
+                        <div style={{ fontSize:20, marginBottom:4 }}>{opt.emoji}</div>
+                        <div style={{ fontSize:12, fontWeight:700, color: offerType === opt.id ? "#6d28d9" : "#191320" }}>{opt.label}</div>
+                        <div style={{ fontSize:10, color:"#9b95a6", marginTop:2 }}>{opt.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {(offerType === "percent_off") && (
+                    <div style={{ marginTop:16 }}>
+                      <label style={{ fontSize:13, fontWeight:600, color:"#4b5563", display:"block", marginBottom:6 }}>
+                        Discount percentage (%)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={voucherDiscountPct}
+                        onChange={(e) => setVoucherDiscountPct(e.target.value)}
+                        placeholder="e.g. 20"
+                        data-testid="input-voucher-discount-pct"
+                        style={{ width:"100%", maxWidth:180, padding:"8px 12px", borderRadius:10, border:"1px solid #e5e7eb", fontSize:14, background:"#f9fafb" }}
+                      />
+                    </div>
+                  )}
+
+                  {offerType !== "standard" && (
+                    <div style={{ marginTop:12, padding:"10px 14px", background:"#f5f3ff", borderRadius:12, fontSize:12, color:"#7c3aed", display:"flex", alignItems:"flex-start", gap:8 }}>
+                      <span style={{ flexShrink:0 }}>✨</span>
+                      <span>
+                        {offerType === "voucher" && "Participants will receive a unique GRPY-XXXX voucher code when the group completes."}
+                        {offerType === "percent_off" && `Participants will receive a ${voucherDiscountPct || "X"}% off discount code when the group unlocks.`}
+                        {offerType === "bogo" && "Participants buy 1 and receive a free companion voucher when the group reaches its target."}
+                        {offerType === "gift" && "Participants receive a gift card / digital code after the group completes."}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="pt-4">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   size="lg"
                   disabled={createListing.isPending || !!needsVerification}
                   className="w-full font-semibold shadow-lg shadow-primary/25"
