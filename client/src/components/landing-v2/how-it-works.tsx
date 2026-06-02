@@ -89,7 +89,7 @@ export function HowItWorks() {
                 data-testid={`card-step-${i}`}
               >
                 <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                  {/* Number badge */}
+                  {/* Number badge — violet-50 square with violet-700 text */}
                   <div
                     style={{
                       flex: "none",

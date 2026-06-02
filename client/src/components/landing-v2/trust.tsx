@@ -87,14 +87,14 @@ export function Trust() {
           </h2>
         </motion.div>
 
-        {/* Trust card — 3 items side by side */}
+        {/* Trust card — full-width white card, 3 items side by side */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           style={{
             background: "#fff",
-            border: "1px solid #ede9fe",
+            border: "1px solid #e5e7eb",
             borderRadius: 20,
             padding: "28px 32px",
             boxShadow: "0 4px 24px -8px rgba(109,40,217,0.12)",
@@ -148,9 +148,9 @@ export function Trust() {
 
         {/* Testimonials grid */}
         <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
-          {TESTIMONIALS.map((t2, i) => (
+          {TESTIMONIALS.map((testimonial, i) => (
             <motion.div
-              key={t2.author}
+              key={testimonial.author}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -172,7 +172,7 @@ export function Trust() {
                   marginBottom: 18,
                 }}
               >
-                &ldquo;{t2.quote}&rdquo;
+                &ldquo;{testimonial.quote}&rdquo;
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div
@@ -189,11 +189,11 @@ export function Trust() {
                     flex: "none",
                   }}
                 >
-                  {t2.initials}
+                  {testimonial.initials}
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#191320" }}>{t2.author}</div>
-                  <div style={{ fontSize: 11.5, color: "#9b95a6" }}>{t2.role}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#191320" }}>{testimonial.author}</div>
+                  <div style={{ fontSize: 11.5, color: "#9b95a6" }}>{testimonial.role}</div>
                 </div>
                 <div style={{ marginLeft: "auto", display: "flex", gap: 1 }}>
                   {[1, 2, 3, 4, 5].map((star) => (

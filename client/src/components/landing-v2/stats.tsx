@@ -52,11 +52,7 @@ function SlotMeter({ filled, total }: { filled: number; total: number }) {
   );
 }
 
-function DealCard({
-  deal,
-}: {
-  deal: (typeof SAMPLE_DEALS)[number];
-}) {
+function DealCard({ deal }: { deal: (typeof SAMPLE_DEALS)[number] }) {
   const letterColor = LETTER_COLORS[deal.cat] ?? "#6d28d9";
   const toUnlock = Math.max(0, deal.total - deal.filled);
 
@@ -230,13 +226,7 @@ export function Stats(_props: LandingV2StatsProps) {
           viewport={{ once: true }}
           style={{ marginBottom: 28 }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "baseline",
-            }}
-          >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <div>
               <p
                 style={{
@@ -248,7 +238,7 @@ export function Stats(_props: LandingV2StatsProps) {
                   marginBottom: 6,
                 }}
               >
-                Filling Now
+                FILLING NOW
               </p>
               <h2
                 style={{

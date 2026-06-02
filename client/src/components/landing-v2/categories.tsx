@@ -55,7 +55,7 @@ export function Categories() {
           </h2>
         </motion.div>
 
-        {/* Chips row — horizontal scroll on mobile */}
+        {/* Chips row — horizontal scroll on mobile, wrapping on desktop */}
         <div
           style={{
             display: "flex",
