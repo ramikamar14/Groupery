@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
-import { Monitor, Package, Ticket, Zap, CheckCircle } from "lucide-react";
+import { Monitor, Package, Ticket, Zap, CheckCircle, Clock } from "lucide-react";
+import { differenceInHours } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,6 +24,10 @@ export function DiscoverListingCard({ listing, compact = false, joinLabel }: Pro
       ? Math.round((1 - listing.groupPrice / listing.originalPrice) * 100)
       : 0;
   const isFillingFast = pct >= 80;
+  const slotsLeft = listing.spotsTotal - listing.spotsFilled;
+  const isAlmostFull = slotsLeft > 0 && slotsLeft <= 3;
+  const hoursLeft = differenceInHours(listing.endsAt, new Date());
+  const isEndingSoon = hoursLeft > 0 && hoursLeft <= 24;
 
   const categoryIcon = {
     physical: <Package className="w-3.5 h-3.5" />,
@@ -85,6 +90,23 @@ export function DiscoverListingCard({ listing, compact = false, joinLabel }: Pro
             <span className="text-primary font-medium">{pct}%</span>
           </div>
           <Progress value={pct} className="h-1.5 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-accent" />
+          {/* Urgency signals */}
+          {(isAlmostFull || isEndingSoon) && (
+            <div className="flex items-center gap-2 flex-wrap mt-1">
+              {isAlmostFull && (
+                <span style={{ fontSize:10.5, fontWeight:700, color:"#e23744", background:"#fff1f2", borderRadius:999, padding:"1px 7px" }}
+                  data-testid={`urgency-spots-discover-${listing.id}`}>
+                  🔥 {slotsLeft} spot{slotsLeft === 1 ? "" : "s"} left
+                </span>
+              )}
+              {isEndingSoon && (
+                <span className="flex items-center gap-1" style={{ fontSize:10.5, fontWeight:700, color:"#d97706", background:"#fffbeb", borderRadius:999, padding:"1px 7px" }}
+                  data-testid={`urgency-expiry-discover-${listing.id}`}>
+                  <Clock className="w-3 h-3" /> {hoursLeft}h left
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-2">
