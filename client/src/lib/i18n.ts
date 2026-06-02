@@ -303,7 +303,7 @@ const resources = {
         topOrganizer: "Top Organizer",
         progress: "Progress",
         safetyNotice: "Safety Notice",
-        safetyText: "Grouperry does not handle payments or transactions. All financial arrangements are made directly between participants. Please exercise caution and use trusted payment methods when coordinating with group members.",
+        safetyText: "Grouperry protects buyers through optional escrow — funds are held securely until delivery is confirmed. For commit-only deals, payment is coordinated directly between members. Always verify payment details before sending money.",
         groupFull: "Group is full",
         save: "Save",
         saved: "Saved",
@@ -450,8 +450,8 @@ const resources = {
         additionalNotes: "Additional Notes (optional)",
         selectMethod: "Select method...",
         noDetails: "No details provided",
-        coordinationPlatform: "Coordination Platform",
-        coordinationPlatformDesc: "Grouperry coordinates group orders only. Payments are handled directly between members. No funds are held by the platform.",
+        coordinationPlatform: "Buyer Protection",
+        coordinationPlatformDesc: "Escrow-protected deals hold funds securely until delivery is confirmed. Commit-only deals coordinate payment directly between members — your choice.",
         trustedGroup: "Verified Members",
         trustedGroupDesc: "Identity-verified members build trust. Check each member's verification status before committing.",
         individualBadge: "Individual",
@@ -977,14 +977,14 @@ const resources = {
         browseAllCategories: "Browse all categories",
         trustTagline: "You're in safe hands",
         trustTitle: "Built different",
-        trustF1Title: "Verified Members",
-        trustF1Desc: "Every member goes through our verification process",
-        trustF2Title: "Buyer Protection",
-        trustF2Desc: "Full refund if deal doesn't go through",
-        trustF3Title: "Instant Groups",
-        trustF3Desc: "AI matches you with perfect buying groups",
+        trustF1Title: "Verified Organizers",
+        trustF1Desc: "ID-verified creators build a reputation score. Check their badge before you commit.",
+        trustF2Title: "Escrow Protection",
+        trustF2Desc: "Funds held securely until you confirm delivery — full refund if the group doesn't fill.",
+        trustF3Title: "Vouchers & Offers",
+        trustF3Desc: "Some deals unlock discount codes, BOGO vouchers, or gift cards redeemable in-store or online.",
         trustF4Title: "Community First",
-        trustF4Desc: "Built by shoppers, for shoppers",
+        trustF4Desc: "Built by shoppers, for shoppers — no hidden markups, ever.",
         testimonial1Quote:
           "Saved $400 on my new laptop by joining a group buy. This is the future of shopping!",
         testimonial1Author: "Sarah M.",
@@ -1037,10 +1037,10 @@ const resources = {
       },
       about: {
         title: "About Grouperry",
-        subtitle: "Group buying coordination, built for trust and clarity.",
-        lead: "Grouperry helps people team up for better prices on the things they already want to buy.",
+        subtitle: "Group buying, built for trust and real savings.",
+        lead: "Grouperry helps people team up to unlock bulk-style prices on the things they already want to buy.",
         body1:
-          "We focus on coordination: forming groups, filling slots, and chatting in one place. We do not process payments—members arrange money matters directly, with clear expectations and optional verification to improve trust.",
+          "We handle both coordination and protection: form groups, fill slots, chat, and choose your payment model. Commit-only deals let members arrange payment directly. Escrow-protected deals hold funds securely until delivery is confirmed — full refund if the group doesn't fill.",
         body2:
           "Whether you are organizing a bulk order or joining an existing group, Grouperry is designed to make the process simple and transparent.",
         missionTitle: "Our mission",
@@ -1057,7 +1057,7 @@ const resources = {
             id: "1",
             question: "What is Grouperry?",
             answer:
-              "Grouperry is a group buying coordination platform that allows users to form groups for bulk purchases, share costs, and unlock group deals. It focuses purely on coordination and does not handle payments."
+              "Grouperry is a group buying platform that connects people to unlock bulk-style prices together. Deals can be commit-only (you coordinate payment directly with the organizer) or escrow-protected (funds held securely until delivery is confirmed). Business deals can also offer vouchers, BOGO deals, and gift cards when the group completes."
           },
           {
             id: "2",
