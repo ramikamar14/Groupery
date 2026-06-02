@@ -1609,6 +1609,11 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
   const [distPref, setDistPref] = useState<"pickup" | "delivery" | "digital">("pickup");
   const [acknowledged, setAcknowledged] = useState(false);
 
+  // Quick commit mode — skip multi-step for non-escrow commit-only deals
+  const isEscrow = !!(listing as any).escrowEnabled;
+  const hasPrice = !!((listing as any).pricePerSlot);
+  const quickMode = !isEscrow;
+
   // Fetch sensitive payment fields when user reaches step 2
   const { data: paymentInfo } = useQuery<{ paymentMethod: string | null; paymentDetails: string | null; paymentNotes: string | null }>({
     queryKey: ["/api/listings", listing.id, "payment-info"],
@@ -1617,10 +1622,10 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
       if (!res.ok) return { paymentMethod: null, paymentDetails: null, paymentNotes: null };
       return res.json();
     },
-    enabled: open && step >= 2,
+    enabled: open && (step >= 2 || quickMode),
   });
 
-  const totalSteps = 3;
+  const totalSteps = quickMode ? 1 : 3;
   const distributionOptions = [
     { value: "pickup" as const, label: t("listing.pickupOption"), icon: MapPin, desc: t("listing.pickupDesc") },
     { value: "delivery" as const, label: t("listing.deliveryOption"), icon: Truck, desc: t("listing.deliveryDesc") },
@@ -1664,14 +1669,57 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
         <div className="p-6 space-y-5">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-base font-bold">
-              {step === 1 ? t("listing.receiveItemQuestion") : step === 2 ? t("listing.paymentCommitment") : t("listing.confirmCommitment")}
+              {quickMode ? "Lock in Your Spot" : step === 1 ? t("listing.receiveItemQuestion") : step === 2 ? t("listing.paymentCommitment") : t("listing.confirmCommitment")}
             </DialogTitle>
-            <span className="text-xs text-muted-foreground font-medium">{t("listing.stepOf", { step, total: totalSteps })}</span>
+            {!quickMode && <span className="text-xs text-muted-foreground font-medium">{t("listing.stepOf", { step, total: totalSteps })}</span>}
           </div>
-          <DialogDescription className="sr-only">Multi-step commitment flow for joining this group deal</DialogDescription>
+          <DialogDescription className="sr-only">Commitment flow for joining this group deal</DialogDescription>
+
+          {/* Quick mode: single-step confirm for commit-only (non-escrow) deals */}
+          {quickMode && (
+            <div className="space-y-4">
+              <div className="rounded-2xl overflow-hidden border border-border">
+                <div style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", padding: "16px 20px" }}>
+                  <p className="text-white/80 text-xs font-medium uppercase tracking-wide mb-0.5">You're joining</p>
+                  <p className="text-white font-bold text-base leading-snug line-clamp-2">{listing.title}</p>
+                </div>
+                <div className="bg-card p-4 grid grid-cols-2 gap-3">
+                  {hasPrice && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-0.5">Your price</p>
+                      <p className="text-xl font-bold text-primary">${((listing as any).pricePerSlot / 100).toFixed(2)}</p>
+                      {(listing as any).marketPrice && (
+                        <p className="text-xs text-muted-foreground line-through">${((listing as any).marketPrice / 100).toFixed(2)}</p>
+                      )}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">Spots left</p>
+                    <p className="text-xl font-bold">{listing.totalSlots - listing.filledSlots}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-muted-foreground mb-0.5">Ends</p>
+                    <p className="text-sm font-semibold">{formatDistanceToNow(new Date(listing.expiresAt), { addSuffix: true })}</p>
+                  </div>
+                </div>
+              </div>
+              {paymentInfo?.paymentMethod && (
+                <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("listing.payVia")}</p>
+                  <p className="font-bold">{paymentInfo.paymentMethod}</p>
+                  {paymentInfo.paymentDetails && <p className="text-sm font-mono text-muted-foreground">{paymentInfo.paymentDetails}</p>}
+                  {paymentInfo.paymentNotes && <p className="text-xs text-muted-foreground">{paymentInfo.paymentNotes}</p>}
+                </div>
+              )}
+              <div className="flex items-start gap-2 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 text-xs text-emerald-800 dark:text-emerald-200">
+                <span className="text-base leading-none mt-0.5">🔒</span>
+                <span>No charge right now — you're reserving your spot. Payment is coordinated directly with the organiser once the group is complete.</span>
+              </div>
+            </div>
+          )}
 
           {/* Step 1: Distribution preference */}
-          {step === 1 && (
+          {!quickMode && step === 1 && (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">{t("listing.letOrganizerKnow")}</p>
               <div className="grid grid-cols-3 gap-2">
@@ -1698,7 +1746,7 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
           )}
 
           {/* Step 2: Payment + acknowledgment */}
-          {step === 2 && (
+          {!quickMode && step === 2 && (
             <div className="space-y-3">
               {hasPayment ? (
                 <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-1">
@@ -1731,7 +1779,7 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
           )}
 
           {/* Step 3: Summary + confirm */}
-          {step === 3 && (
+          {!quickMode && step === 3 && (
             <div className="space-y-3">
               <div className="bg-muted/50 rounded-xl p-4 space-y-3">
                 <p className="font-semibold text-sm">{listing.title}</p>
@@ -1770,24 +1818,26 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
 
           {/* Navigation */}
           <div className="flex gap-2 pt-1">
-            {step > 1 && (
+            {!quickMode && step > 1 && (
               <Button variant="outline" className="flex-1" onClick={() => setStep(s => s - 1)} data-testid="button-commit-back">
                 {t("common.back")}
               </Button>
             )}
-            {step < totalSteps ? (
+            {!quickMode && step < totalSteps ? (
               <Button className="flex-1" onClick={() => setStep(s => s + 1)} data-testid="button-commit-next">
                 {t("common.next")}
               </Button>
             ) : (
-              <Button
-                className="flex-1 bg-primary shadow-lg shadow-primary/20"
+              <button
+                style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", gap:8, background: joinMutation.isPending ? "#8b5cf6" : "linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", fontWeight:700, fontSize:15, padding:"12px 24px", borderRadius:999, boxShadow:"0 6px 20px -4px rgba(109,40,217,0.45)", border:"none", cursor: joinMutation.isPending ? "not-allowed" : "pointer", flex:1, opacity: (!quickMode && !acknowledged) || joinMutation.isPending ? 0.65 : 1 }}
                 onClick={handleConfirm}
-                disabled={!acknowledged || joinMutation.isPending}
+                disabled={(!quickMode && !acknowledged) || joinMutation.isPending}
                 data-testid="button-commit-confirm"
               >
-                {joinMutation.isPending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />{t("listing.committing")}</> : <><Zap className="w-4 h-4 mr-2" />{t("listing.confirmCommitmentBtn")}</>}
-              </Button>
+                {joinMutation.isPending
+                  ? <><Loader2 className="w-4 h-4 animate-spin" />{t("listing.committing")}</>
+                  : <><Zap className="w-4 h-4" />{quickMode ? "Confirm — Lock in My Spot" : t("listing.confirmCommitmentBtn")}</>}
+              </button>
             )}
           </div>
         </div>
