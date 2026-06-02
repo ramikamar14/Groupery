@@ -42,27 +42,40 @@ export function BottomNav() {
       <div className="flex justify-around items-stretch h-[4.25rem] px-1">
         {navItems.map((item) => {
           const isActive = location === item.href;
+          const isCreate = item.href === "/create";
           const inner = (
             <Link
               href={item.href}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 min-h-[44px] h-full space-y-1 transition-all duration-200 relative rounded-xl mx-0.5 px-1",
-                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                isActive && !isCreate ? "text-primary" : !isCreate ? "text-muted-foreground hover:text-foreground" : ""
               )}
               data-testid={`nav-mobile-${item.href.replace("/", "") || "home"}`}
             >
-              {isActive && (
+              {isActive && !isCreate && (
                 <span className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-primary" />
               )}
-              <div className="relative mt-1">
-                <item.icon className={cn("w-6 h-6 transition-transform duration-150", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 1.75} />
-                {"badge" in item && item.badge && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm px-0.5">
-                    {item.badge > 9 ? "9+" : item.badge}
-                  </span>
-                )}
-              </div>
-              <span className={cn("text-[11px] font-medium leading-none", isActive ? "font-semibold text-primary" : "text-muted-foreground")}>{item.label}</span>
+              {isCreate ? (
+                <div style={{
+                  width: 46, height: 46, borderRadius: 14,
+                  background: "linear-gradient(120deg, #7c3aed, #5b21b6)",
+                  boxShadow: "0 6px 18px -6px rgba(109,40,217,0.7)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  marginTop: -14,
+                }}>
+                  <item.icon className="w-5 h-5" style={{ color: "#fff" }} strokeWidth={2.2} />
+                </div>
+              ) : (
+                <div className="relative mt-1">
+                  <item.icon className={cn("w-6 h-6 transition-transform duration-150", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 1.75} />
+                  {"badge" in item && item.badge && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm px-0.5">
+                      {item.badge > 9 ? "9+" : item.badge}
+                    </span>
+                  )}
+                </div>
+              )}
+              <span className={cn("text-[11px] font-medium leading-none", isCreate ? "text-primary font-semibold" : isActive ? "font-semibold text-primary" : "text-muted-foreground")}>{item.label}</span>
             </Link>
           );
           if (item.href === "/create" && createBlocked) {

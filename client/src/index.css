@@ -6,8 +6,8 @@
 
 /*
  * Grouperry design system (global)
- * Primary = Navy #001F3F · Accent = Teal #008080 · Poppins 400–700 · Cards 0.75rem radius
- * Dark: deep navy field; teal stays vivid for progress, rings, and accents.
+ * Primary = Violet #6d28d9 · Accent = Violet-600 #7c3aed · Poppins 400–700 · Cards 0.75rem radius
+ * Dark: deep field; violet stays vivid for progress, rings, and accents. (Momentum palette)
  */
 
 :root {
@@ -15,26 +15,26 @@
   --font-display: 'Poppins', sans-serif;
 
   /*
-   * Grouperry design system — Navy (#001F3F) primary, Teal (#008080) accent
+   * Grouperry design system — Violet (#6d28d9) primary, Violet-600 (#7c3aed) accent
    * (HSL channels for Tailwind hsl(var(--token) / <alpha>))
    */
   --background: 248 18% 98%; /* ~ oklch(0.98 0.005 250) warm white */
   --foreground: 250 35% 12%; /* ~ oklch(0.15 0.03 250) body / headings */
 
-  /* Primary: Navy — brand, main buttons, nav emphasis */
-  --primary: 210 100% 12%; /* #001F3F */
+  /* Primary: Violet-700 — brand, main buttons, nav emphasis */
+  --primary: 263 70% 50%; /* #6d28d9 */
   --primary-foreground: 0 0% 100%;
-  --primary-border: hsl(210 100% 9%);
+  --primary-border: hsl(263 70% 40%);
 
   /* Secondary: light blue-gray surfaces */
   --secondary: 248 20% 96%;
   --secondary-foreground: 210 100% 12%;
   --secondary-border: hsl(248 14% 88%);
 
-  /* Accent: Teal — progress, focus ring, highlights, secondary CTAs */
-  --accent: 180 100% 25%; /* #008080 */
+  /* Accent: Violet-600 — progress, focus ring, highlights, secondary CTAs */
+  --accent: 262 80% 58%; /* #7c3aed */
   --accent-foreground: 0 0% 100%;
-  --accent-border: hsl(180 100% 20%);
+  --accent-border: hsl(262 80% 48%);
 
   /* Destructive — ~ oklch(0.577 0.245 27.325) */
   --destructive: 27 86% 56%;
@@ -55,20 +55,20 @@
 
   --border: 248 14% 90%; /* subtle blue-gray */
   --input: 248 14% 90%;
-  --ring: 180 100% 32%; /* teal focus ring */
+  --ring: 263 70% 60%; /* violet focus ring */
 
   --button-outline: hsl(248 12% 82%);
 
   /* Sidebar */
   --sidebar: 248 22% 97%;
-  --sidebar-foreground: 210 100% 12%;
+  --sidebar-foreground: 250 35% 12%;
   --sidebar-border: 248 14% 90%;
-  --sidebar-ring: 180 100% 32%;
-  --sidebar-primary: 210 100% 12%;
+  --sidebar-ring: 263 70% 60%;
+  --sidebar-primary: 263 70% 50%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-primary-border: hsl(210 100% 9%);
+  --sidebar-primary-border: hsl(263 70% 40%);
   --sidebar-accent: 248 18% 93%;
-  --sidebar-accent-foreground: 210 100% 12%;
+  --sidebar-accent-foreground: 250 35% 12%;
   --sidebar-accent-border: hsl(248 12% 86%);
 
   /* Charts: teal first, navy second */
@@ -87,19 +87,19 @@
   --background: 248 32% 9%;
   --foreground: 248 25% 94%;
 
-  /* Navy stays readable; slightly lifted for dark UI */
-  --primary: 210 85% 42%;
+  /* Violet stays readable; slightly lifted for dark UI */
+  --primary: 263 70% 65%;
   --primary-foreground: 248 25% 98%;
-  --primary-border: hsl(210 85% 34%);
+  --primary-border: hsl(263 70% 52%);
 
   --secondary: 248 22% 16%;
   --secondary-foreground: 248 20% 92%;
   --secondary-border: hsl(248 18% 24%);
 
-  /* Teal stays bright for contrast */
-  --accent: 180 70% 42%;
+  /* Violet stays bright for contrast */
+  --accent: 262 70% 70%;
   --accent-foreground: 248 25% 98%;
-  --accent-border: hsl(180 70% 34%);
+  --accent-border: hsl(262 70% 56%);
 
   --destructive: 22 78% 52%;
   --destructive-foreground: 0 0% 100%;
@@ -120,17 +120,17 @@
 
   --border: 248 22% 20%;
   --input: 248 22% 20%;
-  --ring: 180 75% 45%;
+  --ring: 263 70% 70%;
 
   --button-outline: hsl(248 16% 28%);
 
   --sidebar: 248 30% 8%;
   --sidebar-foreground: 248 22% 90%;
   --sidebar-border: 248 22% 18%;
-  --sidebar-ring: 180 75% 45%;
-  --sidebar-primary: 210 85% 48%;
+  --sidebar-ring: 263 70% 70%;
+  --sidebar-primary: 263 70% 65%;
   --sidebar-primary-foreground: 248 25% 98%;
-  --sidebar-primary-border: hsl(210 85% 38%);
+  --sidebar-primary-border: hsl(263 70% 52%);
   --sidebar-accent: 248 22% 14%;
   --sidebar-accent-foreground: 248 20% 90%;
   --sidebar-accent-border: hsl(248 18% 22%);
@@ -138,7 +138,7 @@
   --badge-outline: hsl(248 16% 28%);
 }
 
-/* Landing v2 — warm cream background, same Navy + Teal brand as app */
+/* Landing v2 — warm cream background, same Violet brand as app */
 .theme-v2 {
   --background: 48 38% 97%;
   --foreground: 250 35% 14%;
@@ -146,19 +146,19 @@
   --card-foreground: 250 35% 14%;
   --popover: 0 0% 100%;
   --popover-foreground: 250 35% 14%;
-  --primary: 210 100% 12%;
+  --primary: 263 70% 50%;
   --primary-foreground: 0 0% 100%;
   --secondary: 248 22% 94%;
-  --secondary-foreground: 210 100% 12%;
+  --secondary-foreground: 263 70% 50%;
   --muted: 45 28% 94%;
   --muted-foreground: 250 12% 42%;
-  --accent: 180 100% 25%;
+  --accent: 262 80% 58%;
   --accent-foreground: 0 0% 100%;
   --destructive: 27 86% 56%;
   --destructive-foreground: 0 0% 100%;
   --border: 40 20% 88%;
   --input: 40 20% 88%;
-  --ring: 180 100% 32%;
+  --ring: 263 70% 60%;
   --radius: 0.75rem;
   --badge-outline: hsl(40 18% 82%);
 }
@@ -268,9 +268,9 @@
     @apply border-transparent bg-accent/20 text-accent-foreground dark:bg-accent/30;
   }
 
-  /* Gradient text — Navy → Teal brand */
+  /* Gradient text — Violet-700 → Violet-500 brand */
   .gradient-text {
-    @apply bg-gradient-to-r from-[#001F3F] to-[#008080] bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[#6d28d9] to-[#8b5cf6] bg-clip-text text-transparent;
   }
 
   /* Glass morphism */
@@ -385,7 +385,7 @@
 
 /* ── Global interaction polish ─────────────────────────────────────────────── */
 
-/* Focus-visible ring — teal accent, consistent across all interactive elements */
+/* Focus-visible ring — violet accent, consistent across all interactive elements */
 :focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
@@ -480,4 +480,75 @@ h1, h2 {
   .pb-safe {
     padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
   }
+}
+
+/* ── Momentum slot meter ──────────────────────────────────────── */
+.slot-meter {
+  display: flex;
+  gap: 4px;
+}
+.slot-meter-cell {
+  flex: 1;
+  height: 14px;
+  border-radius: 5px;
+  transition: all 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  background: var(--slot-empty, #ede9fe);
+  border: 1.5px solid transparent;
+}
+.slot-meter-cell.filled {
+  background: linear-gradient(180deg, #8b5cf6, #6d28d9);
+  box-shadow: 0 3px 8px -2px rgba(109, 40, 217, 0.5);
+}
+.slot-meter-cell.next {
+  background: #fff;
+  border: 1.5px dashed #c4b5fd;
+}
+.slot-meter-cell.big {
+  height: 20px;
+  border-radius: 6px;
+}
+
+/* ── Momentum savings badge (rotated disc) ───────────────────── */
+.savings-disc {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #059669, #0d9488);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  transform: rotate(-8deg);
+  box-shadow: 0 8px 20px -6px rgba(5, 150, 105, 0.6);
+  border: 3px solid #fff;
+  line-height: 1;
+  text-align: center;
+}
+.savings-disc .pct { font-size: 15px; font-weight: 800; }
+.savings-disc .off { font-size: 7.5px; font-weight: 700; letter-spacing: 0.06em; }
+
+/* ── LIVE chip ─────────────────────────────────────────────────── */
+.chip-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #e23744;
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 999px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+.dot-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  animation: gp-pulse 1.4s ease-in-out infinite;
+  display: inline-block;
+}
+@keyframes gp-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.6; }
 }
