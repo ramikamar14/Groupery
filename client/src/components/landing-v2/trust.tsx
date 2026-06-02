@@ -1,155 +1,208 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BadgeCheck, ShieldCheck, Zap, Heart, Quote } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { initialsFromName } from "@/components/landing-v2/decorative-avatar";
+
+const TRUST_ITEMS = [
+  {
+    icon: "🔒",
+    title: "Funds held until delivery confirmed",
+    desc: "Your money is held in escrow until the group unlocks and delivery is confirmed.",
+  },
+  {
+    icon: "✅",
+    title: "ID-verified deal creators",
+    desc: "Every host passes identity checks before posting a deal.",
+  },
+  {
+    icon: "↩️",
+    title: "Full refund if group doesn't fill",
+    desc: "If a deal doesn't reach its target, you're refunded automatically.",
+  },
+];
+
+const TESTIMONIALS = [
+  {
+    quote: "Saved $200 on our office software budget in the first month. The group-buy model is genius.",
+    author: "Sarah Al-Rashidi",
+    role: "Operations lead, Dubai",
+    initials: "SA",
+  },
+  {
+    quote: "We pooled a bulk order of kitchen appliances with 12 neighbours. Saved 35% each. Would never go back to buying alone.",
+    author: "Marco Trevisan",
+    role: "Home enthusiast, Milan",
+    initials: "MT",
+  },
+  {
+    quote: "Grouperry made it so easy to coordinate a software subscription split across our startup team.",
+    author: "Priya Nair",
+    role: "Founder, Bengaluru",
+    initials: "PN",
+  },
+];
+
+const AVATAR_COLORS = ["#6d28d9", "#2563eb", "#059669"];
 
 export function Trust() {
   const { t } = useTranslation();
 
-  const features = [
-    {
-      icon: BadgeCheck,
-      title: t("v2.trustF1Title"),
-      description: t("v2.trustF1Desc"),
-      color: "text-blue-600 dark:text-blue-400",
-      bg: "bg-blue-100 dark:bg-blue-950/50",
-    },
-    {
-      icon: ShieldCheck,
-      title: t("v2.trustF2Title"),
-      description: t("v2.trustF2Desc"),
-      color: "text-green-600 dark:text-green-400",
-      bg: "bg-green-100 dark:bg-green-950/50",
-    },
-    {
-      icon: Zap,
-      title: t("v2.trustF3Title"),
-      description: t("v2.trustF3Desc"),
-      color: "text-amber-600 dark:text-amber-400",
-      bg: "bg-amber-100 dark:bg-amber-950/50",
-    },
-    {
-      icon: Heart,
-      title: t("v2.trustF4Title"),
-      description: t("v2.trustF4Desc"),
-      color: "text-rose-600 dark:text-rose-400",
-      bg: "bg-rose-100 dark:bg-rose-950/50",
-    },
-  ];
-
-  const testimonials = [
-    {
-      quote: t("v2.testimonial1Quote"),
-      author: t("v2.testimonial1Author"),
-      role: t("v2.testimonial1Role"),
-    },
-    {
-      quote: t("v2.testimonial2Quote"),
-      author: t("v2.testimonial2Author"),
-      role: t("v2.testimonial2Role"),
-    },
-    {
-      quote: t("v2.testimonial3Quote"),
-      author: t("v2.testimonial3Author"),
-      role: t("v2.testimonial3Role"),
-    },
-  ];
-
   return (
-    <section id="trust" className="py-24 bg-gradient-to-b from-muted/50 to-background relative overflow-hidden scroll-mt-24">
+    <section
+      id="trust"
+      className="scroll-mt-24"
+      style={{ background: "#fff", padding: "72px 0" }}
+    >
       <div className="container mx-auto px-6">
+        {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          style={{ textAlign: "center", marginBottom: 36 }}
         >
-          <p className="text-sm font-medium text-primary mb-2 tracking-wide uppercase">{t("v2.trustTagline")}</p>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-display text-foreground" data-testid="text-trust-title">
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 800,
+              color: "#6d28d9",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              marginBottom: 8,
+            }}
+          >
+            {t("v2.trustTagline")}
+          </p>
+          <h2
+            style={{
+              fontSize: "clamp(1.6rem, 3vw, 2.2rem)",
+              fontWeight: 800,
+              letterSpacing: "-0.025em",
+              color: "#191320",
+              margin: 0,
+            }}
+            data-testid="text-trust-title"
+          >
             {t("v2.trustTitle")}
           </h2>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-start max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="space-y-4"
-          >
-            {features.map((feature, i) => (
+        {/* Trust card — 3 items side by side */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          style={{
+            background: "#fff",
+            border: "1px solid #ede9fe",
+            borderRadius: 20,
+            padding: "28px 32px",
+            boxShadow: "0 4px 24px -8px rgba(109,40,217,0.12)",
+            marginBottom: 48,
+          }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {TRUST_ITEMS.map((item, i) => (
               <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-border/50 hover:shadow-lg transition-shadow"
                 data-testid={`card-trust-${i}`}
+                style={{ display: "flex", gap: 14, alignItems: "flex-start" }}
               >
-                <div className={`size-12 rounded-xl ${feature.bg} flex items-center justify-center shrink-0`}>
-                  <feature.icon className={`size-6 ${feature.color}`} />
-                </div>
+                <span
+                  style={{
+                    flex: "none",
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    background: "#f5f3ff",
+                    display: "grid",
+                    placeItems: "center",
+                    fontSize: 18,
+                  }}
+                >
+                  {item.icon}
+                </span>
                 <div>
-                  <h3 className="font-semibold text-foreground">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  <div
+                    style={{
+                      fontSize: 13.5,
+                      fontWeight: 700,
+                      color: "#191320",
+                      marginBottom: 3,
+                    }}
+                  >
+                    {item.title}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "#736c80", lineHeight: 1.45 }}>
+                    {item.desc}
+                  </div>
                 </div>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
+        </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="relative"
-          >
-            <div className="space-y-4">
-              {testimonials.map((testimonial, i) => (
-                <motion.div
-                  key={testimonial.author}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 + i * 0.1 }}
-                  className="relative bg-card rounded-2xl p-6 border border-border/50 shadow-sm hover:shadow-lg transition-shadow"
-                >
-                  <Quote className="absolute top-4 right-4 size-8 text-primary/10" />
-                  <p className="text-foreground mb-4 italic leading-relaxed">&ldquo;{testimonial.quote}&rdquo;</p>
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="size-10 rounded-full overflow-hidden border border-border/50 flex items-center justify-center text-xs font-semibold text-foreground/80 bg-muted"
-                      aria-hidden
-                    >
-                      {initialsFromName(testimonial.author)}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-sm text-foreground">{testimonial.author}</div>
-                      <div className="text-xs text-muted-foreground">{testimonial.role}</div>
-                    </div>
-                    <div className="ml-auto flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star} className="text-yellow-400 text-sm">
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
+        {/* Testimonials grid */}
+        <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+          {TESTIMONIALS.map((t2, i) => (
             <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="absolute -top-4 -right-4 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold shadow-lg hidden lg:flex items-center gap-2 dark:bg-green-950 dark:text-green-400"
+              key={t2.author}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.12 }}
+              style={{
+                background: "#faf9fc",
+                borderRadius: 18,
+                border: "1px solid #ede9fe",
+                padding: 24,
+                boxShadow: "0 2px 10px -4px rgba(109,40,217,0.10)",
+              }}
             >
-              <ShieldCheck className="size-4" />
-              {t("v2.secureBadge")}
+              <p
+                style={{
+                  fontSize: 13.5,
+                  color: "#3a3340",
+                  fontStyle: "italic",
+                  lineHeight: 1.55,
+                  marginBottom: 18,
+                }}
+              >
+                &ldquo;{t2.quote}&rdquo;
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    background: AVATAR_COLORS[i % AVATAR_COLORS.length],
+                    display: "grid",
+                    placeItems: "center",
+                    color: "#fff",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    flex: "none",
+                  }}
+                >
+                  {t2.initials}
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#191320" }}>{t2.author}</div>
+                  <div style={{ fontSize: 11.5, color: "#9b95a6" }}>{t2.role}</div>
+                </div>
+                <div style={{ marginLeft: "auto", display: "flex", gap: 1 }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span key={star} style={{ color: "#fbbf24", fontSize: 13 }}>★</span>
+                  ))}
+                </div>
+              </div>
             </motion.div>
-          </motion.div>
+          ))}
         </div>
       </div>
     </section>
