@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Loader2, Users, MapPin, CheckCircle2, AlertCircle, Flag, ChevronLeft, ChevronRight, Bookmark, BookmarkCheck, Share2, Star, CheckCircle, Award, Trophy, Shield, ShieldCheck, Tag, Clock, Zap, PartyPopper, Info, Package, Truck, TrendingUp, CreditCard, Copy, CheckCheck, Monitor, Edit2, Eye, PlusCircle, Gift } from "lucide-react";
+import { Loader2, Users, MapPin, CheckCircle2, AlertCircle, Flag, ChevronLeft, ChevronRight, Bookmark, BookmarkCheck, Share2, Star, CheckCircle, Award, Trophy, Shield, ShieldCheck, Tag, Clock, Zap, PartyPopper, Info, Package, Truck, TrendingUp, CreditCard, Copy, CheckCheck, Monitor, Edit2, Eye, PlusCircle, Gift, BadgeCheck, RefreshCcw, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, formatDistanceToNow, differenceInHours, differenceInDays, differenceInMinutes } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,30 @@ import { MilestoneTracker } from "@/components/listing/MilestoneTracker";
 import { DealProofSection } from "@/components/listing/DealProofSection";
 import { DisputeButton } from "@/components/listing/DisputeButton";
 import { api } from "@shared/routes";
+
+/** Momentum-style segmented slot meter for the detail page */
+function SlotMeterDetail({ filled, total }: { filled: number; total: number }) {
+  const cells = Math.min(total, 20);
+  const filledCells = total > 20 ? Math.round((filled / total) * 20) : filled;
+  return (
+    <div style={{ display:"flex", gap:5 }}>
+      {Array.from({ length: cells }).map((_, i) => {
+        const isFilled = i < filledCells;
+        const isNext = i === filledCells;
+        return (
+          <div key={i} style={{
+            flex:1, height:20, borderRadius:7,
+            transition:`all 0.45s cubic-bezier(0.2,0.8,0.2,1)`,
+            transitionDelay:`${i*30}ms`,
+            background: isFilled ? "linear-gradient(180deg,#8b5cf6,#6d28d9)" : isNext ? "#fff" : "#ede9fe",
+            border: isNext ? "1.5px dashed #c4b5fd" : "1.5px solid transparent",
+            boxShadow: isFilled ? "0 3px 8px -2px rgba(109,40,217,0.5)" : "none",
+          }} />
+        );
+      })}
+    </div>
+  );
+}
 
 export default function ListingDetails() {
   const [match, params] = useRoute("/listings/:id");
@@ -366,19 +390,44 @@ export default function ListingDetails() {
             )}
 
             <div className="p-6 md:p-8">
-              <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">{listing.title}</h1>
-              
-              {/* Price / savings display (P5) */}
+              <h1 className="text-3xl md:text-4xl font-display font-bold mb-3">{listing.title}</h1>
+
+              {/* Share row */}
+              <ShareRow listing={listing} />
+
+              {/* Price / savings hero box (Momentum style) */}
               {(listing as any).pricePerSlot && (
-                <div className="flex flex-wrap items-center gap-3 pb-3" data-testid="price-display">
-                  <span className="text-2xl font-bold text-primary">${((listing as any).pricePerSlot / 100).toFixed(2)}<span className="text-base font-normal text-muted-foreground">/slot</span></span>
-                  {(listing as any).marketPrice && (
-                    <>
-                      <span className="text-sm text-muted-foreground line-through">${((listing as any).marketPrice / 100).toFixed(2)} market price</span>
-                      <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800">
-                        Save {Math.round((1 - (listing as any).pricePerSlot / (listing as any).marketPrice) * 100)}% with this group
-                      </Badge>
-                    </>
+                <div
+                  data-testid="price-display"
+                  style={{ background:"#f5f3ff", border:"1px solid #ede9fe", borderRadius:16, padding:"16px 20px", marginBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}
+                >
+                  <div>
+                    <div style={{ display:"flex", alignItems:"baseline", gap:6 }}>
+                      <span style={{ fontSize:32, fontWeight:800, color:"#6d28d9", letterSpacing:"-0.03em", lineHeight:1 }}>
+                        ${((listing as any).pricePerSlot / 100).toFixed(2)}
+                      </span>
+                      <span style={{ fontSize:14, color:"#9ca3af", fontWeight:500 }}>/slot</span>
+                      {(listing as any).marketPrice && (
+                        <span style={{ fontSize:14, color:"#9ca3af", textDecoration:"line-through" }}>
+                          ${((listing as any).marketPrice / 100).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+                    {(listing as any).marketPrice && (listing as any).marketPrice > (listing as any).pricePerSlot && (
+                      <div style={{ fontSize:12, color:"#059669", fontWeight:700, marginTop:4 }}>
+                        You save ${(((listing as any).marketPrice - (listing as any).pricePerSlot) / 100).toFixed(2)} per slot with this group
+                      </div>
+                    )}
+                  </div>
+                  {(listing as any).marketPrice && (listing as any).marketPrice > (listing as any).pricePerSlot && (
+                    <div style={{ width:56, height:56, borderRadius:"50%", background:"linear-gradient(135deg,#059669,#0d9488)", color:"#fff", display:"grid", placeItems:"center", transform:"rotate(-8deg)", boxShadow:"0 8px 20px -6px rgba(5,150,105,0.5)", border:"3px solid #fff", lineHeight:1, flexShrink:0 }}>
+                      <div style={{ textAlign:"center" }}>
+                        <div style={{ fontSize:14, fontWeight:800 }}>
+                          {Math.round((1 - (listing as any).pricePerSlot / (listing as any).marketPrice) * 100)}%
+                        </div>
+                        <div style={{ fontSize:7.5, fontWeight:700, letterSpacing:"0.06em" }}>OFF</div>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
@@ -593,33 +642,33 @@ export default function ListingDetails() {
                 );
               })()}
 
-              {/* Tri-color progress bar */}
-              <div className="mb-6">
-                <div className="flex justify-between mb-2 font-medium text-sm">
-                  <span>{t("listing.progress")}</span>
-                  <span>{Math.round((listing.filledSlots / listing.totalSlots) * 100)}%</span>
+              {/* Momentum slot meter */}
+              <div className="mb-6" data-testid="slot-meter-detail">
+                <div className="flex justify-between mb-3 font-medium text-sm items-center">
+                  <span className="font-semibold" style={{ color:"#191320" }}>
+                    <span style={{ color:"#6d28d9", fontWeight:800, fontSize:18 }}>{listing.filledSlots}</span>
+                    {" "}joined · {listing.totalSlots - listing.filledSlots > 0
+                      ? <><span style={{ fontWeight:800 }}>{listing.totalSlots - listing.filledSlots}</span> <span style={{ color:"#9b95a6", fontSize:13 }}>to unlock</span></>
+                      : <span style={{ color:"#059669", fontWeight:800 }}>Group complete!</span>}
+                  </span>
+                  <span style={{ fontSize:13, fontWeight:700, color:"#6d28d9", background:"#ede9fe", borderRadius:999, padding:"2px 10px" }}>
+                    {Math.round((listing.filledSlots / listing.totalSlots) * 100)}%
+                  </span>
                 </div>
-                <div className="h-3 w-full bg-secondary rounded-full overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full transition-all duration-500 rounded-full",
-                      (() => {
-                        const pct = (listing.filledSlots / listing.totalSlots) * 100;
-                        if (pct >= 95) return "bg-destructive";
-                        if (pct >= 75) return "bg-amber-500";
-                        if (pct >= 40) return "bg-primary";
-                        return "bg-emerald-500";
-                      })()
-                    )}
-                    style={{ width: `${(listing.filledSlots / listing.totalSlots) * 100}%` }}
-                  />
-                </div>
+                <SlotMeterDetail filled={listing.filledSlots} total={listing.totalSlots} />
                 {(() => {
                   const slotsLeft = listing.totalSlots - listing.filledSlots;
                   const pct = (listing.filledSlots / listing.totalSlots) * 100;
-                  if (slotsLeft > 0 && pct >= 75 && isActive) {
+                  if (slotsLeft > 0 && slotsLeft <= 3 && isActive) {
                     return (
-                      <p className="text-xs font-semibold text-destructive mt-1.5 flex items-center gap-1" data-testid="text-spots-left">
+                      <p className="text-xs font-semibold mt-2 flex items-center gap-1" style={{ color:"#e23744" }} data-testid="text-spots-left">
+                        🔥 Only {slotsLeft} spot{slotsLeft === 1 ? "" : "s"} left — grab yours before it's gone!
+                      </p>
+                    );
+                  }
+                  if (slotsLeft > 0 && pct >= 60 && isActive) {
+                    return (
+                      <p className="text-xs font-semibold text-amber-600 mt-2 flex items-center gap-1" data-testid="text-spots-left">
                         <Zap className="w-3 h-3" />
                         {t("listing.onlySpotsLeft", { count: slotsLeft })}
                       </p>
@@ -628,6 +677,9 @@ export default function ListingDetails() {
                   return null;
                 })()}
               </div>
+
+              {/* Trust badge chips */}
+              <TrustBadgeRow listing={listing} />
 
               {/* Money protection strip */}
               {isActive && (
@@ -647,14 +699,12 @@ export default function ListingDetails() {
               {/* CTA buttons */}
               <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 mb-3">
                 {!user && isActive && (
-                  <a href="/api/login" className="w-full md:w-auto">
-                    <Button
-                      size="lg"
-                      className="w-full md:w-auto px-8 bg-primary hover:bg-primary/90 text-lg shadow-lg shadow-primary/25"
-                      data-testid="button-sign-in-to-join"
-                    >
-                      <Zap className="w-5 h-5 mr-2" /> {t("listing.signInToJoin")}
-                    </Button>
+                  <a
+                    href="/api/login"
+                    data-testid="button-sign-in-to-join"
+                    style={{ display:"inline-flex", alignItems:"center", gap:8, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", fontWeight:700, fontSize:16, padding:"14px 32px", borderRadius:999, textDecoration:"none", boxShadow:"0 8px 24px -6px rgba(109,40,217,0.5)", border:"none", cursor:"pointer", whiteSpace:"nowrap" }}
+                  >
+                    <Zap className="w-5 h-5" style={{ flexShrink:0 }} /> Sign in to Lock in Your Spot
                   </a>
                 )}
 
@@ -662,13 +712,17 @@ export default function ListingDetails() {
                   <CommitDialog
                     listing={listing}
                     trigger={
-                      <Button
-                        size="lg"
-                        className="w-full md:w-auto px-8 bg-primary hover:bg-primary/90 text-lg shadow-lg shadow-primary/25"
+                      <button
                         data-testid="button-join"
+                        style={{ display:"inline-flex", alignItems:"center", gap:8, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", fontWeight:700, fontSize:16, padding:"14px 32px", borderRadius:999, boxShadow:"0 8px 24px -6px rgba(109,40,217,0.5)", border:"none", cursor:"pointer", whiteSpace:"nowrap" }}
                       >
-                        <Zap className="w-5 h-5 mr-2" /> {t("listing.commitToBuy")}
-                      </Button>
+                        <Zap className="w-5 h-5" style={{ flexShrink:0 }} /> Lock in My Spot
+                        {(listing as any).pricePerSlot && (
+                          <span style={{ background:"rgba(255,255,255,0.2)", borderRadius:999, padding:"2px 10px", fontSize:14 }}>
+                            ${((listing as any).pricePerSlot / 100).toFixed(2)}
+                          </span>
+                        )}
+                      </button>
                     }
                   />
                 )}
@@ -1045,25 +1099,12 @@ export default function ListingDetails() {
                 </div>
               </div>
 
-              {/* Mini progress bar */}
+              {/* Slot meter — sidebar */}
               <div>
-                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full rounded-full transition-all",
-                      (() => {
-                        const pct = (listing.filledSlots / listing.totalSlots) * 100;
-                        if (pct >= 95) return "bg-destructive";
-                        if (pct >= 75) return "bg-amber-500";
-                        return "bg-primary";
-                      })()
-                    )}
-                    style={{ width: `${(listing.filledSlots / listing.totalSlots) * 100}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>{t("listing.joinedCount", { count: listing.filledSlots })}</span>
-                  <span>{t("listing.totalCount", { count: listing.totalSlots })}</span>
+                <SlotMeterDetail filled={listing.filledSlots} total={listing.totalSlots} />
+                <div className="flex justify-between text-xs text-muted-foreground mt-1.5">
+                  <span style={{ color:"#6d28d9", fontWeight:700 }}>{listing.filledSlots} joined</span>
+                  <span>{listing.totalSlots - listing.filledSlots} spots left</span>
                 </div>
               </div>
 
@@ -1104,9 +1145,12 @@ export default function ListingDetails() {
                 <CommitDialog
                   listing={listing}
                   trigger={
-                    <Button size="lg" className="w-full shadow-lg shadow-primary/20 gap-2" data-testid="button-join-sidebar">
-                      <Zap className="w-4 h-4" /> {t("listing.commitToBuy")}
-                    </Button>
+                    <button
+                      data-testid="button-join-sidebar"
+                      style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", fontWeight:700, fontSize:15, padding:"13px 24px", borderRadius:999, boxShadow:"0 8px 24px -6px rgba(109,40,217,0.45)", border:"none", cursor:"pointer" }}
+                    >
+                      <Zap className="w-4 h-4" style={{ flexShrink:0 }} /> Lock in My Spot
+                    </button>
                   }
                 />
               ) : (
@@ -1163,24 +1207,29 @@ export default function ListingDetails() {
 
       {/* Sticky mobile join bar (U1) with confirmation (P1) */}
       {!user && isActive && (
-        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-signin-bar">
-          <a href="/api/login">
-            <Button size="lg" className="w-full bg-primary hover:bg-primary/90 shadow-lg" data-testid="button-signin-sticky">
-              <Zap className="w-4 h-4 mr-2" />
-              Sign in to Join This Deal
-            </Button>
+        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 md:hidden" style={{ background:"rgba(255,255,255,0.97)", backdropFilter:"blur(12px)", borderTop:"1px solid #ede9fe", padding:"10px 16px" }} data-testid="sticky-signin-bar">
+          <a
+            href="/api/login"
+            data-testid="button-signin-sticky"
+            style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", fontWeight:700, fontSize:16, padding:"13px 24px", borderRadius:999, textDecoration:"none", boxShadow:"0 8px 24px -6px rgba(109,40,217,0.45)" }}
+          >
+            <Zap style={{ width:18, height:18, flexShrink:0 }} />
+            Sign in to Lock in Your Spot
           </a>
         </div>
       )}
       {user && isActive && !isParticipant && !isCreator && !isFull && (
-        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-join-bar">
+        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 md:hidden" style={{ background:"rgba(255,255,255,0.97)", backdropFilter:"blur(12px)", borderTop:"1px solid #ede9fe", padding:"10px 16px" }} data-testid="sticky-join-bar">
           <CommitDialog
             listing={listing}
             trigger={
-              <Button size="lg" className="w-full bg-primary hover:bg-primary/90 shadow-lg" data-testid="button-join-sticky">
-                <Zap className="w-4 h-4 mr-2" />
-                {t("listing.commitToBuy")} · {t("listing.spotsLeftCount", { count: listing.totalSlots - listing.filledSlots })}
-              </Button>
+              <button
+                data-testid="button-join-sticky"
+                style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", fontWeight:700, fontSize:16, padding:"13px 24px", borderRadius:999, boxShadow:"0 8px 24px -6px rgba(109,40,217,0.45)", border:"none", cursor:"pointer" }}
+              >
+                <Zap style={{ width:18, height:18, flexShrink:0 }} />
+                Lock in My Spot · {listing.totalSlots - listing.filledSlots} left
+              </button>
             }
           />
         </div>
@@ -1964,6 +2013,66 @@ function SaveButton({ listingId }: { listingId: number }) {
       {isSaved ? <BookmarkCheck className="w-4 h-4 mr-1" /> : <Bookmark className="w-4 h-4 mr-1" />}
       {isSaved ? t("listing.saved") : t("listing.save")}
     </Button>
+  );
+}
+
+function ShareRow({ listing }: { listing: any }) {
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      toast({ title: "Copied!", description: "Link copied to clipboard." });
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      toast({ title: "Error", description: "Could not copy link.", variant: "destructive" });
+    });
+  };
+
+  const handleWhatsApp = () => {
+    const url = `https://wa.me/?text=${encodeURIComponent("Join this group deal: " + window.location.href)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <div className="flex items-center gap-2 mb-4" data-testid="share-row">
+      <span className="text-xs text-muted-foreground font-medium">Share:</span>
+      <Button size="sm" variant="outline" onClick={handleCopyLink} data-testid="button-copy-link" className="h-7 px-2.5 text-xs gap-1">
+        {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+        {copied ? "Copied!" : "Copy Link"}
+      </Button>
+      <Button size="sm" variant="outline" onClick={handleWhatsApp} data-testid="button-whatsapp-share" className="h-7 px-2.5 text-xs gap-1">
+        <Share2 className="w-3.5 h-3.5 text-green-600" />
+        WhatsApp
+      </Button>
+    </div>
+  );
+}
+
+function TrustBadgeRow({ listing }: { listing: any }) {
+  const isEscrowEnabled = !!(listing as any).escrowEnabled;
+  const isOrganizerVerified = listing.creator?.verificationStatus === "verified";
+
+  return (
+    <div className="flex flex-wrap gap-2 mb-4" data-testid="trust-badge-row">
+      {isEscrowEnabled && (
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" data-testid="badge-escrow">
+          <Shield className="w-3 h-3" />
+          Escrow Protected
+        </span>
+      )}
+      {isOrganizerVerified && (
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400" data-testid="badge-organizer-verified">
+          <BadgeCheck className="w-3 h-3" />
+          Organiser Verified
+        </span>
+      )}
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400" data-testid="badge-money-back">
+        <RefreshCcw className="w-3 h-3" />
+        Money-back if cancelled
+      </span>
+    </div>
   );
 }
 
