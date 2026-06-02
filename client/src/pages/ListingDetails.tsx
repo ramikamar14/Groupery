@@ -300,18 +300,18 @@ export default function ListingDetails() {
       const end = Date.now() + duration;
       const frame = () => {
         confetti({
-          particleCount: 3,
+          particleCount: 4,
           angle: 60,
-          spread: 55,
+          spread: 60,
           origin: { x: 0 },
-          colors: ["#22c55e", "#008080", "#f59e0b", "#ef4444", "#001F3F"],
+          colors: ["#7c3aed", "#6d28d9", "#a78bfa", "#059669", "#f59e0b"],
         });
         confetti({
-          particleCount: 3,
+          particleCount: 4,
           angle: 120,
-          spread: 55,
+          spread: 60,
           origin: { x: 1 },
-          colors: ["#22c55e", "#008080", "#f59e0b", "#ef4444", "#001F3F"],
+          colors: ["#7c3aed", "#6d28d9", "#a78bfa", "#059669", "#f59e0b"],
         });
         if (Date.now() < end) {
           requestAnimationFrame(frame);
@@ -369,20 +369,25 @@ export default function ListingDetails() {
 
             {(isCompleted || isFull) && (
               <div
-                className={cn(
-                  "mx-6 mt-6 p-4 rounded-xl flex items-center gap-3 transition-all",
-                  showCelebration
-                    ? "bg-green-100 dark:bg-green-950/50 border border-green-300 dark:border-green-800 animate-pulse"
-                    : "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800"
-                )}
+                style={{
+                  margin:"24px 24px 0",
+                  padding:"14px 20px",
+                  borderRadius:16,
+                  display:"flex",
+                  alignItems:"center",
+                  gap:14,
+                  background: showCelebration ? "linear-gradient(135deg,#7c3aed,#6d28d9)" : "#f5f3ff",
+                  border: showCelebration ? "none" : "1px solid #c4b5fd",
+                  transition:"all 0.4s",
+                }}
                 data-testid="banner-completion"
               >
-                <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400 shrink-0" />
+                <div style={{ fontSize:28, flexShrink:0 }}>{showCelebration ? "🎉" : "✅"}</div>
                 <div>
-                  <p className="font-bold text-green-800 dark:text-green-200">
-                    {showCelebration ? t("listing.groupComplete") : t("listing.groupCompleteStatic")}
+                  <p style={{ fontWeight:800, fontSize:15, color: showCelebration ? "#fff" : "#4c1d95", margin:0 }}>
+                    {showCelebration ? "🎊 Group complete — price unlocked!" : t("listing.groupCompleteStatic")}
                   </p>
-                  <p className="text-sm text-green-700 dark:text-green-300">
+                  <p style={{ fontSize:12, color: showCelebration ? "rgba(255,255,255,0.85)" : "#7c3aed", margin:"2px 0 0" }}>
                     {t("listing.allSlotsFilled", { slots: listing.totalSlots })}
                   </p>
                 </div>
@@ -952,6 +957,11 @@ export default function ListingDetails() {
                     )}
                   </div>
                 </div>
+              )}
+
+              {/* Live activity feed — shows recent joins as dopamine ticker */}
+              {isActive && listing.participants && listing.participants.length > 0 && (
+                <LiveActivityFeed participants={listing.participants} slotsLeft={listing.totalSlots - listing.filledSlots} />
               )}
 
               {/* Safety footnote */}
@@ -2072,6 +2082,60 @@ function TrustBadgeRow({ listing }: { listing: any }) {
         <RefreshCcw className="w-3 h-3" />
         Money-back if cancelled
       </span>
+    </div>
+  );
+}
+
+/** Live activity ticker — shows "X just joined" with staggered animation */
+function LiveActivityFeed({ participants, slotsLeft }: { participants: any[]; slotsLeft: number }) {
+  const [visibleIdx, setVisibleIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  // Build activity messages from participants (most recent first)
+  const items = [...participants]
+    .filter((p) => p.user?.firstName)
+    .slice(-5)
+    .reverse()
+    .map((p, i) => {
+      const name = p.user.firstName + (p.user.lastName ? ` ${p.user.lastName[0]}.` : "");
+      const msgs = [
+        `${name} just joined this deal 🎉`,
+        `${name} locked in their spot`,
+        `${name} committed to the group`,
+      ];
+      return msgs[i % msgs.length];
+    });
+
+  useEffect(() => {
+    if (items.length <= 1) return;
+    const timer = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setVisibleIdx((prev) => (prev + 1) % items.length);
+        setVisible(true);
+      }, 400);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [items.length]);
+
+  if (items.length === 0) return null;
+
+  return (
+    <div
+      style={{ background:"#f5f3ff", border:"1px solid #ede9fe", borderRadius:12, padding:"8px 14px", marginBottom:12, display:"flex", alignItems:"center", gap:10, minHeight:40 }}
+      data-testid="live-activity-feed"
+    >
+      <span style={{ width:8, height:8, borderRadius:"50%", background:"#6d28d9", flexShrink:0, animation:"gp-pulse 1.4s ease-in-out infinite" }} />
+      <span
+        style={{ fontSize:12.5, fontWeight:600, color:"#4c1d95", flex:1, transition:"opacity 0.3s", opacity: visible ? 1 : 0 }}
+      >
+        {items[visibleIdx]}
+      </span>
+      {slotsLeft > 0 && slotsLeft <= 5 && (
+        <span style={{ fontSize:11, fontWeight:700, color:"#e23744", background:"#fff1f2", borderRadius:999, padding:"2px 8px", flexShrink:0 }}>
+          {slotsLeft} left
+        </span>
+      )}
     </div>
   );
 }
