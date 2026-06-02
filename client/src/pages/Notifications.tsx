@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Loader2, BellOff } from "lucide-react";
+import { Loader2, BellOff, Search, Plus } from "lucide-react";
 import { isToday, isYesterday, isThisWeek } from "date-fns";
 import { useTranslation } from "react-i18next";
+import { Link } from "wouter";
 import { AppNotificationItem } from "@/components/notifications/AppNotificationItem";
 import { NotificationDateGroup } from "@/components/notifications/NotificationDateGroup";
 
@@ -106,10 +107,20 @@ export default function Notifications() {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : notifications.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border/70 bg-muted/25 py-16 px-6 text-center text-muted-foreground">
-            <BellOff className="w-12 h-12 mx-auto mb-4 opacity-40" />
-            <p className="font-medium text-foreground">{t("notifications.noNotifications")}</p>
-            <p className="text-sm mt-1 max-w-sm mx-auto">{t("notifications.noNotificationsHint")}</p>
+          <div className="rounded-3xl border border-dashed border-violet-200 dark:border-violet-800/40 bg-gradient-to-b from-violet-50/60 to-transparent dark:from-violet-950/20 py-16 px-6 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center mx-auto mb-5">
+              <BellOff className="w-8 h-8 text-violet-500" />
+            </div>
+            <p className="font-bold text-lg text-foreground mb-1">{t("notifications.noNotifications")}</p>
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-7">{t("notifications.noNotificationsHint")}</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button asChild size="sm" className="rounded-full gap-2 bg-primary hover:bg-primary/90">
+                <Link href="/"><Search className="w-4 h-4" /> Browse Deals</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline" className="rounded-full gap-2">
+                <Link href="/create"><Plus className="w-4 h-4" /> Create a Deal</Link>
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-8">

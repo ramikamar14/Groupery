@@ -515,7 +515,7 @@ export default function ListingDetails() {
                         </Badge>
                       )}
                       {creatorReliability?.badges?.includes("top_organizer") && (
-                        <Badge variant="outline" className="border-teal-200 text-teal-700 bg-teal-50 dark:border-teal-700 dark:text-teal-300 dark:bg-teal-950/50">
+                        <Badge variant="outline" className="border-violet-200 text-violet-700 bg-violet-50 dark:border-violet-700 dark:text-violet-300 dark:bg-violet-950/50">
                           <Trophy className="w-3 h-3 mr-1" />
                           {t("listing.topOrganizer")}
                         </Badge>
@@ -729,6 +729,7 @@ export default function ListingDetails() {
                         )}
                       </button>
                     }
+                    onJustCompleted={() => { celebrationFiredRef.current = false; }}
                   />
                 )}
 
@@ -950,7 +951,7 @@ export default function ListingDetails() {
                       </span>
                     )}
                     {(presenceData?.viewing ?? 0) > 1 && (
-                      <span className="text-xs text-teal-600 dark:text-teal-400 flex items-center gap-1 font-medium" data-testid="text-viewing-now">
+                      <span className="text-xs text-violet-600 dark:text-violet-400 flex items-center gap-1 font-medium" data-testid="text-viewing-now">
                         <Eye className="w-3 h-3" />
                         {presenceData!.viewing} {t("listing.viewingNow", "viewing now")}
                       </span>
@@ -1027,7 +1028,7 @@ export default function ListingDetails() {
           )}
 
           {isActive && user && (isParticipant || isCreator) && (
-            <div className="bg-gradient-to-br from-teal-50 to-[#E0F7FA] dark:from-teal-950/20 dark:to-[#001F3F]/20 rounded-3xl border border-teal-200/60 dark:border-teal-800/40 p-5" data-testid="section-invite-friends">
+            <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-950/20 dark:to-fuchsia-950/20 rounded-3xl border border-violet-200/60 dark:border-violet-800/40 p-5" data-testid="section-invite-friends">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="font-bold font-display text-base flex items-center gap-2 mb-1">
@@ -1039,7 +1040,7 @@ export default function ListingDetails() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="shrink-0 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/30"
+                  className="shrink-0 border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/30"
                   onClick={() => {
                     const url = `${window.location.origin}/listings/${listing.id}?inv=${user?.id}`;
                     navigator.clipboard.writeText(url).then(() => {
@@ -1056,7 +1057,7 @@ export default function ListingDetails() {
           )}
 
           {isCompleted && user && (isParticipant || isCreator) && (
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 rounded-3xl border border-emerald-200/60 dark:border-emerald-800/40 p-5 text-center" data-testid="section-post-completion-cta">
+            <div className="bg-gradient-to-br from-emerald-50 to-violet-50 dark:from-emerald-950/20 dark:to-violet-950/20 rounded-3xl border border-emerald-200/60 dark:border-emerald-800/40 p-5 text-center" data-testid="section-post-completion-cta">
               <PartyPopper className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
               <h3 className="font-bold font-display text-base mb-1">{t("listing.dealDone", "This deal is done!")}</h3>
               <p className="text-xs text-muted-foreground mb-3">{t("listing.createNextDeal", "Ready to organize your own group buy?")}</p>
@@ -1154,6 +1155,7 @@ export default function ListingDetails() {
               {!isFull ? (
                 <CommitDialog
                   listing={listing}
+                  onJustCompleted={() => { celebrationFiredRef.current = false; }}
                   trigger={
                     <button
                       data-testid="button-join-sidebar"
@@ -1232,6 +1234,7 @@ export default function ListingDetails() {
         <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 md:hidden" style={{ background:"rgba(255,255,255,0.97)", backdropFilter:"blur(12px)", borderTop:"1px solid #ede9fe", padding:"10px 16px" }} data-testid="sticky-join-bar">
           <CommitDialog
             listing={listing}
+            onJustCompleted={() => { celebrationFiredRef.current = false; }}
             trigger={
               <button
                 data-testid="button-join-sticky"
@@ -1600,7 +1603,7 @@ function ReportCreatorButton({ listing }: { listing: any }) {
   );
 }
 
-function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: React.ReactNode; onSuccess?: () => void }) {
+function CommitDialog({ listing, trigger, onSuccess, onJustCompleted }: { listing: any; trigger: React.ReactNode; onSuccess?: () => void; onJustCompleted?: () => void }) {
   const { t } = useTranslation();
   const joinMutation = useJoinListing();
   const queryClient = useQueryClient();
@@ -1649,7 +1652,10 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
         track("deal_commit", { listingId: listing.id, price: (listing as any).pricePerSlot ?? 0 });
         setOpen(false);
         reset();
-        if (data?.justCompleted) localStorage.removeItem(`celebration-seen-${listing.id}`);
+        if (data?.justCompleted) {
+          localStorage.removeItem(`celebration-seen-${listing.id}`);
+          onJustCompleted?.();
+        }
         onSuccess?.();
       },
     });

@@ -433,7 +433,7 @@ export default function Profile() {
                   </Badge>
                 )}
                 {reliability.badges.includes("top_organizer") && (
-                  <Badge variant="outline" className="border-teal-200 text-teal-700 bg-teal-50 dark:border-teal-700 dark:text-teal-300 dark:bg-teal-950/50">
+                  <Badge variant="outline" className="border-violet-200 text-violet-700 bg-violet-50 dark:border-violet-700 dark:text-violet-300 dark:bg-violet-950/50">
                     <Trophy className="w-3 h-3 mr-1" />
                     {t("profile.topOrganizer")}
                   </Badge>
@@ -482,17 +482,17 @@ export default function Profile() {
             )}
 
             {/* Invite & Earn referral card */}
-            <div className="mb-4 p-4 bg-gradient-to-br from-teal-50 to-[#E0F7FA] dark:from-teal-950/20 dark:to-[#001F3F]/20 rounded-2xl border border-teal-200/60 dark:border-teal-800/40" data-testid="card-invite-earn">
+            <div className="mb-4 p-4 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-950/20 dark:to-fuchsia-950/20 rounded-2xl border border-violet-200/60 dark:border-violet-800/40" data-testid="card-invite-earn">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center shrink-0">
-                  <Gift className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center shrink-0">
+                  <Gift className="w-4 h-4 text-violet-600 dark:text-violet-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-sm mb-0.5">{t("profile.inviteEarn", "Invite & Grow")}</h4>
                   <p className="text-xs text-muted-foreground mb-2">{t("profile.inviteEarnDesc", "Share your link and grow the community.")}</p>
                   <div className="flex items-center gap-2 flex-wrap">
                     {referralStats && (
-                      <span className="inline-flex items-center gap-1 text-xs bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 px-2 py-0.5 rounded-full">
+                      <span className="inline-flex items-center gap-1 text-xs bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded-full">
                         <Users className="w-3 h-3" />
                         {referralStats.totalReferrals} {t("profile.referred", "referred")}
                       </span>
@@ -500,7 +500,7 @@ export default function Profile() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-7 text-xs border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/30 px-2.5"
+                      className="h-7 text-xs border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/30 px-2.5"
                       onClick={() => {
                         const link = `${window.location.origin}?ref=${(user as any).id}`;
                         navigator.clipboard.writeText(link).then(() => {

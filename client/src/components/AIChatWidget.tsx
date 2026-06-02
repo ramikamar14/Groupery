@@ -26,7 +26,7 @@ function ProviderBadge({ provider, model }: { provider?: string; model?: string 
 
   const color = provider === "openai"
     ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
-    : "text-primary dark:text-teal-400 bg-primary/10";
+    : "text-primary dark:text-violet-400 bg-primary/10";
 
   return (
     <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full mt-1 ${color}`}>

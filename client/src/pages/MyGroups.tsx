@@ -45,13 +45,13 @@ function EmptyState({ tab, status }: { tab: "created" | "joined"; status: Status
   const Icon = msg.icon;
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 bg-card rounded-3xl border border-dashed border-border text-center px-8">
-      <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-5">
-        <Icon className="w-8 h-8 text-muted-foreground/60" />
+    <div className="flex flex-col items-center justify-center py-16 rounded-3xl border border-dashed border-violet-200 dark:border-violet-800/40 bg-gradient-to-b from-violet-50/60 to-transparent dark:from-violet-950/20 text-center px-8">
+      <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/40 rounded-2xl flex items-center justify-center mb-5">
+        <Icon className="w-8 h-8 text-violet-500" />
       </div>
       <h3 className="text-xl font-bold mb-2">{msg.title}</h3>
-      <p className="text-muted-foreground max-w-xs mb-6 leading-relaxed">{msg.desc}</p>
-      <Button asChild size="sm" className="gap-2">
+      <p className="text-muted-foreground max-w-xs mb-7 leading-relaxed">{msg.desc}</p>
+      <Button asChild size="sm" className="gap-2 rounded-full bg-primary hover:bg-primary/90">
         <Link href={msg.href}>
           <PlusCircle className="w-4 h-4" />
           {msg.cta}
@@ -64,9 +64,9 @@ function EmptyState({ tab, status }: { tab: "created" | "joined"; status: Status
 function AllTabFilterEmpty({ status }: { status: StatusFilter }) {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col items-center justify-center py-16 bg-card rounded-3xl border border-dashed border-border text-center px-8">
-      <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-5">
-        <Users className="w-8 h-8 text-muted-foreground/60" />
+    <div className="flex flex-col items-center justify-center py-16 rounded-3xl border border-dashed border-violet-200 dark:border-violet-800/40 bg-gradient-to-b from-violet-50/60 to-transparent dark:from-violet-950/20 text-center px-8">
+      <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/40 rounded-2xl flex items-center justify-center mb-5">
+        <Users className="w-8 h-8 text-violet-500" />
       </div>
       <h3 className="text-xl font-bold mb-2">{t("myGroups.noMatchFilterTitle")}</h3>
       <p className="text-muted-foreground max-w-sm mb-6 leading-relaxed">{t("myGroups.noMatchFilterDesc")}</p>

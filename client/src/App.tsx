@@ -10,7 +10,6 @@ import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
-import Home from "@/pages/Home";
 import Discover from "@/pages/Discover";
 import Dashboard from "@/pages/Dashboard";
 import CreateListing from "@/pages/CreateListing";
@@ -96,7 +95,7 @@ function Router() {
       </Route>
 
       <Route path="/explore">
-        {needsOnboarding ? <Redirect to="/onboarding" /> : <Home />}
+        <Redirect to="/" />
       </Route>
 
       <Route path="/dashboard">

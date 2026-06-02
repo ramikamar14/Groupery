@@ -11,7 +11,7 @@ interface LogoIconProps {
 
 export function LogoIcon({ size = 32, className, variant = "badge" }: LogoIconProps) {
   const hasBg = variant === "badge";
-  const c = variant === "mark" ? "#001F3F" : "#FFFFFF";
+  const c = variant === "mark" ? "#6d28d9" : "#FFFFFF";
 
   return (
     <svg
@@ -23,7 +23,7 @@ export function LogoIcon({ size = 32, className, variant = "badge" }: LogoIconPr
       className={className}
       aria-label="Grouperry"
     >
-      {hasBg && <rect width="100" height="100" rx="20" fill="#001F3F" />}
+      {hasBg && <rect width="100" height="100" rx="20" fill="#6d28d9" />}
 
       {/* Upper-left ring — top "o" of the % */}
       <circle cx="29" cy="40" r="14" stroke={c} strokeWidth="10" fill="none" />
