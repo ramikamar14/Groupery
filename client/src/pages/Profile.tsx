@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import { Link } from "wouter";
 import type { Listing } from "@shared/schema";
-import { RankBadge, computeRank } from "@/components/RankBadge";
+import { RankBadge, computeRank, LoyaltyCard } from "@/components/RankBadge";
 import { CountrySelect } from "@/components/CountrySelect";
 import { ProfileContactInfo } from "@/components/profile/ProfileContactInfo";
 import { ProfileListingsSection } from "@/components/profile/ProfileListingsSection";
@@ -440,6 +440,14 @@ export default function Profile() {
                 )}
               </div>
             )}
+
+            {/* Loyalty tier card */}
+            <div className="mb-4">
+              <LoyaltyCard
+                completedDeals={reliability?.stats?.completedGroups ?? reliability?.stats?.completedListingsCreated ?? 0}
+                savingsStreakWeeks={0}
+              />
+            </div>
 
             {reliability && (
               <div className="mb-4" data-testid="text-reliability-score">

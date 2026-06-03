@@ -1,0 +1,48 @@
+{
+  "name": "Grouperry — Group Buying",
+  "short_name": "Grouperry",
+  "description": "Join group buys, split costs, and save together.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#6d28d9",
+  "background_color": "#faf9fc",
+  "lang": "en",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["shopping", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Browse Deals",
+      "short_name": "Browse",
+      "url": "/",
+      "description": "Browse active group deals"
+    },
+    {
+      "name": "Create Deal",
+      "short_name": "Create",
+      "url": "/create",
+      "description": "Start a new group buy"
+    },
+    {
+      "name": "My Groups",
+      "short_name": "My Groups",
+      "url": "/my-groups",
+      "description": "View groups you joined or created"
+    }
+  ]
+}

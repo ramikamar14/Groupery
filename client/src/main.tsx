@@ -26,3 +26,10 @@ root.render(<App />);
 if (Capacitor.isNativePlatform()) {
   SplashScreen.hide().catch(() => {});
 }
+
+// Register PWA service worker in production web builds
+if (!Capacitor.isNativePlatform() && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}

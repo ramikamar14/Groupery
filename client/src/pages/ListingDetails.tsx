@@ -1029,38 +1029,91 @@ export default function ListingDetails() {
 
           {isActive && user && (isParticipant || isCreator) && (
             <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-950/20 dark:to-fuchsia-950/20 rounded-3xl border border-violet-200/60 dark:border-violet-800/40 p-5" data-testid="section-invite-friends">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="font-bold font-display text-base flex items-center gap-2 mb-1">
-                    <Gift className="w-4 h-4 text-primary" />
-                    {t("listing.inviteFriends", "Invite Friends")}
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{t("listing.inviteFriendsDesc", "Share this deal with friends and help the group fill faster.")}</p>
-                </div>
+              <h3 className="font-bold font-display text-base flex items-center gap-2 mb-1">
+                <Gift className="w-4 h-4 text-primary" />
+                {t("listing.inviteFriends", "Invite Friends")}
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                {t("listing.inviteFriendsDesc", "Share your personal link — when a friend joins through it, you'll be credited.")}
+              </p>
+              <div className="flex items-center gap-2 p-2.5 bg-white/80 dark:bg-black/20 rounded-xl border border-violet-200/60 dark:border-violet-700/40 mb-3">
+                <span className="flex-1 text-xs font-mono text-muted-foreground truncate select-all">
+                  {window.location.origin}/listings/{listing.id}?ref={(user as any)?.id}
+                </span>
                 <Button
                   size="sm"
-                  variant="outline"
-                  className="shrink-0 border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                  variant="ghost"
+                  className="h-7 px-2 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/30 shrink-0"
                   onClick={() => {
-                    const url = `${window.location.origin}/listings/${listing.id}?inv=${user?.id}`;
+                    const url = `${window.location.origin}/listings/${listing.id}?ref=${(user as any)?.id}`;
                     navigator.clipboard.writeText(url).then(() => {
                       toast({ title: t("listing.linkCopied", "Link copied!"), description: t("listing.linkCopiedDesc", "Share it with friends to fill the group.") });
                     });
                   }}
                   data-testid="button-copy-invite-link"
                 >
-                  <Copy className="w-3.5 h-3.5 mr-1.5" />
-                  {t("listing.copyLink", "Copy link")}
+                  <Copy className="w-3.5 h-3.5 mr-1" />
+                  Copy
                 </Button>
+              </div>
+              <div className="flex gap-2">
+                {typeof navigator.share === "function" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-300 text-xs"
+                    onClick={() => {
+                      navigator.share({
+                        title: listing.title,
+                        text: `Join this group deal on Grouperry: ${listing.title}`,
+                        url: `${window.location.origin}/listings/${listing.id}?ref=${(user as any)?.id}`,
+                      }).catch(() => {});
+                    }}
+                    data-testid="button-share-native"
+                  >
+                    Share via…
+                  </Button>
+                )}
+                <span className="text-xs text-muted-foreground self-center">
+                  {listing.totalSlots - listing.filledSlots} slot{listing.totalSlots - listing.filledSlots === 1 ? "" : "s"} left to unlock
+                </span>
               </div>
             </div>
           )}
 
           {isCompleted && user && (isParticipant || isCreator) && (
-            <div className="bg-gradient-to-br from-emerald-50 to-violet-50 dark:from-emerald-950/20 dark:to-violet-950/20 rounded-3xl border border-emerald-200/60 dark:border-emerald-800/40 p-5 text-center" data-testid="section-post-completion-cta">
-              <PartyPopper className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-              <h3 className="font-bold font-display text-base mb-1">{t("listing.dealDone", "This deal is done!")}</h3>
-              <p className="text-xs text-muted-foreground mb-3">{t("listing.createNextDeal", "Ready to organize your own group buy?")}</p>
+            <div className="bg-gradient-to-br from-emerald-50 to-violet-50 dark:from-emerald-950/20 dark:to-violet-950/20 rounded-3xl border border-emerald-200/60 dark:border-emerald-800/40 p-5 text-center space-y-3" data-testid="section-post-completion-cta">
+              <PartyPopper className="w-8 h-8 text-emerald-500 mx-auto" />
+              <h3 className="font-bold font-display text-base">{t("listing.dealDone", "This deal is done!")}</h3>
+
+              {/* Voucher claim section */}
+              {(listing as any).offerType && (listing as any).offerType !== "standard" && (
+                <div className="bg-white/80 dark:bg-black/20 rounded-xl border border-emerald-200/60 dark:border-emerald-700/40 p-4 text-left space-y-2" data-testid="section-voucher-claim">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{(listing as any).offerType === "voucher" ? "🎟️" : (listing as any).offerType === "bogo" ? "2️⃣" : (listing as any).offerType === "gift" ? "🎁" : "%"}</span>
+                    <div>
+                      <p className="font-bold text-sm text-emerald-800 dark:text-emerald-200">Your reward is ready!</p>
+                      <p className="text-xs text-muted-foreground capitalize">{(listing as any).offerType?.replace("_", " ")} deal unlocked</p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-2"
+                    onClick={() => {
+                      fetch(`/api/vouchers/claim/${listing.id}`, { method: "POST", credentials: "include" })
+                        .then(r => r.ok ? r.json() : Promise.reject())
+                        .then((v) => toast({ title: "Voucher claimed!", description: `Code: ${v.code || "Check your email"}` }))
+                        .catch(() => toast({ title: "Claim submitted", description: "Your voucher will be sent to your email shortly." }));
+                    }}
+                    data-testid="button-claim-voucher"
+                  >
+                    <Gift className="w-4 h-4" />
+                    Claim My Voucher / Code
+                  </Button>
+                </div>
+              )}
+
+              <p className="text-xs text-muted-foreground">{t("listing.createNextDeal", "Ready to organize your own group buy?")}</p>
               <Button
                 size="sm"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
