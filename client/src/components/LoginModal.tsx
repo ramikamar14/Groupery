@@ -63,6 +63,18 @@ export function LoginModal({ open, onClose, returnTo }: LoginModalProps) {
       });
       const data = await res.json();
       if (!res.ok) { setEmailError(data.message || "Something went wrong"); return; }
+      // Claim referral if user landed via ?ref= link
+      if (emailMode === "register") {
+        const ref = sessionStorage.getItem("grouperry_ref");
+        if (ref) {
+          fetch("/api/referrals/claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ referrerId: ref }),
+          }).then(() => sessionStorage.removeItem("grouperry_ref")).catch(() => {});
+        }
+      }
       onSuccess();
     } catch {
       setEmailError("Network error. Please try again.");

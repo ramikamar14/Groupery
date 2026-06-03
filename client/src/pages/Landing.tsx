@@ -1,7 +1,14 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header, Hero, Stats, HowItWorks, Categories, Trust, CTA, Footer } from "@/components/landing-v2";
 
 export default function Landing() {
+  // Capture ?ref=userId from the URL and store for post-registration claim
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref) sessionStorage.setItem("grouperry_ref", ref);
+  }, []);
+
   const { data: platformStats } = useQuery<{ activeListings: number; totalMembers: number }>({
     queryKey: ["/api/stats"],
     staleTime: 5 * 60_000,

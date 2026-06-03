@@ -14,9 +14,11 @@ export function Logo({ className, iconSize = 40 }: LogoProps) {
   const { t } = useTranslation();
 
   return (
-    <div className={cn("flex items-center gap-2.5", className)} data-testid="text-brand">
-      <LogoIcon size={iconSize} />
-      <span className="text-2xl font-bold font-display tracking-tight text-foreground">{t("landing.brandName")}</span>
+    <div className={cn("flex items-center gap-2", className)} data-testid="text-brand">
+      <LogoIcon size={iconSize} variant="color" />
+      <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em", color: "#0f172a", lineHeight: 1 }}>
+        {t("landing.brandName")}<sup style={{ fontSize: 10, verticalAlign: "super", fontWeight: 400 }}>®</sup>
+      </span>
     </div>
   );
 }

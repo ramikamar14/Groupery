@@ -2,75 +2,88 @@ interface LogoIconProps {
   size?: number;
   className?: string;
   /**
-   * "badge" (default) — navy rounded-square bg + white icon. Nav, mobile header, app icon.
-   * "mark"            — transparent bg, navy icon. White/light page backgrounds.
-   * "white"           — transparent bg, white icon. Navy/dark sections.
+   * "badge" — purple gradient rounded-square bg + white mark (app icon, nav)
+   * "color" — transparent bg, purple gradient mark (light backgrounds)
+   * "white" — transparent bg, white mark (dark/violet backgrounds)
    */
-  variant?: "badge" | "mark" | "white";
+  variant?: "badge" | "color" | "white";
 }
 
 export function LogoIcon({ size = 32, className, variant = "badge" }: LogoIconProps) {
+  const id = `lg-${variant}-${size}`;
   const hasBg = variant === "badge";
-  const c = variant === "mark" ? "#6d28d9" : "#FFFFFF";
+  const useGradient = variant === "color";
+  const markColor = useGradient ? `url(#${id})` : "#fff";
 
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 100 100"
+      viewBox="0 0 180 180"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       aria-label="Grouperry"
     >
-      {hasBg && <rect width="100" height="100" rx="20" fill="#6d28d9" />}
+      <defs>
+        {hasBg && (
+          <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#6d28d9" />
+          </linearGradient>
+        )}
+        {useGradient && (
+          <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#c084fc" />
+            <stop offset="100%" stopColor="#6d28d9" />
+          </linearGradient>
+        )}
+      </defs>
 
-      {/* Upper-left ring — top "o" of the % */}
-      <circle cx="29" cy="40" r="14" stroke={c} strokeWidth="10" fill="none" />
+      {hasBg && <rect width="180" height="180" rx="38" fill={`url(#${id}-bg)`} />}
 
-      {/* Lower-right ring — bottom "o" of the % */}
-      <circle cx="71" cy="62" r="14" stroke={c} strokeWidth="10" fill="none" />
-
-      {/* Upper-right filled dot — top tip of the slash */}
-      <circle cx="59" cy="11" r="9" fill={c} />
-
-      {/* Lower-left filled dot — bottom tip of the slash */}
-      <circle cx="39" cy="90" r="9" fill={c} />
-
-      {/*
-        S-curve slash threading between both rings.
-        C1 pulls upper-half LEFT  (grazes right edge of top ring at x≈48)
-        C2 pulls lower-half RIGHT (grazes left  edge of bottom ring at x≈52)
-      */}
-      <path
-        d="M 59 20 C 30 40, 70 62, 39 81"
-        stroke={c}
-        strokeWidth="10"
-        strokeLinecap="round"
-        fill="none"
-      />
+      {/* G shape: large arc (CCW) + inward horizontal bar */}
+      <g transform="translate(10, 40) scale(1.0)">
+        <path
+          d="M 76.9,41.5 A 33,33 0 1,0 75,61.3 L 56,61.3"
+          fill="none"
+          stroke={markColor}
+          strokeWidth="11"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* ∞ infinity loops — filled figure-8 */}
+        <path
+          d="M 114,58 C 114,46 130,46 130,58 C 130,70 114,70 114,58 C 114,46 98,46 98,58 C 98,70 114,70 114,58 Z"
+          fill={markColor}
+        />
+      </g>
     </svg>
   );
 }
 
 export function LogoWordmark({
   className,
-  variant,
+  variant = "color",
 }: {
   className?: string;
   variant?: LogoIconProps["variant"];
 }) {
   return (
-    <div className={`flex items-center gap-2.5 ${className ?? ""}`}>
-      <LogoIcon size={32} variant={variant} />
-      <div className="flex flex-col leading-none">
-        <span className="text-base font-bold font-display tracking-widest uppercase text-foreground">
-          Grouperry
-        </span>
-        <span className="text-[9px] font-medium tracking-wider uppercase text-muted-foreground">
-          Group Buying Made Easy
-        </span>
-      </div>
+    <div className={`flex items-center gap-2 ${className ?? ""}`}>
+      <LogoIcon size={36} variant={variant} />
+      <span
+        style={{
+          fontFamily: "'Poppins', sans-serif",
+          fontWeight: 700,
+          fontSize: 20,
+          letterSpacing: "-0.02em",
+          color: variant === "white" ? "#fff" : "#0f172a",
+          lineHeight: 1,
+        }}
+      >
+        Grouperry<sup style={{ fontSize: 10, verticalAlign: "super", fontWeight: 400 }}>®</sup>
+      </span>
     </div>
   );
 }

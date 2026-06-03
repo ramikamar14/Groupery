@@ -59,7 +59,7 @@ export function Footer() {
       title: "Company",
       links: [
         { label: "About", href: "/about" },
-        { label: "Blog", href: "#" },
+        { label: "Blog", href: "/about" },
         { label: "Contact", href: "/contact" },
       ],
     },
