@@ -22,7 +22,7 @@ export default function NotFound() {
 
             <div className="mt-6 flex flex-wrap gap-3 justify-end">
               <Button variant="outline" asChild>
-                <Link href="/explore">{t("notFound.browse")}</Link>
+                <Link href="/">{t("notFound.browse")}</Link>
               </Button>
               <Button asChild>
                 <Link href="/">{t("notFound.home")}</Link>

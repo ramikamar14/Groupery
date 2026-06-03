@@ -47,7 +47,7 @@ function LiveDealCard() {
     discountLabel = `-${Math.round((1 - deal.pricePerSlot / deal.marketPrice) * 100)}%`;
   }
 
-  const ctaHref = hasDeal ? `/listings/${deal.id}` : "/explore";
+  const ctaHref = hasDeal ? `/listings/${deal.id}` : "/";
   const ctaLabel = hasDeal ? t("v2.joinThisGroup") : t("v2.exampleDealJoin");
 
   const cells = Math.min(total, 12);

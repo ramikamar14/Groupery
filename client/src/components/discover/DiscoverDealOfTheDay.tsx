@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
-import { Clock, Users, CheckCircle, Flame } from "lucide-react";
+import { differenceInHours } from "date-fns";
 import type { DiscoverCardListing } from "./mapListing";
 import { fillRatio } from "./mapListing";
 
@@ -16,6 +12,22 @@ interface Props {
   saveBadgeText: string;
   joinedLabel: string;
   filledLabel: string;
+}
+
+function SlotMeter({ filled, total }: { filled: number; total: number }) {
+  const cells = Math.min(total, 24);
+  const filledCells = total > 24 ? Math.round((filled / total) * cells) : filled;
+  return (
+    <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+      {Array.from({ length: cells }).map((_, i) => (
+        <div
+          key={i}
+          className={i < filledCells ? "gp-slot gp-slot-on" : i === filledCells ? "gp-slot gp-slot-next" : "gp-slot gp-slot-off"}
+          style={{ height: 16, minWidth: 18, flex: "1 1 18px", maxWidth: 28 }}
+        />
+      ))}
+    </div>
+  );
 }
 
 export function DiscoverDealOfTheDay({
@@ -50,88 +62,190 @@ export function DiscoverDealOfTheDay({
     listing.originalPrice > 0 && listing.groupPrice > 0
       ? Math.round((1 - listing.groupPrice / listing.originalPrice) * 100)
       : 0;
+  const slotsLeft = listing.spotsTotal - listing.spotsFilled;
+  const isAlmostFull = slotsLeft > 0 && slotsLeft <= 3;
+  const hoursLeft = differenceInHours(listing.endsAt, new Date());
+  const isUrgent = hoursLeft > 0 && hoursLeft <= 9;
 
   return (
-    <div className="relative rounded-3xl overflow-hidden mb-8 group">
-      <div className="absolute inset-0">
-        <img src={listing.image} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+    <div
+      className="gp-card mb-8"
+      style={{
+        overflow: "hidden",
+        background: "var(--surface)",
+        borderRadius: 24,
+      }}
+    >
+      {/* Hero image tile */}
+      <div style={{ position: "relative", height: 240 }}>
+        <div className="gp-img-tile" style={{ height: "100%", borderRadius: 0 }}>
+          <div style={{
+            width: 80, height: 80, borderRadius: 20,
+            background: "#fff",
+            boxShadow: "0 10px 30px -8px rgba(109,40,217,.45)",
+            display: "grid", placeItems: "center",
+            color: "var(--v-700)", fontWeight: 900, fontSize: 28,
+            letterSpacing: "-.02em",
+          }}>
+            {listing.title.slice(0, 2).toUpperCase()}
+          </div>
+          <span style={{
+            fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: ".1em",
+            textTransform: "uppercase", color: "rgba(255,255,255,.6)", fontWeight: 500,
+          }}>
+            deal of the day
+          </span>
+        </div>
+
+        {/* LIVE chip */}
+        <span className="gp-chip gp-chip-live" style={{ position: "absolute", top: 14, left: 14, fontWeight: 700, fontSize: 11 }}>
+          <span className="gp-dot-pulse" style={{ background: "#fff" }} /> LIVE
+        </span>
+
+        {/* Deal of the Day badge */}
+        <span
+          className="gp-chip"
+          style={{
+            position: "absolute", top: 14, left: 74,
+            background: "rgba(255,255,255,.15)", backdropFilter: "blur(8px)",
+            color: "#fff", border: "1px solid rgba(255,255,255,.25)",
+            fontWeight: 700, fontSize: 11,
+          }}
+        >
+          🔥 {badgeDeal}
+        </span>
+
+        {/* Countdown timer */}
+        <div style={{
+          position: "absolute", top: 14, right: 14,
+          background: "rgba(0,0,0,.55)", backdropFilter: "blur(8px)",
+          borderRadius: 14, padding: "6px 12px",
+          display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,.6)", fontWeight: 600, letterSpacing: ".06em", textTransform: "uppercase" }}>ends</span>
+          <span style={{
+            fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: 15,
+            color: isUrgent ? "#fca5a5" : "#fff", letterSpacing: ".04em",
+          }}>
+            {String(timeLeft.hours).padStart(2, "0")}:{String(timeLeft.minutes).padStart(2, "0")}:{String(timeLeft.seconds).padStart(2, "0")}
+          </span>
+        </div>
+
+        {/* Savings disc */}
+        {savings > 0 && (
+          <div className="gp-savings-disc" style={{ width: 58, height: 58, bottom: 14, right: 14 }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 17, fontWeight: 900, lineHeight: 1 }}>{savings}%</div>
+              <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: ".06em", opacity: .85 }}>OFF</div>
+            </div>
+          </div>
+        )}
+
+        {/* Almost full banner */}
+        {isAlmostFull && (
+          <div className="gp-almost">
+            🔥 Only {slotsLeft} spot{slotsLeft === 1 ? "" : "s"} left!
+          </div>
+        )}
       </div>
 
-      <div className="relative p-6 sm:p-8 min-h-[320px] sm:min-h-[380px] flex flex-col justify-end">
-        <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-          <Badge className="bg-accent text-accent-foreground border-0 rounded-full px-3 py-1 font-semibold">
-            <Flame className="w-3.5 h-3.5 mr-1" />
-            {badgeDeal}
-          </Badge>
-          {savings > 0 && (
-            <Badge className="bg-green-500 text-white border-0 rounded-full px-3 py-1 font-semibold">{saveBadgeText}</Badge>
+      {/* Card body */}
+      <div style={{ padding: "22px 22px 20px" }}>
+        {/* Category chip */}
+        <div style={{ marginBottom: 10 }}>
+          <span className="gp-chip gp-chip-cat">{listing.category}</span>
+        </div>
+
+        {/* Title + description */}
+        <h2 style={{
+          margin: "0 0 8px", fontSize: 22, fontWeight: 800,
+          letterSpacing: "-.03em", lineHeight: 1.2, color: "var(--ink)",
+        }}>
+          {listing.title}
+        </h2>
+        <p style={{
+          margin: "0 0 18px", fontSize: 14, color: "var(--muted-c)", lineHeight: 1.55,
+          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
+        }}>
+          {description}
+        </p>
+
+        {/* Seller row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: "50%",
+            background: "linear-gradient(135deg, var(--v-500), var(--v-700))",
+            color: "#fff", fontWeight: 700, fontSize: 12,
+            display: "grid", placeItems: "center", flexShrink: 0,
+          }}>
+            {listing.seller.name[0]}
+          </div>
+          <span style={{ fontSize: 13, color: "var(--muted-c)", fontWeight: 600 }}>
+            {listing.seller.name}
+          </span>
+          {listing.seller.verified && (
+            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--emerald)" }}>✓ verified</span>
           )}
         </div>
 
-        <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm rounded-2xl px-4 py-2.5 flex items-center gap-3">
-          <Clock className="w-4 h-4 text-accent" />
-          <div className="flex items-center gap-1 font-mono text-white font-semibold text-sm">
-            <span className="bg-white/20 rounded-lg px-2 py-1">{String(timeLeft.hours).padStart(2, "0")}</span>
-            <span>:</span>
-            <span className="bg-white/20 rounded-lg px-2 py-1">{String(timeLeft.minutes).padStart(2, "0")}</span>
-            <span>:</span>
-            <span className="bg-white/20 rounded-lg px-2 py-1">{String(timeLeft.seconds).padStart(2, "0")}</span>
-          </div>
-        </div>
+        {/* Slot meter */}
+        <SlotMeter filled={listing.spotsFilled} total={listing.spotsTotal} />
 
-        <div className="space-y-4">
+        {/* Fill count + price row */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "14px 0 16px" }}>
           <div>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mb-2 text-balance">{listing.title}</h2>
-            <p className="text-white/80 text-sm sm:text-base max-w-xl line-clamp-3">{description}</p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Avatar className="w-10 h-10 border-2 border-white/30">
-              <AvatarImage src={listing.seller.avatar} alt="" />
-              <AvatarFallback>{listing.seller.name[0]}</AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-white font-medium">{listing.seller.name}</span>
-                {listing.seller.verified && <CheckCircle className="w-4 h-4 text-primary" />}
-              </div>
+            <span style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
+              <span style={{ color: "var(--v-700)", fontSize: 22, fontWeight: 900 }}>{listing.spotsFilled}</span>
+              {" "}<span style={{ color: "var(--muted-c)", fontWeight: 600 }}>in ·</span>{" "}
+              <span style={{ fontWeight: 700 }}>{slotsLeft}</span>{" "}
+              <span style={{ color: "var(--muted-c)", fontWeight: 500, fontSize: 13 }}>to unlock</span>
+            </span>
+            <div style={{ marginTop: 4 }}>
+              <span style={{ fontSize: 12, color: "var(--muted-2)", fontWeight: 500 }}>
+                {Math.round(pct)}% filled
+              </span>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-8">
-            <div className="flex-1 space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-white/70">
-                  <Users className="w-4 h-4 inline mr-1" />
-                  {joinedLabel
-                    .replace("{{filled}}", String(listing.spotsFilled))
-                    .replace("{{total}}", String(listing.spotsTotal))}
-                </span>
-                <span className="text-accent font-medium">{filledLabel.replace("{{pct}}", String(Math.round(pct)))}</span>
-              </div>
-              <Progress value={pct} className="h-2.5 bg-white/20 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-accent" />
-            </div>
-
-            <div className="flex items-center gap-4">
-              {listing.groupPrice > 0 && (
-                <div className="text-right">
-                  {listing.originalPrice > listing.groupPrice && (
-                    <div className="text-white/50 line-through text-sm">${listing.originalPrice}</div>
-                  )}
-                  <div className="text-2xl sm:text-3xl font-bold text-white">${listing.groupPrice}</div>
+          {listing.groupPrice > 0 && (
+            <div style={{ textAlign: "right" }}>
+              {listing.originalPrice > listing.groupPrice && (
+                <div style={{ fontSize: 13, color: "var(--muted-2)", textDecoration: "line-through", fontWeight: 500 }}>
+                  ${listing.originalPrice}
                 </div>
               )}
-              <Button
-                size="lg"
-                className="rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity px-6 sm:px-8 font-semibold"
-                asChild
-              >
-                <Link href={`/listings/${listing.id}`}>{joinLabel}</Link>
-              </Button>
+              <div style={{ fontSize: 30, fontWeight: 900, color: "var(--v-700)", letterSpacing: "-.03em", lineHeight: 1 }}>
+                ${listing.groupPrice}
+              </div>
             </div>
-          </div>
+          )}
         </div>
+
+        {/* CTA button */}
+        <Link href={`/listings/${listing.id}`}>
+          <button style={{
+            width: "100%",
+            background: "linear-gradient(135deg, var(--v-700), var(--v-500))",
+            color: "#fff", border: "none", borderRadius: 16,
+            padding: "14px 24px",
+            fontSize: 16, fontWeight: 800, cursor: "pointer",
+            boxShadow: "0 8px 24px -6px rgba(109,40,217,.5)",
+            fontFamily: "inherit",
+            letterSpacing: "-.01em",
+            transition: "opacity .15s, transform .15s",
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.opacity = ".9";
+            (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.opacity = "1";
+            (e.currentTarget as HTMLButtonElement).style.transform = "";
+          }}
+          >
+            {joinLabel} →
+          </button>
+        </Link>
       </div>
     </div>
   );

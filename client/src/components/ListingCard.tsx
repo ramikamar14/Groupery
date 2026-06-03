@@ -131,7 +131,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         style={{ boxShadow: "0 6px 20px -6px rgba(109,40,217,0.10), 0 2px 6px rgba(25,19,32,0.05)" }}>
 
         {/* ── Image / tile area ─────────────────────────────────── */}
-        <div className="relative overflow-hidden bg-violet-50 dark:bg-violet-950/30" style={{ height: 130 }}>
+        <div className="relative overflow-hidden" style={{ height: 130 }}>
           {listing.imageUrl ? (
             <img
               src={listing.imageUrl}
@@ -140,12 +140,13 @@ export function ListingCard({ listing }: ListingCardProps) {
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center gap-2"
-              style={{ background: "repeating-linear-gradient(135deg,rgba(109,40,217,.055) 0 9px,rgba(109,40,217,0) 9px 20px),linear-gradient(160deg,#f5f3ff,#fff)" }}>
-              <div className="w-13 h-13 rounded-xl bg-white flex items-center justify-center text-primary font-bold text-lg shadow-md" style={{ width: 52, height: 52, borderRadius: 14 }}>
+            <div className="gp-img-tile w-full h-full">
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: "#fff", boxShadow: "0 6px 18px -6px rgba(109,40,217,.4)", display: "grid", placeItems: "center", color: "var(--v-700)", fontWeight: 800, fontSize: 18 }}>
                 {listing.title.slice(0, 2).toUpperCase()}
               </div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-primary/60">product shot</span>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, letterSpacing: ".08em", textTransform: "uppercase" as const, color: "rgba(255,255,255,.7)", fontWeight: 500 }}>
+                product shot
+              </span>
             </div>
           )}
 
@@ -231,6 +232,14 @@ export function ListingCard({ listing }: ListingCardProps) {
             {listing.title}
           </h3>
 
+          {/* Urgency signal — only X spots left */}
+          {isActive && slotsLeft > 0 && slotsLeft <= 3 && (
+            <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:11.5, fontWeight:700, color:"#e23744", background:"#fff1f2", borderRadius:8, padding:"3px 8px", width:"fit-content" }}
+              data-testid={`urgency-spots-${listing.id}`}>
+              🔥 Only {slotsLeft} spot{slotsLeft === 1 ? "" : "s"} left!
+            </div>
+          )}
+
           {/* Slot meter */}
           <SlotMeter filled={listing.filledSlots} total={listing.totalSlots} />
 
@@ -257,6 +266,24 @@ export function ListingCard({ listing }: ListingCardProps) {
               </span>
             )}
           </div>
+
+          {/* Viewer count + "ends soon" urgency chip row */}
+          {isActive && ((listing as any).viewCount > 2 || (countdown.urgent && differenceInHours(new Date(listing.expiresAt), new Date()) < 6)) && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {(listing as any).viewCount > 2 && (
+                <span className="flex items-center gap-1 text-[10.5px] text-muted-foreground" data-testid={`viewers-${listing.id}`}>
+                  <Users className="w-3 h-3" /> {(listing as any).viewCount} viewing
+                </span>
+              )}
+              {countdown.urgent && differenceInHours(new Date(listing.expiresAt), new Date()) < 6 && (
+                <span style={{ fontSize:10.5, fontWeight:700, color:"#d97706", background:"#fffbeb", borderRadius:8, padding:"2px 6px" }}
+                  data-testid={`urgency-expiry-${listing.id}`}>
+                  ⏰ Ends soon
+                </span>
+              )}
+            </div>
+          )}
+
 
           {/* Creator + trust row */}
           <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-border/40 mt-auto">

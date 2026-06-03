@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, LayoutDashboard, PlusSquare, Users, User, LogOut, Bell, Bookmark, ShieldAlert, Clock, CheckCircle, ChevronRight } from "lucide-react";
+import { Home, LayoutDashboard, PlusSquare, Users, User, LogOut, Bell, Bookmark, ShieldAlert, Clock, CheckCircle, ChevronRight, Tag } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -52,30 +52,24 @@ export function BottomNav() {
               )}
               data-testid={`nav-mobile-${item.href.replace("/", "") || "home"}`}
             >
-              {isActive && !isCreate && (
+              {isActive && item.href !== "/create" && (
                 <span className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-primary" />
               )}
-              {isCreate ? (
-                <div style={{
-                  width: 46, height: 46, borderRadius: 14,
-                  background: "linear-gradient(120deg, #7c3aed, #5b21b6)",
-                  boxShadow: "0 6px 18px -6px rgba(109,40,217,0.7)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  marginTop: -14,
-                }}>
-                  <item.icon className="w-5 h-5" style={{ color: "#fff" }} strokeWidth={2.2} />
-                </div>
-              ) : (
-                <div className="relative mt-1">
+              <div className="relative mt-1">
+                {item.href === "/create" ? (
+                  <span className="nav-create-fab">
+                    <item.icon style={{ width: 18, height: 18, color: "#fff" }} strokeWidth={2.2} />
+                  </span>
+                ) : (
                   <item.icon className={cn("w-6 h-6 transition-transform duration-150", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 1.75} />
-                  {"badge" in item && item.badge && (
-                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm px-0.5">
-                      {item.badge > 9 ? "9+" : item.badge}
-                    </span>
-                  )}
-                </div>
-              )}
-              <span className={cn("text-[11px] font-medium leading-none", isCreate ? "text-primary font-semibold" : isActive ? "font-semibold text-primary" : "text-muted-foreground")}>{item.label}</span>
+                )}
+                {"badge" in item && item.badge && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm px-0.5">
+                    {item.badge > 9 ? "9+" : item.badge}
+                  </span>
+                )}
+              </div>
+              <span className={cn("text-[11px] font-medium leading-none", item.href === "/create" ? "text-muted-foreground" : isActive ? "font-semibold text-primary" : "text-muted-foreground")}>{item.label}</span>
             </Link>
           );
           if (item.href === "/create" && createBlocked) {
@@ -125,6 +119,7 @@ export function Sidebar() {
     { href: "/my-groups", icon: Users, label: t("nav.myGroups") },
     { href: "/create", icon: PlusSquare, label: t("nav.create") },
     { href: "/saved", icon: Bookmark, label: t("nav.saved") },
+    { href: "/vouchers", icon: Tag, label: "Vouchers" },
     { href: "/notifications", icon: Bell, label: t("nav.notifications"), badge: unreadCount > 0 ? unreadCount : undefined },
     { href: "/expired", icon: Clock, label: t("nav.pastListings") },
     { href: "/profile", icon: User, label: t("nav.profile") },

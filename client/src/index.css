@@ -1,166 +1,287 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Roboto+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /*
- * Grouperry design system (global)
- * Primary = Violet #6d28d9 · Accent = Violet-600 #7c3aed · Poppins 400–700 · Cards 0.75rem radius
- * Dark: deep field; violet stays vivid for progress, rings, and accents. (Momentum palette)
+ * Grouperry — Momentum design system
+ * Violet-700 #6d28d9 · Poppins · Warm-neutral surfaces · Segmented slot meter
+ * Source of truth: Grouperry Momentum.html + tokens.css from design archive
  */
 
 :root {
   --font-body: 'Poppins', sans-serif;
   --font-display: 'Poppins', sans-serif;
+  --font-mono: 'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  /*
-   * Grouperry design system — Violet (#6d28d9) primary, Violet-600 (#7c3aed) accent
-   * (HSL channels for Tailwind hsl(var(--token) / <alpha>))
-   */
-  --background: 248 18% 98%; /* ~ oklch(0.98 0.005 250) warm white */
-  --foreground: 250 35% 12%; /* ~ oklch(0.15 0.03 250) body / headings */
+  /* ── Momentum brand — violet ─────────────────────────── */
+  --v-900: #3b1379;
+  --v-800: #5b21b6;
+  --v-700: #6d28d9;
+  --v-600: #7c3aed;
+  --v-500: #8b5cf6;
+  --v-300: #c4b5fd;
+  --v-100: #ede9fe;
+  --v-50:  #f5f3ff;
 
-  /* Primary: Violet-700 — brand, main buttons, nav emphasis */
-  --primary: 263 70% 50%; /* #6d28d9 */
+  /* ── Warm neutral ink + surfaces ────────────────────── */
+  --ink:     #191320;
+  --ink-2:   #3a3340;
+  --muted-c: #736c80;
+  --muted-2: #9b95a6;
+  --line:    #ece9f2;
+  --line-2:  #e2def0;
+  --bg:      #ffffff;
+  --surface: #faf9fc;
+  --cream:   #faf7f1;
+
+  /* ── Semantic ────────────────────────────────────────── */
+  --emerald:    #059669;
+  --emerald-50: #ecfdf5;
+  --emerald-100:#d1fae5;
+  --amber-c:    #e08a00;
+  --amber-50:   #fff7ed;
+  --red-c:      #e23744;
+  --red-50:     #fef2f2;
+
+  /* ── Shadows ─────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(25,19,32,.06), 0 1px 3px rgba(25,19,32,.05);
+  --shadow-md: 0 6px 20px -6px rgba(25,19,32,.14), 0 2px 6px rgba(25,19,32,.05);
+  --shadow-lg: 0 18px 50px -12px rgba(46,16,101,.26), 0 6px 16px -8px rgba(25,19,32,.10);
+  --shadow-violet: 0 14px 40px -12px rgba(109,40,217,.45);
+
+  /* ── Tailwind HSL tokens (shadcn/ui compatibility) ───── */
+  --font-body: 'Poppins', sans-serif;
+  --font-display: 'Poppins', sans-serif;
+  --background: 250 20% 98%;
+  --foreground: 250 30% 10%;
+  --primary: 263 69% 42%;
   --primary-foreground: 0 0% 100%;
-  --primary-border: hsl(263 70% 40%);
-
-  /* Secondary: light blue-gray surfaces */
-  --secondary: 248 20% 96%;
-  --secondary-foreground: 210 100% 12%;
-  --secondary-border: hsl(248 14% 88%);
-
-  /* Accent: Violet-600 — progress, focus ring, highlights, secondary CTAs */
-  --accent: 262 80% 58%; /* #7c3aed */
-  --accent-foreground: 0 0% 100%;
-  --accent-border: hsl(262 80% 48%);
-
-  /* Destructive — ~ oklch(0.577 0.245 27.325) */
-  --destructive: 27 86% 56%;
+  --primary-border: hsl(263 69% 35%);
+  --secondary: 263 25% 96%;
+  --secondary-foreground: 263 69% 28%;
+  --secondary-border: hsl(263 18% 89%);
+  --accent: 263 40% 94%;
+  --accent-foreground: 263 69% 28%;
+  --accent-border: hsl(263 20% 86%);
+  --destructive: 351 83% 57%;
   --destructive-foreground: 0 0% 100%;
-  --destructive-border: hsl(27 86% 46%);
-
-  --muted: 248 16% 94%;
-  --muted-foreground: 250 12% 45%; /* ~ oklch(0.5 0.02 250) */
-  --muted-border: hsl(248 12% 88%);
-
-  --card: 0 0% 100%; /* oklch(1 0 0) */
-  --card-foreground: 250 35% 12%;
-  --card-border: hsl(248 14% 90%);
-
+  --destructive-border: hsl(351 83% 47%);
+  --muted: 250 18% 95%;
+  --muted-foreground: 250 12% 46%;
+  --muted-border: hsl(250 14% 88%);
+  --card: 0 0% 100%;
+  --card-foreground: 250 30% 10%;
+  --card-border: hsl(263 16% 91%);
   --popover: 0 0% 100%;
-  --popover-foreground: 250 35% 12%;
-  --popover-border: hsl(248 14% 90%);
-
-  --border: 248 14% 90%; /* subtle blue-gray */
-  --input: 248 14% 90%;
-  --ring: 263 70% 60%; /* violet focus ring */
-
-  --button-outline: hsl(248 12% 82%);
-
-  /* Sidebar */
-  --sidebar: 248 22% 97%;
-  --sidebar-foreground: 250 35% 12%;
-  --sidebar-border: 248 14% 90%;
-  --sidebar-ring: 263 70% 60%;
-  --sidebar-primary: 263 70% 50%;
+  --popover-foreground: 250 30% 10%;
+  --popover-border: hsl(263 16% 91%);
+  --border: 263 16% 91%;
+  --input: 263 16% 91%;
+  --ring: 263 69% 42%;
+  --button-outline: hsl(263 14% 84%);
+  --sidebar: 263 25% 97%;
+  --sidebar-foreground: 263 69% 28%;
+  --sidebar-border: 263 16% 91%;
+  --sidebar-ring: 263 69% 42%;
+  --sidebar-primary: 263 69% 42%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-primary-border: hsl(263 70% 40%);
-  --sidebar-accent: 248 18% 93%;
-  --sidebar-accent-foreground: 250 35% 12%;
-  --sidebar-accent-border: hsl(248 12% 86%);
-
-  /* Charts: teal first, navy second */
-  --chart-1: 180 100% 32%;
-  --chart-2: 210 100% 12%;
-  --chart-3: 187 55% 48%;
-  --chart-4: 27 86% 56%;
+  --sidebar-primary-border: hsl(263 69% 35%);
+  --sidebar-accent: 263 25% 94%;
+  --sidebar-accent-foreground: 263 69% 28%;
+  --sidebar-accent-border: hsl(263 18% 87%);
+  --chart-1: 263 69% 42%;
+  --chart-2: 162 73% 38%;
+  --chart-3: 291 64% 58%;
+  --chart-4: 351 83% 57%;
   --chart-5: 38 92% 50%;
-
   --radius: 0.75rem;
-  --badge-outline: hsl(248 12% 82%);
+  --badge-outline: hsl(263 14% 84%);
+
+  /* Momentum brand shortcuts for JS inline styles */
+  --v-grad: linear-gradient(135deg, var(--v-600), var(--v-800));
+  --v-grad-b: linear-gradient(120deg, var(--v-600), var(--v-800));
 }
 
 .dark {
-  /* ~ oklch(0.14 0.025 250) deep navy field */
-  --background: 248 32% 9%;
-  --foreground: 248 25% 94%;
+  --background: 263 28% 8%;
+  --foreground: 263 20% 94%;
 
-  /* Violet stays readable; slightly lifted for dark UI */
-  --primary: 263 70% 65%;
-  --primary-foreground: 248 25% 98%;
-  --primary-border: hsl(263 70% 52%);
+  /* Violet lifts in dark mode */
+  --primary: 263 72% 62%; /* #8b5cf6 lighter violet */
+  --primary-foreground: 263 28% 6%;
+  --primary-border: hsl(263 72% 52%);
 
-  --secondary: 248 22% 16%;
-  --secondary-foreground: 248 20% 92%;
-  --secondary-border: hsl(248 18% 24%);
+  --secondary: 263 22% 15%;
+  --secondary-foreground: 263 20% 90%;
+  --secondary-border: hsl(263 18% 22%);
 
-  /* Violet stays bright for contrast */
-  --accent: 262 70% 70%;
-  --accent-foreground: 248 25% 98%;
-  --accent-border: hsl(262 70% 56%);
+  --accent: 291 60% 68%;
+  --accent-foreground: 263 28% 6%;
+  --accent-border: hsl(291 60% 55%);
 
-  --destructive: 22 78% 52%;
+  --destructive: 351 78% 54%;
   --destructive-foreground: 0 0% 100%;
-  --destructive-border: hsl(22 78% 42%);
+  --destructive-border: hsl(351 78% 44%);
 
-  --muted: 248 22% 14%;
-  --muted-foreground: 248 12% 58%;
-  --muted-border: hsl(248 18% 22%);
+  --muted: 263 22% 13%;
+  --muted-foreground: 263 12% 58%;
+  --muted-border: hsl(263 18% 22%);
 
-  /* ~ oklch(0.18 0.025 250) cards */
-  --card: 248 28% 12%;
-  --card-foreground: 248 25% 94%;
-  --card-border: hsl(248 22% 20%);
+  --card: 263 26% 11%;
+  --card-foreground: 263 20% 94%;
+  --card-border: hsl(263 22% 19%);
 
-  --popover: 248 28% 12%;
-  --popover-foreground: 248 25% 94%;
-  --popover-border: hsl(248 22% 20%);
+  --popover: 263 26% 11%;
+  --popover-foreground: 263 20% 94%;
+  --popover-border: hsl(263 22% 19%);
 
-  --border: 248 22% 20%;
-  --input: 248 22% 20%;
-  --ring: 263 70% 70%;
+  --border: 263 22% 19%;
+  --input: 263 22% 19%;
+  --ring: 263 72% 62%;
 
-  --button-outline: hsl(248 16% 28%);
+  --button-outline: hsl(263 16% 28%);
 
-  --sidebar: 248 30% 8%;
-  --sidebar-foreground: 248 22% 90%;
-  --sidebar-border: 248 22% 18%;
-  --sidebar-ring: 263 70% 70%;
-  --sidebar-primary: 263 70% 65%;
-  --sidebar-primary-foreground: 248 25% 98%;
-  --sidebar-primary-border: hsl(263 70% 52%);
-  --sidebar-accent: 248 22% 14%;
-  --sidebar-accent-foreground: 248 20% 90%;
-  --sidebar-accent-border: hsl(248 18% 22%);
+  --sidebar: 263 30% 7%;
+  --sidebar-foreground: 263 18% 90%;
+  --sidebar-border: 263 22% 17%;
+  --sidebar-ring: 263 72% 62%;
+  --sidebar-primary: 263 72% 62%;
+  --sidebar-primary-foreground: 263 28% 6%;
+  --sidebar-primary-border: hsl(263 72% 52%);
+  --sidebar-accent: 263 22% 13%;
+  --sidebar-accent-foreground: 263 18% 88%;
+  --sidebar-accent-border: hsl(263 18% 20%);
 
-  --badge-outline: hsl(248 16% 28%);
+  --badge-outline: hsl(263 16% 28%);
 }
 
-/* Landing v2 — warm cream background, same Violet brand as app */
+/* Landing v2 — warm cream, Momentum violet brand */
 .theme-v2 {
   --background: 48 38% 97%;
-  --foreground: 250 35% 14%;
+  --foreground: 250 30% 12%;
   --card: 0 0% 100%;
-  --card-foreground: 250 35% 14%;
+  --card-foreground: 250 30% 12%;
   --popover: 0 0% 100%;
-  --popover-foreground: 250 35% 14%;
-  --primary: 263 70% 50%;
+  --popover-foreground: 250 30% 12%;
+  --primary: 263 69% 42%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 248 22% 94%;
-  --secondary-foreground: 263 70% 50%;
+  --secondary: 263 30% 95%;
+  --secondary-foreground: 263 69% 30%;
   --muted: 45 28% 94%;
-  --muted-foreground: 250 12% 42%;
-  --accent: 262 80% 58%;
+  --muted-foreground: 250 10% 42%;
+  --accent: 291 64% 62%;
   --accent-foreground: 0 0% 100%;
-  --destructive: 27 86% 56%;
+  --destructive: 351 83% 57%;
   --destructive-foreground: 0 0% 100%;
-  --border: 40 20% 88%;
-  --input: 40 20% 88%;
-  --ring: 263 70% 60%;
+  --border: 263 16% 88%;
+  --input: 263 16% 88%;
+  --ring: 263 69% 42%;
   --radius: 0.75rem;
-  --badge-outline: hsl(40 18% 82%);
+  --badge-outline: hsl(263 14% 84%);
+}
+
+/* ── Momentum component primitives ────────────────────────────────── */
+
+/* Chips */
+.gp-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-weight: 600; font-size: 11.5px; padding: 4px 9px;
+  border-radius: 999px; line-height: 1; white-space: nowrap;
+}
+.gp-chip-live  { background: var(--red-c); color: #fff; }
+.gp-chip-hot   { background: var(--red-50); color: var(--red-c); border: 1px solid #fdd; }
+.gp-chip-save  { background: var(--emerald-50); color: var(--emerald); border: 1px solid var(--emerald-100); }
+.gp-chip-soft  { background: var(--v-50); color: var(--v-700); }
+.gp-chip-cat   { background: rgba(0,0,0,.04); color: var(--muted-c); text-transform: uppercase; letter-spacing: .05em; font-size: 10px; }
+
+/* Pulsing dot for LIVE chip */
+.gp-dot-pulse {
+  width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0;
+  animation: gp-pulse 1.4s ease-in-out infinite;
+}
+@keyframes gp-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.6} }
+
+/* Card base */
+.gp-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Savings disc (rotated circle floating off card image) */
+.gp-savings-disc {
+  position: absolute;
+  right: 14px;
+  bottom: -22px;
+  width: 56px; height: 56px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--emerald), #0d9488);
+  color: #fff;
+  display: grid; place-items: center;
+  transform: rotate(-8deg);
+  box-shadow: 0 8px 20px -6px rgba(5,150,105,.6);
+  border: 3px solid var(--bg);
+  line-height: 1;
+  z-index: 2;
+}
+
+/* Slot meter segment base */
+.gp-slot { flex: 1; border-radius: 5px; border: 1.5px solid transparent; transition: all .45s cubic-bezier(.2,.8,.2,1); }
+.gp-slot-on   { background: linear-gradient(180deg, var(--v-500), var(--v-700)); box-shadow: 0 3px 8px -2px rgba(109,40,217,.5); }
+.gp-slot-next { background: #fff; border: 1.5px dashed var(--v-300) !important; }
+.gp-slot-off  { background: var(--v-100); }
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(90deg, var(--v-600), var(--v-500));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Gradient button */
+.btn-grad {
+  background: linear-gradient(120deg, var(--v-600), var(--v-800));
+  color: #fff;
+  box-shadow: var(--shadow-violet);
+}
+.btn-grad:hover { background: linear-gradient(120deg, var(--v-500), var(--v-700)); }
+
+/* Image placeholder — honest diagonal violet stripe */
+.gp-img-tile {
+  position: relative; overflow: hidden; width: 100%;
+  background:
+    repeating-linear-gradient(135deg, rgba(109,40,217,.055) 0 9px, rgba(109,40,217,0) 9px 20px),
+    linear-gradient(160deg, var(--v-800), var(--v-900));
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 9px;
+}
+
+/* Almost-full badge on card image */
+.gp-almost {
+  position: absolute; inset-inline-start: 0; inset-inline-end: 0; bottom: 0;
+  background: linear-gradient(90deg, var(--red-c), #b91c1c);
+  color: #fff; font-size: 11px; font-weight: 700;
+  padding: 5px 14px; text-align: center; letter-spacing: .02em;
+}
+
+/* Shimmer stripe on active progress bars */
+.gp-shimmer::after {
+  content: ''; position: absolute; inset: 0;
+  background-image: linear-gradient(45deg, rgba(255,255,255,.22) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.22) 50%, rgba(255,255,255,.22) 75%, transparent 75%);
+  background-size: 14px 14px;
+  animation: gp-stripe .7s linear infinite;
+}
+@keyframes gp-stripe { from{background-position:0 0} to{background-position:14px 0} }
+
+/* Create FAB in bottom nav */
+.nav-create-fab {
+  width: 42px; height: 30px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--v-600), var(--v-800));
+  display: grid; place-items: center;
+  box-shadow: 0 6px 14px -4px rgba(109,40,217,.6);
 }
 
 @layer base {
@@ -168,13 +289,15 @@
     border-color: hsl(var(--border));
   }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-accent/25 selection:text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
     font-weight: 400;
     line-height: 1.5;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: var(--surface);
+    color: var(--ink);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -268,9 +391,9 @@
     @apply border-transparent bg-accent/20 text-accent-foreground dark:bg-accent/30;
   }
 
-  /* Gradient text — Violet-700 → Violet-500 brand */
+  /* Gradient text — Violet → Fuchsia brand */
   .gradient-text {
-    @apply bg-gradient-to-r from-[#6d28d9] to-[#8b5cf6] bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[#6d28d9] to-[#a855f7] bg-clip-text text-transparent;
   }
 
   /* Glass morphism */

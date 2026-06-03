@@ -28,8 +28,8 @@ const notificationConfig: Record<string, { icon: typeof Bell; bgClass: string; i
   },
   verification: {
     icon: Shield,
-    bgClass: "bg-[#001F3F]/10 dark:bg-[#001F3F]/30",
-    iconClass: "text-[#001F3F] dark:text-teal-300",
+    bgClass: "bg-violet-100 dark:bg-violet-950/60",
+    iconClass: "text-violet-600 dark:text-violet-400",
   },
   warning: {
     icon: AlertCircle,

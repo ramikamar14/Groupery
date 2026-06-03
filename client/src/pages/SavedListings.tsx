@@ -89,17 +89,23 @@ export default function SavedListings() {
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
             </div>
           ) : savedItems.length === 0 ? (
-            <div className="text-center py-20 bg-secondary/30 rounded-3xl border border-dashed border-border">
-              <Bookmark className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-30" />
-              <h3 className="text-xl font-bold font-display text-muted-foreground mb-2" data-testid="text-no-saved">{t("saved.noSaved")}</h3>
-              <p className="text-muted-foreground mb-6">{t("saved.noSavedHint")}</p>
-              <div className="flex gap-3 justify-center">
-                <Link href="/">
-                  <Button data-testid="button-browse-deals" variant="default" size="sm">Browse Deals</Button>
-                </Link>
-                <Link href="/create">
-                  <Button data-testid="button-create-deal" variant="outline" size="sm">Start a Group</Button>
-                </Link>
+            <div className="text-center py-16 px-6 rounded-3xl border border-dashed border-violet-200 dark:border-violet-800/40 bg-gradient-to-b from-violet-50/60 to-transparent dark:from-violet-950/20">
+              <div className="w-16 h-16 rounded-2xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center mx-auto mb-5">
+                <Bookmark className="w-8 h-8 text-violet-500" />
+              </div>
+              <h3 className="text-xl font-bold font-display mb-2" data-testid="text-no-saved">{t("saved.noSaved")}</h3>
+              <p className="text-muted-foreground mb-7 max-w-xs mx-auto leading-relaxed">{t("saved.noSavedHint")}</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button asChild size="sm" className="rounded-full gap-2 bg-primary hover:bg-primary/90">
+                  <Link href="/" data-testid="button-browse-deals">
+                    <Search className="w-4 h-4" /> Browse Deals
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline" className="rounded-full gap-2">
+                  <Link href="/create" data-testid="button-create-deal">
+                    <Filter className="w-4 h-4" /> Start a Group
+                  </Link>
+                </Button>
               </div>
             </div>
           ) : (
@@ -117,13 +123,17 @@ export default function SavedListings() {
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
             </div>
           ) : savedSearches.length === 0 ? (
-            <div className="text-center py-20 bg-secondary/30 rounded-3xl border border-dashed border-border">
-              <Search className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-30" />
-              <h3 className="text-xl font-bold font-display text-muted-foreground mb-2" data-testid="text-no-searches">{t("saved.noSearches", "No Saved Searches")}</h3>
-              <p className="text-muted-foreground mb-6">{t("saved.noSearchesHint", "Save a search from the home page to get notified about new matching listings.")}</p>
-              <Link href="/">
-                <Button data-testid="button-search-deals" variant="default" size="sm">Search Deals</Button>
-              </Link>
+            <div className="text-center py-16 px-6 rounded-3xl border border-dashed border-violet-200 dark:border-violet-800/40 bg-gradient-to-b from-violet-50/60 to-transparent dark:from-violet-950/20">
+              <div className="w-16 h-16 rounded-2xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center mx-auto mb-5">
+                <Search className="w-8 h-8 text-violet-500" />
+              </div>
+              <h3 className="text-xl font-bold font-display mb-2" data-testid="text-no-searches">{t("saved.noSearches", "No Saved Searches")}</h3>
+              <p className="text-muted-foreground mb-7 max-w-xs mx-auto leading-relaxed">{t("saved.noSearchesHint", "Save a search from the home page to get notified about new matching listings.")}</p>
+              <Button asChild size="sm" className="rounded-full gap-2 bg-primary hover:bg-primary/90">
+                <Link href="/" data-testid="button-search-deals">
+                  <Search className="w-4 h-4" /> Search Deals
+                </Link>
+              </Button>
             </div>
           ) : (
             <div className="space-y-3">

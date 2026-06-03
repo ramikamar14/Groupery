@@ -10,7 +10,6 @@ import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
-import Home from "@/pages/Home";
 import Discover from "@/pages/Discover";
 import Dashboard from "@/pages/Dashboard";
 import CreateListing from "@/pages/CreateListing";
@@ -22,6 +21,7 @@ import Admin from "@/pages/Admin";
 import Notifications from "@/pages/Notifications";
 import SavedListings from "@/pages/SavedListings";
 import ExpiredListings from "@/pages/ExpiredListings";
+import Vouchers from "@/pages/Vouchers";
 import Terms from "@/pages/Terms";
 import FAQ from "@/pages/FAQ";
 import About from "@/pages/About";
@@ -95,7 +95,7 @@ function Router() {
       </Route>
 
       <Route path="/explore">
-        {needsOnboarding ? <Redirect to="/onboarding" /> : <Home />}
+        <Redirect to="/" />
       </Route>
 
       <Route path="/dashboard">
@@ -131,6 +131,9 @@ function Router() {
       </Route>
       <Route path="/expired">
         {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <ExpiredListings />}
+      </Route>
+      <Route path="/vouchers">
+        {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <Vouchers />}
       </Route>
 
       {/* Footer pages - available to all users */}

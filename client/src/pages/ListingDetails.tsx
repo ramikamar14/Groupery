@@ -32,6 +32,30 @@ import { DealProofSection } from "@/components/listing/DealProofSection";
 import { DisputeButton } from "@/components/listing/DisputeButton";
 import { api } from "@shared/routes";
 
+/** Momentum-style segmented slot meter for the detail page */
+function SlotMeterDetail({ filled, total }: { filled: number; total: number }) {
+  const cells = Math.min(total, 20);
+  const filledCells = total > 20 ? Math.round((filled / total) * 20) : filled;
+  return (
+    <div style={{ display:"flex", gap:5 }}>
+      {Array.from({ length: cells }).map((_, i) => {
+        const isFilled = i < filledCells;
+        const isNext = i === filledCells;
+        return (
+          <div key={i} style={{
+            flex:1, height:20, borderRadius:7,
+            transition:`all 0.45s cubic-bezier(0.2,0.8,0.2,1)`,
+            transitionDelay:`${i*30}ms`,
+            background: isFilled ? "linear-gradient(180deg,#8b5cf6,#6d28d9)" : isNext ? "#fff" : "#ede9fe",
+            border: isNext ? "1.5px dashed #c4b5fd" : "1.5px solid transparent",
+            boxShadow: isFilled ? "0 3px 8px -2px rgba(109,40,217,0.5)" : "none",
+          }} />
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ListingDetails() {
   const [match, params] = useRoute("/listings/:id");
   const id = parseInt(params?.id || "0");
@@ -276,18 +300,18 @@ export default function ListingDetails() {
       const end = Date.now() + duration;
       const frame = () => {
         confetti({
-          particleCount: 3,
+          particleCount: 4,
           angle: 60,
-          spread: 55,
+          spread: 60,
           origin: { x: 0 },
-          colors: ["#22c55e", "#008080", "#f59e0b", "#ef4444", "#001F3F"],
+          colors: ["#7c3aed", "#6d28d9", "#a78bfa", "#059669", "#f59e0b"],
         });
         confetti({
-          particleCount: 3,
+          particleCount: 4,
           angle: 120,
-          spread: 55,
+          spread: 60,
           origin: { x: 1 },
-          colors: ["#22c55e", "#008080", "#f59e0b", "#ef4444", "#001F3F"],
+          colors: ["#7c3aed", "#6d28d9", "#a78bfa", "#059669", "#f59e0b"],
         });
         if (Date.now() < end) {
           requestAnimationFrame(frame);
@@ -345,20 +369,25 @@ export default function ListingDetails() {
 
             {(isCompleted || isFull) && (
               <div
-                className={cn(
-                  "mx-6 mt-6 p-4 rounded-xl flex items-center gap-3 transition-all",
-                  showCelebration
-                    ? "bg-green-100 dark:bg-green-950/50 border border-green-300 dark:border-green-800 animate-pulse"
-                    : "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800"
-                )}
+                style={{
+                  margin:"24px 24px 0",
+                  padding:"14px 20px",
+                  borderRadius:16,
+                  display:"flex",
+                  alignItems:"center",
+                  gap:14,
+                  background: showCelebration ? "linear-gradient(135deg,#7c3aed,#6d28d9)" : "#f5f3ff",
+                  border: showCelebration ? "none" : "1px solid #c4b5fd",
+                  transition:"all 0.4s",
+                }}
                 data-testid="banner-completion"
               >
-                <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400 shrink-0" />
+                <div style={{ fontSize:28, flexShrink:0 }}>{showCelebration ? "🎉" : "✅"}</div>
                 <div>
-                  <p className="font-bold text-green-800 dark:text-green-200">
-                    {showCelebration ? t("listing.groupComplete") : t("listing.groupCompleteStatic")}
+                  <p style={{ fontWeight:800, fontSize:15, color: showCelebration ? "#fff" : "#4c1d95", margin:0 }}>
+                    {showCelebration ? "🎊 Group complete — price unlocked!" : t("listing.groupCompleteStatic")}
                   </p>
-                  <p className="text-sm text-green-700 dark:text-green-300">
+                  <p style={{ fontSize:12, color: showCelebration ? "rgba(255,255,255,0.85)" : "#7c3aed", margin:"2px 0 0" }}>
                     {t("listing.allSlotsFilled", { slots: listing.totalSlots })}
                   </p>
                 </div>
@@ -371,17 +400,39 @@ export default function ListingDetails() {
               {/* Share row */}
               <ShareRow listing={listing} />
 
-              {/* Price / savings display (P5) */}
+              {/* Price / savings hero box (Momentum style) */}
               {(listing as any).pricePerSlot && (
-                <div className="flex flex-wrap items-center gap-3 pb-3" data-testid="price-display">
-                  <span className="text-2xl font-bold text-primary">${((listing as any).pricePerSlot / 100).toFixed(2)}<span className="text-base font-normal text-muted-foreground">/slot</span></span>
-                  {(listing as any).marketPrice && (
-                    <>
-                      <span className="text-sm text-muted-foreground line-through">${((listing as any).marketPrice / 100).toFixed(2)} market price</span>
-                      <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800">
-                        Save {Math.round((1 - (listing as any).pricePerSlot / (listing as any).marketPrice) * 100)}% with this group
-                      </Badge>
-                    </>
+                <div
+                  data-testid="price-display"
+                  style={{ background:"#f5f3ff", border:"1px solid #ede9fe", borderRadius:16, padding:"16px 20px", marginBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}
+                >
+                  <div>
+                    <div style={{ display:"flex", alignItems:"baseline", gap:6 }}>
+                      <span style={{ fontSize:32, fontWeight:800, color:"#6d28d9", letterSpacing:"-0.03em", lineHeight:1 }}>
+                        ${((listing as any).pricePerSlot / 100).toFixed(2)}
+                      </span>
+                      <span style={{ fontSize:14, color:"#9ca3af", fontWeight:500 }}>/slot</span>
+                      {(listing as any).marketPrice && (
+                        <span style={{ fontSize:14, color:"#9ca3af", textDecoration:"line-through" }}>
+                          ${((listing as any).marketPrice / 100).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+                    {(listing as any).marketPrice && (listing as any).marketPrice > (listing as any).pricePerSlot && (
+                      <div style={{ fontSize:12, color:"#059669", fontWeight:700, marginTop:4 }}>
+                        You save ${(((listing as any).marketPrice - (listing as any).pricePerSlot) / 100).toFixed(2)} per slot with this group
+                      </div>
+                    )}
+                  </div>
+                  {(listing as any).marketPrice && (listing as any).marketPrice > (listing as any).pricePerSlot && (
+                    <div style={{ width:56, height:56, borderRadius:"50%", background:"linear-gradient(135deg,#059669,#0d9488)", color:"#fff", display:"grid", placeItems:"center", transform:"rotate(-8deg)", boxShadow:"0 8px 20px -6px rgba(5,150,105,0.5)", border:"3px solid #fff", lineHeight:1, flexShrink:0 }}>
+                      <div style={{ textAlign:"center" }}>
+                        <div style={{ fontSize:14, fontWeight:800 }}>
+                          {Math.round((1 - (listing as any).pricePerSlot / (listing as any).marketPrice) * 100)}%
+                        </div>
+                        <div style={{ fontSize:7.5, fontWeight:700, letterSpacing:"0.06em" }}>OFF</div>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
@@ -464,7 +515,7 @@ export default function ListingDetails() {
                         </Badge>
                       )}
                       {creatorReliability?.badges?.includes("top_organizer") && (
-                        <Badge variant="outline" className="border-teal-200 text-teal-700 bg-teal-50 dark:border-teal-700 dark:text-teal-300 dark:bg-teal-950/50">
+                        <Badge variant="outline" className="border-violet-200 text-violet-700 bg-violet-50 dark:border-violet-700 dark:text-violet-300 dark:bg-violet-950/50">
                           <Trophy className="w-3 h-3 mr-1" />
                           {t("listing.topOrganizer")}
                         </Badge>
@@ -596,33 +647,33 @@ export default function ListingDetails() {
                 );
               })()}
 
-              {/* Tri-color progress bar */}
-              <div className="mb-6">
-                <div className="flex justify-between mb-2 font-medium text-sm">
-                  <span>{t("listing.progress")}</span>
-                  <span>{Math.round((listing.filledSlots / listing.totalSlots) * 100)}%</span>
+              {/* Momentum slot meter */}
+              <div className="mb-6" data-testid="slot-meter-detail">
+                <div className="flex justify-between mb-3 font-medium text-sm items-center">
+                  <span className="font-semibold" style={{ color:"#191320" }}>
+                    <span style={{ color:"#6d28d9", fontWeight:800, fontSize:18 }}>{listing.filledSlots}</span>
+                    {" "}joined · {listing.totalSlots - listing.filledSlots > 0
+                      ? <><span style={{ fontWeight:800 }}>{listing.totalSlots - listing.filledSlots}</span> <span style={{ color:"#9b95a6", fontSize:13 }}>to unlock</span></>
+                      : <span style={{ color:"#059669", fontWeight:800 }}>Group complete!</span>}
+                  </span>
+                  <span style={{ fontSize:13, fontWeight:700, color:"#6d28d9", background:"#ede9fe", borderRadius:999, padding:"2px 10px" }}>
+                    {Math.round((listing.filledSlots / listing.totalSlots) * 100)}%
+                  </span>
                 </div>
-                <div className="h-3 w-full bg-secondary rounded-full overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full transition-all duration-500 rounded-full",
-                      (() => {
-                        const pct = (listing.filledSlots / listing.totalSlots) * 100;
-                        if (pct >= 95) return "bg-destructive";
-                        if (pct >= 75) return "bg-amber-500";
-                        if (pct >= 40) return "bg-primary";
-                        return "bg-emerald-500";
-                      })()
-                    )}
-                    style={{ width: `${(listing.filledSlots / listing.totalSlots) * 100}%` }}
-                  />
-                </div>
+                <SlotMeterDetail filled={listing.filledSlots} total={listing.totalSlots} />
                 {(() => {
                   const slotsLeft = listing.totalSlots - listing.filledSlots;
                   const pct = (listing.filledSlots / listing.totalSlots) * 100;
-                  if (slotsLeft > 0 && pct >= 75 && isActive) {
+                  if (slotsLeft > 0 && slotsLeft <= 3 && isActive) {
                     return (
-                      <p className="text-xs font-semibold text-destructive mt-1.5 flex items-center gap-1" data-testid="text-spots-left">
+                      <p className="text-xs font-semibold mt-2 flex items-center gap-1" style={{ color:"#e23744" }} data-testid="text-spots-left">
+                        🔥 Only {slotsLeft} spot{slotsLeft === 1 ? "" : "s"} left — grab yours before it's gone!
+                      </p>
+                    );
+                  }
+                  if (slotsLeft > 0 && pct >= 60 && isActive) {
+                    return (
+                      <p className="text-xs font-semibold text-amber-600 mt-2 flex items-center gap-1" data-testid="text-spots-left">
                         <Zap className="w-3 h-3" />
                         {t("listing.onlySpotsLeft", { count: slotsLeft })}
                       </p>
@@ -653,14 +704,12 @@ export default function ListingDetails() {
               {/* CTA buttons */}
               <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 mb-3">
                 {!user && isActive && (
-                  <a href="/api/login" className="w-full md:w-auto">
-                    <Button
-                      size="lg"
-                      className="w-full md:w-auto px-8 bg-primary hover:bg-primary/90 text-lg shadow-lg shadow-primary/25"
-                      data-testid="button-sign-in-to-join"
-                    >
-                      <Zap className="w-5 h-5 mr-2" /> {t("listing.signInToJoin")}
-                    </Button>
+                  <a
+                    href="/api/login"
+                    data-testid="button-sign-in-to-join"
+                    style={{ display:"inline-flex", alignItems:"center", gap:8, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", fontWeight:700, fontSize:16, padding:"14px 32px", borderRadius:999, textDecoration:"none", boxShadow:"0 8px 24px -6px rgba(109,40,217,0.5)", border:"none", cursor:"pointer", whiteSpace:"nowrap" }}
+                  >
+                    <Zap className="w-5 h-5" style={{ flexShrink:0 }} /> Sign in to Lock in Your Spot
                   </a>
                 )}
 
@@ -668,14 +717,19 @@ export default function ListingDetails() {
                   <CommitDialog
                     listing={listing}
                     trigger={
-                      <Button
-                        size="lg"
-                        className="w-full md:w-auto px-8 bg-primary hover:bg-primary/90 text-lg shadow-lg shadow-primary/25"
+                      <button
                         data-testid="button-join"
+                        style={{ display:"inline-flex", alignItems:"center", gap:8, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", fontWeight:700, fontSize:16, padding:"14px 32px", borderRadius:999, boxShadow:"0 8px 24px -6px rgba(109,40,217,0.5)", border:"none", cursor:"pointer", whiteSpace:"nowrap" }}
                       >
-                        <Zap className="w-5 h-5 mr-2" /> {t("listing.commitToBuy")}
-                      </Button>
+                        <Zap className="w-5 h-5" style={{ flexShrink:0 }} /> Lock in My Spot
+                        {(listing as any).pricePerSlot && (
+                          <span style={{ background:"rgba(255,255,255,0.2)", borderRadius:999, padding:"2px 10px", fontSize:14 }}>
+                            ${((listing as any).pricePerSlot / 100).toFixed(2)}
+                          </span>
+                        )}
+                      </button>
                     }
+                    onJustCompleted={() => { celebrationFiredRef.current = false; }}
                   />
                 )}
 
@@ -897,13 +951,18 @@ export default function ListingDetails() {
                       </span>
                     )}
                     {(presenceData?.viewing ?? 0) > 1 && (
-                      <span className="text-xs text-teal-600 dark:text-teal-400 flex items-center gap-1 font-medium" data-testid="text-viewing-now">
+                      <span className="text-xs text-violet-600 dark:text-violet-400 flex items-center gap-1 font-medium" data-testid="text-viewing-now">
                         <Eye className="w-3 h-3" />
                         {presenceData!.viewing} {t("listing.viewingNow", "viewing now")}
                       </span>
                     )}
                   </div>
                 </div>
+              )}
+
+              {/* Live activity feed — shows recent joins as dopamine ticker */}
+              {isActive && listing.participants && listing.participants.length > 0 && (
+                <LiveActivityFeed participants={listing.participants} slotsLeft={listing.totalSlots - listing.filledSlots} />
               )}
 
               {/* Safety footnote */}
@@ -969,39 +1028,92 @@ export default function ListingDetails() {
           )}
 
           {isActive && user && (isParticipant || isCreator) && (
-            <div className="bg-gradient-to-br from-teal-50 to-[#E0F7FA] dark:from-teal-950/20 dark:to-[#001F3F]/20 rounded-3xl border border-teal-200/60 dark:border-teal-800/40 p-5" data-testid="section-invite-friends">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="font-bold font-display text-base flex items-center gap-2 mb-1">
-                    <Gift className="w-4 h-4 text-primary" />
-                    {t("listing.inviteFriends", "Invite Friends")}
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{t("listing.inviteFriendsDesc", "Share this deal with friends and help the group fill faster.")}</p>
-                </div>
+            <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-950/20 dark:to-fuchsia-950/20 rounded-3xl border border-violet-200/60 dark:border-violet-800/40 p-5" data-testid="section-invite-friends">
+              <h3 className="font-bold font-display text-base flex items-center gap-2 mb-1">
+                <Gift className="w-4 h-4 text-primary" />
+                {t("listing.inviteFriends", "Invite Friends")}
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                {t("listing.inviteFriendsDesc", "Share your personal link — when a friend joins through it, you'll be credited.")}
+              </p>
+              <div className="flex items-center gap-2 p-2.5 bg-white/80 dark:bg-black/20 rounded-xl border border-violet-200/60 dark:border-violet-700/40 mb-3">
+                <span className="flex-1 text-xs font-mono text-muted-foreground truncate select-all">
+                  {window.location.origin}/listings/{listing.id}?ref={(user as any)?.id}
+                </span>
                 <Button
                   size="sm"
-                  variant="outline"
-                  className="shrink-0 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/30"
+                  variant="ghost"
+                  className="h-7 px-2 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/30 shrink-0"
                   onClick={() => {
-                    const url = `${window.location.origin}/listings/${listing.id}?inv=${user?.id}`;
+                    const url = `${window.location.origin}/listings/${listing.id}?ref=${(user as any)?.id}`;
                     navigator.clipboard.writeText(url).then(() => {
                       toast({ title: t("listing.linkCopied", "Link copied!"), description: t("listing.linkCopiedDesc", "Share it with friends to fill the group.") });
                     });
                   }}
                   data-testid="button-copy-invite-link"
                 >
-                  <Copy className="w-3.5 h-3.5 mr-1.5" />
-                  {t("listing.copyLink", "Copy link")}
+                  <Copy className="w-3.5 h-3.5 mr-1" />
+                  Copy
                 </Button>
+              </div>
+              <div className="flex gap-2">
+                {typeof navigator.share === "function" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-300 text-xs"
+                    onClick={() => {
+                      navigator.share({
+                        title: listing.title,
+                        text: `Join this group deal on Grouperry: ${listing.title}`,
+                        url: `${window.location.origin}/listings/${listing.id}?ref=${(user as any)?.id}`,
+                      }).catch(() => {});
+                    }}
+                    data-testid="button-share-native"
+                  >
+                    Share via…
+                  </Button>
+                )}
+                <span className="text-xs text-muted-foreground self-center">
+                  {listing.totalSlots - listing.filledSlots} slot{listing.totalSlots - listing.filledSlots === 1 ? "" : "s"} left to unlock
+                </span>
               </div>
             </div>
           )}
 
           {isCompleted && user && (isParticipant || isCreator) && (
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 rounded-3xl border border-emerald-200/60 dark:border-emerald-800/40 p-5 text-center" data-testid="section-post-completion-cta">
-              <PartyPopper className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-              <h3 className="font-bold font-display text-base mb-1">{t("listing.dealDone", "This deal is done!")}</h3>
-              <p className="text-xs text-muted-foreground mb-3">{t("listing.createNextDeal", "Ready to organize your own group buy?")}</p>
+            <div className="bg-gradient-to-br from-emerald-50 to-violet-50 dark:from-emerald-950/20 dark:to-violet-950/20 rounded-3xl border border-emerald-200/60 dark:border-emerald-800/40 p-5 text-center space-y-3" data-testid="section-post-completion-cta">
+              <PartyPopper className="w-8 h-8 text-emerald-500 mx-auto" />
+              <h3 className="font-bold font-display text-base">{t("listing.dealDone", "This deal is done!")}</h3>
+
+              {/* Voucher claim section */}
+              {(listing as any).offerType && (listing as any).offerType !== "standard" && (
+                <div className="bg-white/80 dark:bg-black/20 rounded-xl border border-emerald-200/60 dark:border-emerald-700/40 p-4 text-left space-y-2" data-testid="section-voucher-claim">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{(listing as any).offerType === "voucher" ? "🎟️" : (listing as any).offerType === "bogo" ? "2️⃣" : (listing as any).offerType === "gift" ? "🎁" : "%"}</span>
+                    <div>
+                      <p className="font-bold text-sm text-emerald-800 dark:text-emerald-200">Your reward is ready!</p>
+                      <p className="text-xs text-muted-foreground capitalize">{(listing as any).offerType?.replace("_", " ")} deal unlocked</p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-2"
+                    onClick={() => {
+                      fetch(`/api/vouchers/claim/${listing.id}`, { method: "POST", credentials: "include" })
+                        .then(r => r.ok ? r.json() : Promise.reject())
+                        .then((v) => toast({ title: "Voucher claimed!", description: `Code: ${v.code || "Check your email"}` }))
+                        .catch(() => toast({ title: "Claim submitted", description: "Your voucher will be sent to your email shortly." }));
+                    }}
+                    data-testid="button-claim-voucher"
+                  >
+                    <Gift className="w-4 h-4" />
+                    Claim My Voucher / Code
+                  </Button>
+                </div>
+              )}
+
+              <p className="text-xs text-muted-foreground">{t("listing.createNextDeal", "Ready to organize your own group buy?")}</p>
               <Button
                 size="sm"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
@@ -1051,25 +1163,12 @@ export default function ListingDetails() {
                 </div>
               </div>
 
-              {/* Mini progress bar */}
+              {/* Slot meter — sidebar */}
               <div>
-                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full rounded-full transition-all",
-                      (() => {
-                        const pct = (listing.filledSlots / listing.totalSlots) * 100;
-                        if (pct >= 95) return "bg-destructive";
-                        if (pct >= 75) return "bg-amber-500";
-                        return "bg-primary";
-                      })()
-                    )}
-                    style={{ width: `${(listing.filledSlots / listing.totalSlots) * 100}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>{t("listing.joinedCount", { count: listing.filledSlots })}</span>
-                  <span>{t("listing.totalCount", { count: listing.totalSlots })}</span>
+                <SlotMeterDetail filled={listing.filledSlots} total={listing.totalSlots} />
+                <div className="flex justify-between text-xs text-muted-foreground mt-1.5">
+                  <span style={{ color:"#6d28d9", fontWeight:700 }}>{listing.filledSlots} joined</span>
+                  <span>{listing.totalSlots - listing.filledSlots} spots left</span>
                 </div>
               </div>
 
@@ -1109,10 +1208,14 @@ export default function ListingDetails() {
               {!isFull ? (
                 <CommitDialog
                   listing={listing}
+                  onJustCompleted={() => { celebrationFiredRef.current = false; }}
                   trigger={
-                    <Button size="lg" className="w-full shadow-lg shadow-primary/20 gap-2" data-testid="button-join-sidebar">
-                      <Zap className="w-4 h-4" /> {t("listing.commitToBuy")}
-                    </Button>
+                    <button
+                      data-testid="button-join-sidebar"
+                      style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", fontWeight:700, fontSize:15, padding:"13px 24px", borderRadius:999, boxShadow:"0 8px 24px -6px rgba(109,40,217,0.45)", border:"none", cursor:"pointer" }}
+                    >
+                      <Zap className="w-4 h-4" style={{ flexShrink:0 }} /> Lock in My Spot
+                    </button>
                   }
                 />
               ) : (
@@ -1169,24 +1272,30 @@ export default function ListingDetails() {
 
       {/* Sticky mobile join bar (U1) with confirmation (P1) */}
       {!user && isActive && (
-        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-signin-bar">
-          <a href="/api/login">
-            <Button size="lg" className="w-full bg-primary hover:bg-primary/90 shadow-lg" data-testid="button-signin-sticky">
-              <Zap className="w-4 h-4 mr-2" />
-              Sign in to Join This Deal
-            </Button>
+        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 md:hidden" style={{ background:"rgba(255,255,255,0.97)", backdropFilter:"blur(12px)", borderTop:"1px solid #ede9fe", padding:"10px 16px" }} data-testid="sticky-signin-bar">
+          <a
+            href="/api/login"
+            data-testid="button-signin-sticky"
+            style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", fontWeight:700, fontSize:16, padding:"13px 24px", borderRadius:999, textDecoration:"none", boxShadow:"0 8px 24px -6px rgba(109,40,217,0.45)" }}
+          >
+            <Zap style={{ width:18, height:18, flexShrink:0 }} />
+            Sign in to Lock in Your Spot
           </a>
         </div>
       )}
       {user && isActive && !isParticipant && !isCreator && !isFull && (
-        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border p-3 md:hidden" data-testid="sticky-join-bar">
+        <div className="fixed bottom-[4.25rem] left-0 right-0 z-40 md:hidden" style={{ background:"rgba(255,255,255,0.97)", backdropFilter:"blur(12px)", borderTop:"1px solid #ede9fe", padding:"10px 16px" }} data-testid="sticky-join-bar">
           <CommitDialog
             listing={listing}
+            onJustCompleted={() => { celebrationFiredRef.current = false; }}
             trigger={
-              <Button size="lg" className="w-full bg-primary hover:bg-primary/90 shadow-lg" data-testid="button-join-sticky">
-                <Zap className="w-4 h-4 mr-2" />
-                {t("listing.commitToBuy")} · {t("listing.spotsLeftCount", { count: listing.totalSlots - listing.filledSlots })}
-              </Button>
+              <button
+                data-testid="button-join-sticky"
+                style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", fontWeight:700, fontSize:16, padding:"13px 24px", borderRadius:999, boxShadow:"0 8px 24px -6px rgba(109,40,217,0.45)", border:"none", cursor:"pointer" }}
+              >
+                <Zap style={{ width:18, height:18, flexShrink:0 }} />
+                Lock in My Spot · {listing.totalSlots - listing.filledSlots} left
+              </button>
             }
           />
         </div>
@@ -1547,7 +1656,7 @@ function ReportCreatorButton({ listing }: { listing: any }) {
   );
 }
 
-function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: React.ReactNode; onSuccess?: () => void }) {
+function CommitDialog({ listing, trigger, onSuccess, onJustCompleted }: { listing: any; trigger: React.ReactNode; onSuccess?: () => void; onJustCompleted?: () => void }) {
   const { t } = useTranslation();
   const joinMutation = useJoinListing();
   const queryClient = useQueryClient();
@@ -1555,6 +1664,11 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
   const [step, setStep] = useState(1);
   const [distPref, setDistPref] = useState<"pickup" | "delivery" | "digital">("pickup");
   const [acknowledged, setAcknowledged] = useState(false);
+
+  // Quick commit mode — skip multi-step for non-escrow commit-only deals
+  const isEscrow = !!(listing as any).escrowEnabled;
+  const hasPrice = !!((listing as any).pricePerSlot);
+  const quickMode = !isEscrow;
 
   // Fetch sensitive payment fields when user reaches step 2
   const { data: paymentInfo } = useQuery<{ paymentMethod: string | null; paymentDetails: string | null; paymentNotes: string | null }>({
@@ -1564,10 +1678,10 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
       if (!res.ok) return { paymentMethod: null, paymentDetails: null, paymentNotes: null };
       return res.json();
     },
-    enabled: open && step >= 2,
+    enabled: open && (step >= 2 || quickMode),
   });
 
-  const totalSteps = 3;
+  const totalSteps = quickMode ? 1 : 3;
   const distributionOptions = [
     { value: "pickup" as const, label: t("listing.pickupOption"), icon: MapPin, desc: t("listing.pickupDesc") },
     { value: "delivery" as const, label: t("listing.deliveryOption"), icon: Truck, desc: t("listing.deliveryDesc") },
@@ -1591,7 +1705,10 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
         track("deal_commit", { listingId: listing.id, price: (listing as any).pricePerSlot ?? 0 });
         setOpen(false);
         reset();
-        if (data?.justCompleted) localStorage.removeItem(`celebration-seen-${listing.id}`);
+        if (data?.justCompleted) {
+          localStorage.removeItem(`celebration-seen-${listing.id}`);
+          onJustCompleted?.();
+        }
         onSuccess?.();
       },
     });
@@ -1611,14 +1728,57 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
         <div className="p-6 space-y-5">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-base font-bold">
-              {step === 1 ? t("listing.receiveItemQuestion") : step === 2 ? t("listing.paymentCommitment") : t("listing.confirmCommitment")}
+              {quickMode ? "Lock in Your Spot" : step === 1 ? t("listing.receiveItemQuestion") : step === 2 ? t("listing.paymentCommitment") : t("listing.confirmCommitment")}
             </DialogTitle>
-            <span className="text-xs text-muted-foreground font-medium">{t("listing.stepOf", { step, total: totalSteps })}</span>
+            {!quickMode && <span className="text-xs text-muted-foreground font-medium">{t("listing.stepOf", { step, total: totalSteps })}</span>}
           </div>
-          <DialogDescription className="sr-only">Multi-step commitment flow for joining this group deal</DialogDescription>
+          <DialogDescription className="sr-only">Commitment flow for joining this group deal</DialogDescription>
+
+          {/* Quick mode: single-step confirm for commit-only (non-escrow) deals */}
+          {quickMode && (
+            <div className="space-y-4">
+              <div className="rounded-2xl overflow-hidden border border-border">
+                <div style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9)", padding: "16px 20px" }}>
+                  <p className="text-white/80 text-xs font-medium uppercase tracking-wide mb-0.5">You're joining</p>
+                  <p className="text-white font-bold text-base leading-snug line-clamp-2">{listing.title}</p>
+                </div>
+                <div className="bg-card p-4 grid grid-cols-2 gap-3">
+                  {hasPrice && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-0.5">Your price</p>
+                      <p className="text-xl font-bold text-primary">${((listing as any).pricePerSlot / 100).toFixed(2)}</p>
+                      {(listing as any).marketPrice && (
+                        <p className="text-xs text-muted-foreground line-through">${((listing as any).marketPrice / 100).toFixed(2)}</p>
+                      )}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">Spots left</p>
+                    <p className="text-xl font-bold">{listing.totalSlots - listing.filledSlots}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-muted-foreground mb-0.5">Ends</p>
+                    <p className="text-sm font-semibold">{formatDistanceToNow(new Date(listing.expiresAt), { addSuffix: true })}</p>
+                  </div>
+                </div>
+              </div>
+              {paymentInfo?.paymentMethod && (
+                <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("listing.payVia")}</p>
+                  <p className="font-bold">{paymentInfo.paymentMethod}</p>
+                  {paymentInfo.paymentDetails && <p className="text-sm font-mono text-muted-foreground">{paymentInfo.paymentDetails}</p>}
+                  {paymentInfo.paymentNotes && <p className="text-xs text-muted-foreground">{paymentInfo.paymentNotes}</p>}
+                </div>
+              )}
+              <div className="flex items-start gap-2 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 text-xs text-emerald-800 dark:text-emerald-200">
+                <span className="text-base leading-none mt-0.5">🔒</span>
+                <span>No charge right now — you're reserving your spot. Payment is coordinated directly with the organiser once the group is complete.</span>
+              </div>
+            </div>
+          )}
 
           {/* Step 1: Distribution preference */}
-          {step === 1 && (
+          {!quickMode && step === 1 && (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">{t("listing.letOrganizerKnow")}</p>
               <div className="grid grid-cols-3 gap-2">
@@ -1645,7 +1805,7 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
           )}
 
           {/* Step 2: Payment + acknowledgment */}
-          {step === 2 && (
+          {!quickMode && step === 2 && (
             <div className="space-y-3">
               {hasPayment ? (
                 <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-1">
@@ -1678,7 +1838,7 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
           )}
 
           {/* Step 3: Summary + confirm */}
-          {step === 3 && (
+          {!quickMode && step === 3 && (
             <div className="space-y-3">
               <div className="bg-muted/50 rounded-xl p-4 space-y-3">
                 <p className="font-semibold text-sm">{listing.title}</p>
@@ -1717,24 +1877,26 @@ function CommitDialog({ listing, trigger, onSuccess }: { listing: any; trigger: 
 
           {/* Navigation */}
           <div className="flex gap-2 pt-1">
-            {step > 1 && (
+            {!quickMode && step > 1 && (
               <Button variant="outline" className="flex-1" onClick={() => setStep(s => s - 1)} data-testid="button-commit-back">
                 {t("common.back")}
               </Button>
             )}
-            {step < totalSteps ? (
+            {!quickMode && step < totalSteps ? (
               <Button className="flex-1" onClick={() => setStep(s => s + 1)} data-testid="button-commit-next">
                 {t("common.next")}
               </Button>
             ) : (
-              <Button
-                className="flex-1 bg-primary shadow-lg shadow-primary/20"
+              <button
+                style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", gap:8, background: joinMutation.isPending ? "#8b5cf6" : "linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", fontWeight:700, fontSize:15, padding:"12px 24px", borderRadius:999, boxShadow:"0 6px 20px -4px rgba(109,40,217,0.45)", border:"none", cursor: joinMutation.isPending ? "not-allowed" : "pointer", flex:1, opacity: (!quickMode && !acknowledged) || joinMutation.isPending ? 0.65 : 1 }}
                 onClick={handleConfirm}
-                disabled={!acknowledged || joinMutation.isPending}
+                disabled={(!quickMode && !acknowledged) || joinMutation.isPending}
                 data-testid="button-commit-confirm"
               >
-                {joinMutation.isPending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />{t("listing.committing")}</> : <><Zap className="w-4 h-4 mr-2" />{t("listing.confirmCommitmentBtn")}</>}
-              </Button>
+                {joinMutation.isPending
+                  ? <><Loader2 className="w-4 h-4 animate-spin" />{t("listing.committing")}</>
+                  : <><Zap className="w-4 h-4" />{quickMode ? "Confirm — Lock in My Spot" : t("listing.confirmCommitmentBtn")}</>}
+              </button>
             )}
           </div>
         </div>
@@ -2029,6 +2191,60 @@ function TrustBadgeRow({ listing }: { listing: any }) {
         <RefreshCcw className="w-3 h-3" />
         Money-back if cancelled
       </span>
+    </div>
+  );
+}
+
+/** Live activity ticker — shows "X just joined" with staggered animation */
+function LiveActivityFeed({ participants, slotsLeft }: { participants: any[]; slotsLeft: number }) {
+  const [visibleIdx, setVisibleIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  // Build activity messages from participants (most recent first)
+  const items = [...participants]
+    .filter((p) => p.user?.firstName)
+    .slice(-5)
+    .reverse()
+    .map((p, i) => {
+      const name = p.user.firstName + (p.user.lastName ? ` ${p.user.lastName[0]}.` : "");
+      const msgs = [
+        `${name} just joined this deal 🎉`,
+        `${name} locked in their spot`,
+        `${name} committed to the group`,
+      ];
+      return msgs[i % msgs.length];
+    });
+
+  useEffect(() => {
+    if (items.length <= 1) return;
+    const timer = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setVisibleIdx((prev) => (prev + 1) % items.length);
+        setVisible(true);
+      }, 400);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [items.length]);
+
+  if (items.length === 0) return null;
+
+  return (
+    <div
+      style={{ background:"#f5f3ff", border:"1px solid #ede9fe", borderRadius:12, padding:"8px 14px", marginBottom:12, display:"flex", alignItems:"center", gap:10, minHeight:40 }}
+      data-testid="live-activity-feed"
+    >
+      <span style={{ width:8, height:8, borderRadius:"50%", background:"#6d28d9", flexShrink:0, animation:"gp-pulse 1.4s ease-in-out infinite" }} />
+      <span
+        style={{ fontSize:12.5, fontWeight:600, color:"#4c1d95", flex:1, transition:"opacity 0.3s", opacity: visible ? 1 : 0 }}
+      >
+        {items[visibleIdx]}
+      </span>
+      {slotsLeft > 0 && slotsLeft <= 5 && (
+        <span style={{ fontSize:11, fontWeight:700, color:"#e23744", background:"#fff1f2", borderRadius:999, padding:"2px 8px", flexShrink:0 }}>
+          {slotsLeft} left
+        </span>
+      )}
     </div>
   );
 }
