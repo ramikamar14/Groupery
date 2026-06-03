@@ -51,18 +51,24 @@ export function BottomNav() {
               )}
               data-testid={`nav-mobile-${item.href.replace("/", "") || "home"}`}
             >
-              {isActive && (
+              {isActive && item.href !== "/create" && (
                 <span className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-primary" />
               )}
               <div className="relative mt-1">
-                <item.icon className={cn("w-6 h-6 transition-transform duration-150", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 1.75} />
+                {item.href === "/create" ? (
+                  <span className="nav-create-fab">
+                    <item.icon style={{ width: 18, height: 18, color: "#fff" }} strokeWidth={2.2} />
+                  </span>
+                ) : (
+                  <item.icon className={cn("w-6 h-6 transition-transform duration-150", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 1.75} />
+                )}
                 {"badge" in item && item.badge && (
                   <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm px-0.5">
                     {item.badge > 9 ? "9+" : item.badge}
                   </span>
                 )}
               </div>
-              <span className={cn("text-[11px] font-medium leading-none", isActive ? "font-semibold text-primary" : "text-muted-foreground")}>{item.label}</span>
+              <span className={cn("text-[11px] font-medium leading-none", item.href === "/create" ? "text-muted-foreground" : isActive ? "font-semibold text-primary" : "text-muted-foreground")}>{item.label}</span>
             </Link>
           );
           if (item.href === "/create" && createBlocked) {
