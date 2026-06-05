@@ -1,677 +1,112 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Roboto+Mono:wght@400;500&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/*
- * Grouperry — Momentum design system
- * Violet-700 #6d28d9 · Poppins · Warm-neutral surfaces · Segmented slot meter
- * Source of truth: Grouperry Momentum.html + tokens.css from design archive
- */
-
 :root {
-  --font-body: 'Poppins', sans-serif;
-  --font-display: 'Poppins', sans-serif;
-  --font-mono: 'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-
-  /* ── Momentum brand — violet ─────────────────────────── */
-  --v-900: #3b1379;
-  --v-800: #5b21b6;
-  --v-700: #6d28d9;
-  --v-600: #7c3aed;
-  --v-500: #8b5cf6;
-  --v-300: #c4b5fd;
-  --v-100: #ede9fe;
-  --v-50:  #f5f3ff;
-
-  /* ── Warm neutral ink + surfaces ────────────────────── */
-  --ink:     #191320;
-  --ink-2:   #3a3340;
-  --muted-c: #736c80;
-  --muted-2: #9b95a6;
-  --line:    #ece9f2;
-  --line-2:  #e2def0;
-  --bg:      #ffffff;
-  --surface: #faf9fc;
-  --cream:   #faf7f1;
-
-  /* ── Semantic ────────────────────────────────────────── */
-  --emerald:    #059669;
-  --emerald-50: #ecfdf5;
-  --emerald-100:#d1fae5;
-  --amber-c:    #e08a00;
-  --amber-50:   #fff7ed;
-  --red-c:      #e23744;
-  --red-50:     #fef2f2;
-
-  /* ── Shadows ─────────────────────────────────────────── */
-  --shadow-sm: 0 1px 2px rgba(25,19,32,.06), 0 1px 3px rgba(25,19,32,.05);
-  --shadow-md: 0 6px 20px -6px rgba(25,19,32,.14), 0 2px 6px rgba(25,19,32,.05);
-  --shadow-lg: 0 18px 50px -12px rgba(46,16,101,.26), 0 6px 16px -8px rgba(25,19,32,.10);
-  --shadow-violet: 0 14px 40px -12px rgba(109,40,217,.45);
-
-  /* ── Tailwind HSL tokens (shadcn/ui compatibility) ───── */
-  --font-body: 'Poppins', sans-serif;
-  --font-display: 'Poppins', sans-serif;
-  --background: 250 20% 98%;
-  --foreground: 250 30% 10%;
-  --primary: 263 69% 42%;
-  --primary-foreground: 0 0% 100%;
-  --primary-border: hsl(263 69% 35%);
-  --secondary: 263 25% 96%;
-  --secondary-foreground: 263 69% 28%;
-  --secondary-border: hsl(263 18% 89%);
-  --accent: 263 40% 94%;
-  --accent-foreground: 263 69% 28%;
-  --accent-border: hsl(263 20% 86%);
-  --destructive: 351 83% 57%;
-  --destructive-foreground: 0 0% 100%;
-  --destructive-border: hsl(351 83% 47%);
-  --muted: 250 18% 95%;
-  --muted-foreground: 250 12% 46%;
-  --muted-border: hsl(250 14% 88%);
-  --card: 0 0% 100%;
-  --card-foreground: 250 30% 10%;
-  --card-border: hsl(263 16% 91%);
-  --popover: 0 0% 100%;
-  --popover-foreground: 250 30% 10%;
-  --popover-border: hsl(263 16% 91%);
-  --border: 263 16% 91%;
-  --input: 263 16% 91%;
-  --ring: 263 69% 42%;
-  --button-outline: hsl(263 14% 84%);
-  --sidebar: 263 25% 97%;
-  --sidebar-foreground: 263 69% 28%;
-  --sidebar-border: 263 16% 91%;
-  --sidebar-ring: 263 69% 42%;
-  --sidebar-primary: 263 69% 42%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-primary-border: hsl(263 69% 35%);
-  --sidebar-accent: 263 25% 94%;
-  --sidebar-accent-foreground: 263 69% 28%;
-  --sidebar-accent-border: hsl(263 18% 87%);
-  --chart-1: 263 69% 42%;
-  --chart-2: 162 73% 38%;
-  --chart-3: 291 64% 58%;
-  --chart-4: 351 83% 57%;
-  --chart-5: 38 92% 50%;
-  --radius: 0.75rem;
-  --badge-outline: hsl(263 14% 84%);
-
-  /* Momentum brand shortcuts for JS inline styles */
-  --v-grad: linear-gradient(135deg, var(--v-600), var(--v-800));
-  --v-grad-b: linear-gradient(120deg, var(--v-600), var(--v-800));
+  --gold: #C9A96E;
+  --navy: #1a2b4a;
 }
 
-.dark {
-  --background: 263 28% 8%;
-  --foreground: 263 20% 94%;
-
-  /* Violet lifts in dark mode */
-  --primary: 263 72% 62%; /* #8b5cf6 lighter violet */
-  --primary-foreground: 263 28% 6%;
-  --primary-border: hsl(263 72% 52%);
-
-  --secondary: 263 22% 15%;
-  --secondary-foreground: 263 20% 90%;
-  --secondary-border: hsl(263 18% 22%);
-
-  --accent: 291 60% 68%;
-  --accent-foreground: 263 28% 6%;
-  --accent-border: hsl(291 60% 55%);
-
-  --destructive: 351 78% 54%;
-  --destructive-foreground: 0 0% 100%;
-  --destructive-border: hsl(351 78% 44%);
-
-  --muted: 263 22% 13%;
-  --muted-foreground: 263 12% 58%;
-  --muted-border: hsl(263 18% 22%);
-
-  --card: 263 26% 11%;
-  --card-foreground: 263 20% 94%;
-  --card-border: hsl(263 22% 19%);
-
-  --popover: 263 26% 11%;
-  --popover-foreground: 263 20% 94%;
-  --popover-border: hsl(263 22% 19%);
-
-  --border: 263 22% 19%;
-  --input: 263 22% 19%;
-  --ring: 263 72% 62%;
-
-  --button-outline: hsl(263 16% 28%);
-
-  --sidebar: 263 30% 7%;
-  --sidebar-foreground: 263 18% 90%;
-  --sidebar-border: 263 22% 17%;
-  --sidebar-ring: 263 72% 62%;
-  --sidebar-primary: 263 72% 62%;
-  --sidebar-primary-foreground: 263 28% 6%;
-  --sidebar-primary-border: hsl(263 72% 52%);
-  --sidebar-accent: 263 22% 13%;
-  --sidebar-accent-foreground: 263 18% 88%;
-  --sidebar-accent-border: hsl(263 18% 20%);
-
-  --badge-outline: hsl(263 16% 28%);
+* {
+  box-sizing: border-box;
 }
 
-/* Landing v2 — warm cream, Momentum violet brand */
-.theme-v2 {
-  --background: 48 38% 97%;
-  --foreground: 250 30% 12%;
-  --card: 0 0% 100%;
-  --card-foreground: 250 30% 12%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 250 30% 12%;
-  --primary: 263 69% 42%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 263 30% 95%;
-  --secondary-foreground: 263 69% 30%;
-  --muted: 45 28% 94%;
-  --muted-foreground: 250 10% 42%;
-  --accent: 291 64% 62%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 351 83% 57%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 263 16% 88%;
-  --input: 263 16% 88%;
-  --ring: 263 69% 42%;
-  --radius: 0.75rem;
-  --badge-outline: hsl(263 14% 84%);
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f8f6f1;
+  color: #1a2b4a;
+  margin: 0;
 }
 
-/* ── Momentum component primitives ────────────────────────────────── */
-
-/* Chips */
-.gp-chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-weight: 600; font-size: 11.5px; padding: 4px 9px;
-  border-radius: 999px; line-height: 1; white-space: nowrap;
-}
-.gp-chip-live  { background: var(--red-c); color: #fff; }
-.gp-chip-hot   { background: var(--red-50); color: var(--red-c); border: 1px solid #fdd; }
-.gp-chip-save  { background: var(--emerald-50); color: var(--emerald); border: 1px solid var(--emerald-100); }
-.gp-chip-soft  { background: var(--v-50); color: var(--v-700); }
-.gp-chip-cat   { background: rgba(0,0,0,.04); color: var(--muted-c); text-transform: uppercase; letter-spacing: .05em; font-size: 10px; }
-
-/* Pulsing dot for LIVE chip */
-.gp-dot-pulse {
-  width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0;
-  animation: gp-pulse 1.4s ease-in-out infinite;
-}
-@keyframes gp-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.6} }
-
-/* Card base */
-.gp-card {
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  box-shadow: var(--shadow-sm);
+h1, h2, h3 {
+  font-family: 'Cormorant Garamond', serif;
 }
 
-/* Savings disc (rotated circle floating off card image) */
-.gp-savings-disc {
-  position: absolute;
-  right: 14px;
-  bottom: -22px;
-  width: 56px; height: 56px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--emerald), #0d9488);
-  color: #fff;
-  display: grid; place-items: center;
-  transform: rotate(-8deg);
-  box-shadow: 0 8px 20px -6px rgba(5,150,105,.6);
-  border: 3px solid var(--bg);
-  line-height: 1;
-  z-index: 2;
+/* TipTap editor styles */
+.tiptap-editor .ProseMirror {
+  outline: none;
+  min-height: 280px;
+  padding: 1rem;
 }
 
-/* Slot meter segment base */
-.gp-slot { flex: 1; border-radius: 5px; border: 1.5px solid transparent; transition: all .45s cubic-bezier(.2,.8,.2,1); }
-.gp-slot-on   { background: linear-gradient(180deg, var(--v-500), var(--v-700)); box-shadow: 0 3px 8px -2px rgba(109,40,217,.5); }
-.gp-slot-next { background: #fff; border: 1.5px dashed var(--v-300) !important; }
-.gp-slot-off  { background: var(--v-100); }
-
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(90deg, var(--v-600), var(--v-500));
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
+.tiptap-editor .ProseMirror p {
+  margin: 0.5em 0;
 }
 
-/* Gradient button */
-.btn-grad {
-  background: linear-gradient(120deg, var(--v-600), var(--v-800));
-  color: #fff;
-  box-shadow: var(--shadow-violet);
-}
-.btn-grad:hover { background: linear-gradient(120deg, var(--v-500), var(--v-700)); }
-
-/* Image placeholder — honest diagonal violet stripe */
-.gp-img-tile {
-  position: relative; overflow: hidden; width: 100%;
-  background:
-    repeating-linear-gradient(135deg, rgba(109,40,217,.055) 0 9px, rgba(109,40,217,0) 9px 20px),
-    linear-gradient(160deg, var(--v-800), var(--v-900));
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: 9px;
-}
-
-/* Almost-full badge on card image */
-.gp-almost {
-  position: absolute; inset-inline-start: 0; inset-inline-end: 0; bottom: 0;
-  background: linear-gradient(90deg, var(--red-c), #b91c1c);
-  color: #fff; font-size: 11px; font-weight: 700;
-  padding: 5px 14px; text-align: center; letter-spacing: .02em;
-}
-
-/* Shimmer stripe on active progress bars */
-.gp-shimmer::after {
-  content: ''; position: absolute; inset: 0;
-  background-image: linear-gradient(45deg, rgba(255,255,255,.22) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.22) 50%, rgba(255,255,255,.22) 75%, transparent 75%);
-  background-size: 14px 14px;
-  animation: gp-stripe .7s linear infinite;
-}
-@keyframes gp-stripe { from{background-position:0 0} to{background-position:14px 0} }
-
-/* Create FAB in bottom nav */
-.nav-create-fab {
-  width: 42px; height: 30px; border-radius: 10px;
-  background: linear-gradient(135deg, var(--v-600), var(--v-800));
-  display: grid; place-items: center;
-  box-shadow: 0 6px 14px -4px rgba(109,40,217,.6);
-}
-
-@layer base {
-  * {
-    border-color: hsl(var(--border));
-  }
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-family: var(--font-body);
-    font-weight: 400;
-    line-height: 1.5;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background-color: var(--surface);
-    color: var(--ink);
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
-    @apply font-semibold tracking-tight;
-    line-height: 1.35;
-  }
-
-  /* Smooth scroll */
-  html {
-    scroll-behavior: smooth;
-  }
-}
-
-@layer components {
-  /* Landing page — shared container, section rhythm, cards, type */
-  .landing-container {
-    @apply mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-6;
-  }
-
-  .landing-section {
-    @apply py-16 sm:py-20 lg:py-24;
-  }
-
-  .landing-heading-section {
-    @apply text-pretty text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-4xl lg:leading-tight;
-  }
-
-  .landing-section-intro {
-    @apply text-pretty text-[15px] leading-relaxed text-muted-foreground sm:text-base lg:text-lg;
-  }
-
-  .landing-lead {
-    @apply text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg;
-  }
-
-  .landing-card {
-    @apply rounded-xl border bg-card shadow-sm
-      transition-[transform,box-shadow] duration-200 ease-out;
-    border-color: hsl(var(--border));
-  }
-  .landing-card:hover {
-    @apply shadow-md;
-    transform: translateY(-2px);
-  }
-
-  .landing-card-content {
-    @apply p-5 sm:p-6;
-  }
-
-  .landing-btn-motion {
-    @apply transition-all duration-200 ease-out;
-  }
-
-  .landing-link-motion {
-    @apply transition-colors duration-200 ease-out;
-  }
-
-  .landing-eyebrow {
-    @apply mb-3 inline-flex max-w-full items-center gap-1.5 rounded-md border bg-muted/50 px-2.5 py-1 text-xs font-medium text-muted-foreground;
-    border-color: hsl(var(--border));
-  }
-
-  .landing-touch-target {
-    @apply inline-flex min-h-11 min-w-[44px] items-center justify-center;
-  }
-
-  /* Premium card — design system: 0.75rem radius, hover lift */
-  .card-premium {
-    @apply bg-card border rounded-xl shadow-sm hover:shadow-md transition-[transform,box-shadow] duration-200 ease-out;
-    border-color: hsl(var(--border) / 0.65);
-  }
-  .card-premium:hover {
-    transform: translateY(-2px);
-  }
-
-  /* Semantic status badges (listing / dashboard) */
-  .badge-status-active {
-    @apply border-transparent bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300;
-  }
-  .badge-status-expired {
-    @apply border-transparent bg-destructive/15 text-destructive dark:bg-destructive/25 dark:text-red-200;
-  }
-  .badge-status-completed {
-    @apply border-transparent bg-muted text-muted-foreground;
-  }
-  .badge-role-organiser {
-    @apply border-transparent bg-primary/12 text-primary dark:bg-primary/20 dark:text-primary;
-  }
-  .badge-next-action {
-    @apply border-transparent bg-accent/20 text-accent-foreground dark:bg-accent/30;
-  }
-
-  /* Gradient text — Violet → Fuchsia brand */
-  .gradient-text {
-    @apply bg-gradient-to-r from-[#6d28d9] to-[#a855f7] bg-clip-text text-transparent;
-  }
-
-  /* Glass morphism */
-  .glass {
-    @apply bg-background/80 backdrop-blur-xl border;
-    border-color: hsl(var(--border) / 0.5);
-  }
-
-  /* Premium button base */
-  .btn-premium {
-    @apply inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
-  }
-
-  /* Subtle glow on primary elements */
-  .glow-primary {
-    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2), 0 4px 16px hsl(var(--primary) / 0.15);
-  }
-
-  /* Stat counter style */
-  .stat-number {
-    @apply font-display font-bold text-foreground tabular-nums;
-  }
-
-  /* Tag pill */
-  .tag-pill {
-    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground;
-  }
-}
-
-@layer utilities {
-  /* Hover elevation — subtle bg tint + gentle shadow lift on hover */
-  .hover-elevate {
-    transition: background-color 150ms ease, box-shadow 150ms ease, transform 120ms ease;
-  }
-  .hover-elevate:hover {
-    background-color: hsl(var(--muted) / 0.6);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
-  }
-  /* Active elevation — pressed-in feel (inverse of hover) */
-  .active-elevate-2 {
-    transition: box-shadow 80ms ease, transform 80ms ease;
-  }
-  .active-elevate-2:active {
-    box-shadow: none;
-    transform: translateY(1px);
-  }
-
-  /* Hide scrollbar but keep scroll */
-  .scrollbar-hide::-webkit-scrollbar { display: none; }
-  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-  /* Thin custom scrollbar */
-  .scrollbar-thin::-webkit-scrollbar { width: 4px; height: 4px; }
-  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-  .scrollbar-thin::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
-
-  /* Text balance */
-  .text-balance { text-wrap: balance; }
-
-  /* Safe area padding */
-  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0); }
-
-  /* Animation utilities */
-  .animate-in {
-    animation: fade-in 0.2s ease-out;
-  }
-  .slide-in-from-bottom {
-    animation: slide-up 0.3s ease-out;
-  }
-}
-
-/* Premium animations */
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slide-up {
-  from { transform: translateY(8px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes shimmer {
-  from { background-position: -200% center; }
-  to { background-position: 200% center; }
-}
-
-/* Shimmer for loading skeletons */
-.shimmer {
-  background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted-foreground) / 0.1) 50%, hsl(var(--muted)) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-/* Pulse dot for live indicators */
-@keyframes pulse-dot {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.4); opacity: 0.7; }
-}
-.pulse-dot {
-  animation: pulse-dot 1.5s ease-in-out infinite;
-}
-
-/* Floating animation for decorative elements */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* ── Global interaction polish ─────────────────────────────────────────────── */
-
-/* Focus-visible ring — violet accent, consistent across all interactive elements */
-:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* Image drag prevention */
-img {
-  -webkit-user-drag: none;
-  user-select: none;
-}
-
-/* Smooth page transitions */
-main {
-  transition: opacity 150ms ease;
-}
-
-/* Card images — cover with no layout shift */
-.card-img {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
-}
-
-/* ── Typography refinements ─────────────────────────────────────────────────── */
-
-/* Tighter letter-spacing for headings > 2rem */
-h1, h2 {
-  letter-spacing: -0.02em;
-}
-
-/* Numeric tabular-nums for stats / prices */
-.font-display {
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── Premium card shadow system ─────────────────────────────────────────────── */
-
-/* Resting card — barely there shadow */
-.shadow-card {
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
-}
-
-/* Hover card — gentle lift */
-.shadow-card-hover {
-  box-shadow: 0 8px 24px -4px rgb(0 0 0 / 0.10), 0 4px 8px -4px rgb(0 0 0 / 0.06);
-}
-
-/* ── Progress bar base style ────────────────────────────────────────────────── */
-
-/* Stripe animation for progress bars on active deals */
-@keyframes progress-stripe {
-  0% { background-position: 1rem 0; }
-  100% { background-position: 0 0; }
-}
-
-.progress-animated {
-  background-image: linear-gradient(
-    45deg,
-    rgba(255,255,255,.12) 25%,
-    transparent 25%,
-    transparent 50%,
-    rgba(255,255,255,.12) 50%,
-    rgba(255,255,255,.12) 75%,
-    transparent 75%,
-    transparent
-  );
-  background-size: 1rem 1rem;
-  animation: progress-stripe 0.75s linear infinite;
-}
-
-/* ── Section title gradient text helper ─────────────────────────────────────── */
-
-.section-title-gradient {
-  background: linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(var(--primary)) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ── Savings chip ───────────────────────────────────────────────────────────── */
-
-.savings-chip {
-  @apply inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400;
-  @apply bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800;
-  @apply px-2 py-0.5 rounded-full;
-}
-
-/* ── Bottom nav safe-area enhancement ──────────────────────────────────────── */
-
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .pb-safe {
-    padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
-  }
-}
-
-/* ── Momentum slot meter ──────────────────────────────────────── */
-.slot-meter {
-  display: flex;
-  gap: 4px;
-}
-.slot-meter-cell {
-  flex: 1;
-  height: 14px;
-  border-radius: 5px;
-  transition: all 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
-  background: var(--slot-empty, #ede9fe);
-  border: 1.5px solid transparent;
-}
-.slot-meter-cell.filled {
-  background: linear-gradient(180deg, #8b5cf6, #6d28d9);
-  box-shadow: 0 3px 8px -2px rgba(109, 40, 217, 0.5);
-}
-.slot-meter-cell.next {
-  background: #fff;
-  border: 1.5px dashed #c4b5fd;
-}
-.slot-meter-cell.big {
-  height: 20px;
-  border-radius: 6px;
-}
-
-/* ── Momentum savings badge (rotated disc) ───────────────────── */
-.savings-disc {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #059669, #0d9488);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  transform: rotate(-8deg);
-  box-shadow: 0 8px 20px -6px rgba(5, 150, 105, 0.6);
-  border: 3px solid #fff;
-  line-height: 1;
-  text-align: center;
-}
-.savings-disc .pct { font-size: 15px; font-weight: 800; }
-.savings-disc .off { font-size: 7.5px; font-weight: 700; letter-spacing: 0.06em; }
-
-/* ── LIVE chip ─────────────────────────────────────────────────── */
-.chip-live {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: #e23744;
-  color: #fff;
-  font-size: 10.5px;
+.tiptap-editor .ProseMirror h1 {
+  font-size: 1.8em;
   font-weight: 700;
-  padding: 4px 9px;
-  border-radius: 999px;
-  line-height: 1;
-  letter-spacing: 0.04em;
+  margin: 0.5em 0;
 }
-.dot-pulse {
+
+.tiptap-editor .ProseMirror h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor .ProseMirror h3 {
+  font-size: 1.15em;
+  font-weight: 600;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor .ProseMirror ul,
+.tiptap-editor .ProseMirror ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor .ProseMirror a {
+  color: #C9A96E;
+  text-decoration: underline;
+}
+
+.tiptap-editor .ProseMirror blockquote {
+  border-left: 3px solid #C9A96E;
+  padding-left: 1em;
+  color: #666;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
   width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #fff;
-  animation: gp-pulse 1.4s ease-in-out infinite;
-  display: inline-block;
 }
-@keyframes gp-pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.5); opacity: 0.6; }
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #C9A96E;
+  border-radius: 3px;
+}
+
+/* Transitions */
+.step-enter {
+  animation: slideIn 0.3s ease forwards;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* File drop zone */
+.drop-zone {
+  border: 2px dashed #C9A96E;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.drop-zone:hover,
+.drop-zone.active {
+  background: rgba(201, 169, 110, 0.08);
 }

@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 
-// Parse .env file manually
 const envFile = path.join(__dirname, '.env');
 const envVars = {};
 if (fs.existsSync(envFile)) {
@@ -13,16 +12,16 @@ if (fs.existsSync(envFile)) {
 
 module.exports = {
   apps: [{
-    name: 'groupery',
+    name: 'accor-mailer',
     script: './dist/index.cjs',
-    cwd: '/home/rami/Groupery',
+    cwd: '/home/rami/accor-mailer',
     instances: 1,
     autorestart: true,
     watch: false,
-    max_memory_restart: '1G',
-    error_file: '/home/rami/.pm2/logs/groupery-error.log',
-    out_file: '/home/rami/.pm2/logs/groupery-out.log',
+    max_memory_restart: '512M',
+    error_file: '/home/rami/.pm2/logs/accor-mailer-error.log',
+    out_file: '/home/rami/.pm2/logs/accor-mailer-out.log',
     time: true,
     env: envVars
   }]
-}
+};

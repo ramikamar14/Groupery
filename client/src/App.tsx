@@ -1,213 +1,114 @@
-import { useEffect, useState } from "react";
-import { Switch, Route, Redirect, useLocation } from "wouter";
-import { pageview } from "@/lib/analytics";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { useTranslation } from "react-i18next";
-import { Capacitor } from "@capacitor/core";
-import { App as CapApp } from "@capacitor/app";
-import NotFound from "@/pages/not-found";
-import Landing from "@/pages/Landing";
-import Discover from "@/pages/Discover";
-import Dashboard from "@/pages/Dashboard";
-import CreateListing from "@/pages/CreateListing";
-import ListingDetails from "@/pages/ListingDetails";
-import MyGroups from "@/pages/MyGroups";
-import Profile from "@/pages/Profile";
-import Onboarding from "@/pages/Onboarding";
-import Admin from "@/pages/Admin";
-import Notifications from "@/pages/Notifications";
-import SavedListings from "@/pages/SavedListings";
-import ExpiredListings from "@/pages/ExpiredListings";
-import Vouchers from "@/pages/Vouchers";
-import Terms from "@/pages/Terms";
-import FAQ from "@/pages/FAQ";
-import About from "@/pages/About";
-import Contact from "@/pages/Contact";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import { useAuth } from "@/hooks/use-auth";
-import { LoginModal } from "@/components/LoginModal";
-import { Loader2 } from "lucide-react";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { ListingContextProvider } from "@/hooks/use-listing-context";
-import { AIChatWidget } from "@/components/AIChatWidget";
+import { useState } from "react";
+import type { SmtpConfig, FieldMapping } from "@shared/types";
+import StepIndicator from "./components/StepIndicator";
+import Step1_SmtpConfig from "./components/Step1_SmtpConfig";
+import Step2_EmailComposer from "./components/Step2_EmailComposer";
+import Step3_Recipients from "./components/Step3_Recipients";
+import Step4_Send from "./components/Step4_Send";
 
-function PrivateRoute({ component: Component }: { component: React.ComponentType }) {
-  const { isAuthenticated, isLoading } = useAuth();
+export type WizardState = {
+  smtp: SmtpConfig;
+  subject: string;
+  html: string;
+  replyTo: string;
+  contacts: Record<string, string>[];
+  excelHeaders: string[];
+  fieldMapping: FieldMapping;
+};
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+const defaultSmtp: SmtpConfig = {
+  fromName: "",
+  fromEmail: "",
+  password: "",
+  host: "smtp.office365.com",
+  port: 587,
+};
 
-  if (!isAuthenticated) {
-    return <Redirect to="/" />;
-  }
-
-  return <Component />;
-}
-
-
-function Router() {
-  const { user, isAuthenticated, isLoading } = useAuth();
-  const [showLogin, setShowLogin] = useState(() => {
-    return new URLSearchParams(window.location.search).get("login") === "true";
-  });
-  const [returnTo] = useState(() => {
-    const p = new URLSearchParams(window.location.search).get("returnTo");
-    // Only honour same-origin relative paths that start with "/" and not "//"
-    return p && p.startsWith("/") && !p.startsWith("//") ? p : null;
+export default function App() {
+  const [step, setStep] = useState(0);
+  const [state, setState] = useState<WizardState>({
+    smtp: defaultSmtp,
+    subject: "",
+    html: "",
+    replyTo: "",
+    contacts: [],
+    excelHeaders: [],
+    fieldMapping: { emailField: "" },
   });
 
-  const [location] = useLocation();
+  const update = (patch: Partial<WizardState>) => setState((s) => ({ ...s, ...patch }));
 
-  useEffect(() => {
-    const handleLoginEvent = () => setShowLogin(true);
-    window.addEventListener("open-login", handleLoginEvent);
-    return () => window.removeEventListener("open-login", handleLoginEvent);
-  }, []);
+  const steps = ["SMTP Setup", "Email Content", "Recipients", "Send"];
 
-  // Track SPA pageviews on route change (no-op unless analytics configured)
-  useEffect(() => {
-    pageview(location);
-  }, [location]);
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Header */}
+      <header className="bg-navy-900 text-white py-4 px-6 shadow-lg">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gold-500 flex items-center justify-center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="font-serif text-xl font-semibold leading-tight">Accor Email Marketing</h1>
+              <p className="text-xs text-gold-300 leading-none">Fairmont · Raffles · Sofitel</p>
+            </div>
+          </div>
+          <span className="text-xs text-white/40 font-mono">O365 SMTP</span>
+        </div>
+      </header>
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      {/* Step indicator */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-5xl mx-auto px-6 py-4">
+          <StepIndicator steps={steps} current={step} />
+        </div>
       </div>
-    );
-  }
 
-  const needsOnboarding = isAuthenticated && user && !user.onboardingComplete;
+      {/* Content */}
+      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-8">
+        <div className="step-enter">
+          {step === 0 && (
+            <Step1_SmtpConfig
+              smtp={state.smtp}
+              onChange={(smtp) => update({ smtp })}
+              onNext={() => setStep(1)}
+            />
+          )}
+          {step === 1 && (
+            <Step2_EmailComposer
+              subject={state.subject}
+              html={state.html}
+              replyTo={state.replyTo}
+              onChange={(d) => update(d)}
+              onBack={() => setStep(0)}
+              onNext={() => setStep(2)}
+            />
+          )}
+          {step === 2 && (
+            <Step3_Recipients
+              contacts={state.contacts}
+              excelHeaders={state.excelHeaders}
+              fieldMapping={state.fieldMapping}
+              onChange={(d) => update(d)}
+              onBack={() => setStep(1)}
+              onNext={() => setStep(3)}
+            />
+          )}
+          {step === 3 && (
+            <Step4_Send
+              state={state}
+              onBack={() => setStep(2)}
+            />
+          )}
+        </div>
+      </main>
 
-  return (
-    <>
-    <Switch>
-      <Route path="/">
-        {isAuthenticated ? (needsOnboarding ? <Redirect to="/onboarding" /> : <Discover />) : <Landing />}
-      </Route>
-
-      <Route path="/explore">
-        <Redirect to="/" />
-      </Route>
-
-      <Route path="/dashboard">
-        {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <Dashboard />}
-      </Route>
-
-      <Route path="/create">
-        {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <CreateListing />}
-      </Route>
-      <Route path="/listings/:id">
-        {needsOnboarding ? <Redirect to="/onboarding" /> : <ListingDetails />}
-      </Route>
-      <Route path="/my-groups">
-        {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <MyGroups />}
-      </Route>
-      <Route path="/profile">
-        {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <Profile />}
-      </Route>
-      <Route path="/onboarding">
-        {isAuthenticated ? <Onboarding /> : <Redirect to="/" />}
-      </Route>
-      <Route path="/saved">
-        {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <SavedListings />}
-      </Route>
-      <Route path="/notifications">
-        {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <Notifications />}
-      </Route>
-      <Route path="/admin">
-        {!isAuthenticated ? <Redirect to="/?login=true&returnTo=%2Fadmin" /> : !user?.isAdmin ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <Admin />}
-      </Route>
-      <Route path="/admin-secret-dashboard">
-        <Redirect to="/admin" />
-      </Route>
-      <Route path="/expired">
-        {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <ExpiredListings />}
-      </Route>
-      <Route path="/vouchers">
-        {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <Vouchers />}
-      </Route>
-
-      {/* Footer pages - available to all users */}
-      <Route path="/terms">
-        <Terms />
-      </Route>
-      <Route path="/privacy">
-        <PrivacyPolicy />
-      </Route>
-      <Route path="/faq">
-        <FAQ />
-      </Route>
-      <Route path="/about">
-        <About />
-      </Route>
-      <Route path="/contact">
-        <Contact />
-      </Route>
-
-      <Route component={NotFound} />
-    </Switch>
-    <LoginModal open={showLogin && !isAuthenticated} returnTo={returnTo} onClose={() => {
-      setShowLogin(false);
-      const url = new URL(window.location.href);
-      url.searchParams.delete("login");
-      url.searchParams.delete("returnTo");
-      window.history.replaceState({}, "", url.toString());
-    }} />
-    </>
+      <footer className="text-center py-3 text-xs text-gray-400 border-t border-gray-100">
+        Accor Email Marketing Tool — Internal Use Only
+      </footer>
+    </div>
   );
 }
-
-function RTLProvider({ children }: { children: React.ReactNode }) {
-  const { i18n } = useTranslation();
-
-  useEffect(() => {
-    const lang = i18n.language;
-    const dir = lang === "ar" ? "rtl" : "ltr";
-    document.documentElement.dir = dir;
-    document.documentElement.lang = lang;
-  }, [i18n.language]);
-
-  return <>{children}</>;
-}
-
-function App() {
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    // Android hardware back button — go back in history, or exit if at root
-    const listener = CapApp.addListener("backButton", ({ canGoBack }) => {
-      if (canGoBack) {
-        window.history.back();
-      } else {
-        CapApp.exitApp();
-      }
-    });
-    return () => { listener.then(h => h.remove()); };
-  }, []);
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ListingContextProvider>
-          <RTLProvider>
-            <ErrorBoundary>
-              <Toaster />
-              <Router />
-              <AIChatWidget />
-            </ErrorBoundary>
-          </RTLProvider>
-        </ListingContextProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
-}
-
-export default App;
