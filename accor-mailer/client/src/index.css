@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gold: #C9A96E;
+  --navy: #1a2b4a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f8f6f1;
+  color: #1a2b4a;
+  margin: 0;
+}
+
+h1, h2, h3 {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+/* TipTap editor styles */
+.tiptap-editor .ProseMirror {
+  outline: none;
+  min-height: 280px;
+  padding: 1rem;
+}
+
+.tiptap-editor .ProseMirror p {
+  margin: 0.5em 0;
+}
+
+.tiptap-editor .ProseMirror h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor .ProseMirror h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor .ProseMirror h3 {
+  font-size: 1.15em;
+  font-weight: 600;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor .ProseMirror ul,
+.tiptap-editor .ProseMirror ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor .ProseMirror a {
+  color: #C9A96E;
+  text-decoration: underline;
+}
+
+.tiptap-editor .ProseMirror blockquote {
+  border-left: 3px solid #C9A96E;
+  padding-left: 1em;
+  color: #666;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #C9A96E;
+  border-radius: 3px;
+}
+
+/* Transitions */
+.step-enter {
+  animation: slideIn 0.3s ease forwards;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* File drop zone */
+.drop-zone {
+  border: 2px dashed #C9A96E;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.drop-zone:hover,
+.drop-zone.active {
+  background: rgba(201, 169, 110, 0.08);
+}
