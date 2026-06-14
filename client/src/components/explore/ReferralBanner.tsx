@@ -21,6 +21,7 @@ export function ReferralBanner() {
 
   const referralLink = `${window.location.origin}?ref=${(user as any).id}`;
   const totalReferrals = referralStats?.totalReferrals ?? 0;
+  const rewardedReferrals = referralStats?.rewardedReferrals ?? 0;
 
   const handleCopy = async () => {
     try {
@@ -48,8 +49,8 @@ export function ReferralBanner() {
           <Gift className="w-4.5 h-4.5 text-amber-600 dark:text-amber-400" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <p className="text-sm font-bold text-amber-900 dark:text-amber-200">Invite friends &amp; grow your network</p>
+          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+            <p className="text-sm font-bold text-amber-900 dark:text-amber-200">Invite friends, earn rewards</p>
             {totalReferrals > 0 && (
               <span
                 className="inline-flex items-center gap-1 px-1.5 py-0 bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] font-bold rounded-full border border-amber-400/30"
@@ -59,9 +60,14 @@ export function ReferralBanner() {
                 {totalReferrals} joined
               </span>
             )}
+            {rewardedReferrals > 0 && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0 bg-green-500/15 text-green-800 dark:text-green-300 text-[10px] font-bold rounded-full border border-green-400/30">
+                ✓ {rewardedReferrals} rewarded
+              </span>
+            )}
           </div>
           <p className="text-[11px] text-amber-700 dark:text-amber-400 mb-2">
-            Share your link — both you and your friend get a reward when they join their first group deal.
+            Share your link — both you and your friend get a reward when they complete their first group deal.
           </p>
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0 bg-background/60 border border-amber-300/30 rounded-md px-2 py-1">

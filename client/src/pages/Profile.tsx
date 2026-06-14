@@ -24,6 +24,7 @@ import { CountrySelect } from "@/components/CountrySelect";
 import { ProfileContactInfo } from "@/components/profile/ProfileContactInfo";
 import { ProfileListingsSection } from "@/components/profile/ProfileListingsSection";
 import { ProfileReviewsSection } from "@/components/profile/ProfileReviewsSection";
+import { SavingsSummary } from "@/components/profile/SavingsSummary";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -533,6 +534,9 @@ export default function Profile() {
                 </div>
               </div>
             )}
+
+            {/* Savings summary */}
+            <SavingsSummary userId={user?.id} />
 
             {/* Invite & Earn referral card */}
             <div className="mb-4 p-4 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-950/20 dark:to-fuchsia-950/20 rounded-2xl border border-violet-200/60 dark:border-violet-800/40" data-testid="card-invite-earn">

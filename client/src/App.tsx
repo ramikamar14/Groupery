@@ -33,6 +33,7 @@ import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ListingContextProvider } from "@/hooks/use-listing-context";
 import { AIChatWidget } from "@/components/AIChatWidget";
+import { CookieConsent } from "@/components/CookieConsent";
 
 function PrivateRoute({ component: Component }: { component: React.ComponentType }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -202,6 +203,7 @@ function App() {
               <Toaster />
               <Router />
               <AIChatWidget />
+              <CookieConsent />
             </ErrorBoundary>
           </RTLProvider>
         </ListingContextProvider>
