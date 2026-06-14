@@ -155,6 +155,18 @@
   --sidebar-accent-border: hsl(263 18% 20%);
 
   --badge-outline: hsl(263 16% 28%);
+
+  /* Momentum tokens — dark overrides */
+  --ink: #e8e4f0;
+  --ink-2: #c4bdd4;
+  --muted-c: #9b95a6;
+  --muted-2: #736c80;
+  --line: #2a2540;
+  --line-2: #332e4d;
+  --surface: #1a1628;
+  --surface-2: #1f1a30;
+  --bg: #1e1830;
+  --slot-empty: #2d2550;
 }
 
 /* Landing v2 — warm cream, Momentum violet brand */
@@ -675,3 +687,9 @@ h1, h2 {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.5); opacity: 0.6; }
 }
+
+/* Dark mode overrides for hardcoded #fff components */
+.dark .gp-slot-next { background: var(--bg); }
+.dark .slot-meter-cell.next { background: var(--bg); }
+.dark .savings-disc { border-color: var(--bg); }
+.dark .gp-savings-disc { border-color: var(--bg) !important; }
