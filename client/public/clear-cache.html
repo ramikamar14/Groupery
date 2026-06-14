@@ -51,8 +51,8 @@
         steps.push(keys.length + ' caches cleared');
       }
 
-      // 3. Clear localStorage / sessionStorage
-      try { localStorage.clear(); sessionStorage.clear(); steps.push('storage cleared'); } catch(e) {}
+      // 3. Clear sessionStorage only — preserve localStorage (theme, language, cookie consent, etc.)
+      try { sessionStorage.clear(); } catch(e) {}
 
       status.textContent = done > 0
         ? '✅ Done — ' + steps.join(', ')
