@@ -29,15 +29,21 @@ if (Capacitor.isNativePlatform()) {
 
 // Register PWA service worker in production web builds
 if (!Capacitor.isNativePlatform() && "serviceWorker" in navigator) {
+  // When a new SW takes control, reload immediately so users always get
+  // the latest JS/CSS without any manual cache-clearing step.
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (hadController && !reloading) {
+      reloading = true;
+      window.location.reload();
+    }
+  });
+
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      // updateViaCache:'none' → browser ALWAYS re-fetches sw.js over the network,
-      // bypassing HTTP cache (Cloudflare, disk cache, etc.).  Without this, the
-      // browser may serve the old sw.js from cache and never see our version bump.
       .register("/sw.js", { updateViaCache: "none" })
       .then((reg) => {
-        // Force an immediate update check so an already-installed SW doesn't
-        // linger until the next page load.
         reg.update().catch(() => {});
       })
       .catch(() => {});

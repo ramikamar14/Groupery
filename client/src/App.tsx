@@ -27,6 +27,7 @@ import FAQ from "@/pages/FAQ";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import ClearCache from "@/pages/ClearCache";
 import { useAuth } from "@/hooks/use-auth";
 import { LoginModal } from "@/components/LoginModal";
 import { Loader2 } from "lucide-react";
@@ -154,6 +155,9 @@ function Router() {
       </Route>
       <Route path="/contact">
         <Contact />
+      </Route>
+      <Route path="/clear-cache">
+        <ClearCache />
       </Route>
 
       <Route component={NotFound} />
