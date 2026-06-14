@@ -179,18 +179,52 @@ export default function Profile() {
       reader.readAsDataURL(file);
     });
 
+  /**
+   * Resize an image to a max dimension and re-encode as JPEG so avatars stay
+   * well under the server's 5MB limit regardless of the source photo size.
+   * Returns a `data:image/jpeg;base64,...` URI.
+   */
+  const resizeImage = (file: File, maxDim = 512, quality = 0.85): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new window.Image();
+        img.onload = () => {
+          const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return reject(new Error("Canvas unavailable"));
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = () => reject(new Error("Could not read image"));
+        img.src = reader.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
   const handleProfilePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (!file.type.startsWith("image/")) {
+      toast({ title: t("common.error"), description: "Please choose an image file.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
       toast({ title: t("common.error"), description: t("upload.imageTooLarge"), variant: "destructive" });
       return;
     }
 
     setUploadingPicture(true);
     try {
-      const dataUrl = await toBase64(file);
+      // Resize/compress to a small JPEG so it stays under the 5MB server cap.
+      const dataUrl = await resizeImage(file).catch(() => toBase64(file));
       const uploadRes = await fetch("/api/upload", {
         method: "POST",
         credentials: "include",
@@ -198,13 +232,17 @@ export default function Profile() {
         body: JSON.stringify({ data: dataUrl, name: file.name }),
       });
 
-      if (!uploadRes.ok) throw new Error("Upload failed");
+      if (!uploadRes.ok) {
+        const msg = await uploadRes.json().catch(() => ({}));
+        throw new Error(msg?.message || `Upload failed (${uploadRes.status})`);
+      }
       const { url } = await uploadRes.json();
 
       await updateProfileMutation.mutateAsync({ profileImageUrl: url });
       toast({ title: t("profile.pictureUpdated"), description: t("profile.pictureChanged") });
-    } catch (error) {
-      toast({ title: t("upload.uploadFailed"), description: t("upload.uploadFailedDesc"), variant: "destructive" });
+    } catch (error: any) {
+      // Surface the real server message so failures are diagnosable.
+      toast({ title: t("upload.uploadFailed"), description: error?.message || t("upload.uploadFailedDesc"), variant: "destructive" });
     } finally {
       setUploadingPicture(false);
     }
