@@ -11,10 +11,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, CheckCircle, XCircle, Users, AlertTriangle, Activity, Database, Clock, Mail, Server, ShieldAlert, Ban, ScrollText, ChevronLeft, ChevronRight, ToggleLeft, History, Brain, ShoppingBag, UserCog, Search, Crown, Shield, ShieldOff, Trash2, RotateCcw, Eye, Settings, Palette, Sliders, CheckSquare, Flag, Cpu } from "lucide-react";
+import {
+  Loader2, CheckCircle, XCircle, Users, AlertTriangle, Activity, Database, Clock,
+  Mail, Server, ShieldAlert, Ban, ScrollText, ChevronLeft, ChevronRight, ToggleLeft,
+  History, Brain, ShoppingBag, Search, Crown, Shield, ShieldOff, Trash2, RotateCcw,
+  Eye, Settings, Palette, Sliders, CheckSquare, Flag, Cpu, MoreVertical,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 export default function Admin() {
@@ -62,6 +73,8 @@ export default function Admin() {
   const eventsPerPage = 20;
   const [activityUserId, setActivityUserId] = useState<string | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [banUserId, setBanUserId] = useState<string | null>(null);
+  const [resetUserId, setResetUserId] = useState<string | null>(null);
 
   const { data: systemEventsData, isLoading: loadingEvents } = useQuery({
     queryKey: ["/api/admin/system-events", eventTypeFilter, eventsPage],
@@ -288,6 +301,7 @@ export default function Admin() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setBanUserId(null);
       toast({
         title: data.isDisabled ? t("admin.userBannedNow") : t("admin.userUnbanned"),
         description: data.isDisabled ? t("admin.userBannedDesc") : t("admin.userUnbannedDesc"),
@@ -322,6 +336,7 @@ export default function Admin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setResetUserId(null);
       toast({ title: t("admin.userReset"), description: t("admin.userResetDesc") });
     },
   });
@@ -337,6 +352,8 @@ export default function Admin() {
   });
 
   const headerHealthy = !loadingHealth && healthData?.status === "healthy";
+
+  const moderationBadgeCount = pendingUsers.length + reports.length + (suspiciousFlags as any[]).length;
 
   if (!user?.isAdmin) {
     return (
@@ -355,13 +372,18 @@ export default function Admin() {
   return (
     <Layout mainClassName="max-w-[1400px]">
       <div className="space-y-8">
-        <div className="rounded-xl border border-border bg-card px-4 py-4 sm:px-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        {/* ── Toolbar ──────────────────────────────────────────────────── */}
+        <div className="gp-card p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0" aria-hidden>
-              <span className="text-primary-foreground font-bold text-sm">G</span>
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: "var(--v-700)" }}
+              aria-hidden
+            >
+              <span className="text-white font-bold text-sm">G</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap min-w-0">
-              <span className="font-semibold text-foreground text-lg truncate">{t("landing.brandName")}</span>
+              <span className="font-semibold text-foreground text-lg font-display truncate">{t("landing.brandName")}</span>
               <span className="text-muted-foreground text-sm shrink-0">{t("admin.adminToolbarContext")}</span>
             </div>
           </div>
@@ -377,206 +399,177 @@ export default function Admin() {
           </div>
         </div>
 
+        {/* ── Page heading ─────────────────────────────────────────────── */}
         <div>
           <h1 className="text-3xl font-bold font-display text-foreground text-balance">{t("admin.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("admin.subtitle")}</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="border-border transition-shadow hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t("admin.totalUsers")}</CardTitle>
-              <Users className="w-5 h-5 text-accent" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold tabular-nums text-foreground">
-                {(stats?.totalUsers ?? 0).toLocaleString()}
-              </div>
-            </CardContent>
-          </Card>
+        {/* ── Stat cards ───────────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="gp-card p-4 sm:p-6 transition-shadow hover:shadow-md">
+            <div className="flex items-center justify-between pb-2">
+              <p className="text-sm font-medium text-muted-foreground">{t("admin.totalUsers")}</p>
+              <Users className="w-5 h-5" style={{ color: "var(--v-600)" }} />
+            </div>
+            <div className="text-3xl font-bold tabular-nums text-foreground">
+              {(stats?.totalUsers ?? 0).toLocaleString()}
+            </div>
+          </div>
 
-          <Card className="border-border transition-shadow hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t("admin.activeListings")}</CardTitle>
-              <ShoppingBag className="w-5 h-5 text-accent" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold tabular-nums text-foreground">{stats?.activeListings ?? 0}</div>
-            </CardContent>
-          </Card>
+          <div className="gp-card p-4 sm:p-6 transition-shadow hover:shadow-md">
+            <div className="flex items-center justify-between pb-2">
+              <p className="text-sm font-medium text-muted-foreground">{t("admin.activeListings")}</p>
+              <ShoppingBag className="w-5 h-5" style={{ color: "var(--v-600)" }} />
+            </div>
+            <div className="text-3xl font-bold tabular-nums text-foreground">{stats?.activeListings ?? 0}</div>
+          </div>
 
-          <Card
-            className={cn(
-              "transition-shadow hover:shadow-md",
-              pendingUsers.length > 0 ? "border-amber-200 dark:border-amber-900/50" : "border-border"
-            )}
-          >
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t("admin.pendingVerifications")}</CardTitle>
+          <div className={cn("gp-card p-4 sm:p-6 transition-shadow hover:shadow-md", pendingUsers.length > 0 ? "ring-1 ring-amber-300" : "")}>
+            <div className="flex items-center justify-between pb-2">
+              <p className="text-sm font-medium text-muted-foreground">{t("admin.pendingVerifications")}</p>
               <AlertTriangle
-                className={cn("w-5 h-5", pendingUsers.length > 0 ? "text-amber-500" : "text-accent")}
+                className="w-5 h-5"
+                style={{ color: pendingUsers.length > 0 ? "var(--amber-c)" : "var(--muted-c)" }}
               />
-            </CardHeader>
-            <CardContent>
-              <div
-                className={cn(
-                  "text-3xl font-bold tabular-nums",
-                  pendingUsers.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-foreground"
-                )}
-              >
-                {pendingUsers.length}
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div
+              className="text-3xl font-bold tabular-nums"
+              style={{ color: pendingUsers.length > 0 ? "var(--amber-c)" : "var(--ink)" }}
+            >
+              {pendingUsers.length}
+            </div>
+          </div>
 
-          <Card
-            className={cn(
-              "transition-shadow hover:shadow-md",
-              reports.length > 0 ? "border-red-200 dark:border-red-900/50" : "border-border"
-            )}
-          >
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t("admin.openReports")}</CardTitle>
-              <Flag className={cn("w-5 h-5", reports.length > 0 ? "text-destructive" : "text-accent")} />
-            </CardHeader>
-            <CardContent>
-              <div
-                className={cn(
-                  "text-3xl font-bold tabular-nums",
-                  reports.length > 0 ? "text-destructive" : "text-foreground"
-                )}
-              >
-                {reports.length}
-              </div>
-            </CardContent>
-          </Card>
+          <div className={cn("gp-card p-4 sm:p-6 transition-shadow hover:shadow-md", reports.length > 0 ? "ring-1 ring-red-300" : "")}>
+            <div className="flex items-center justify-between pb-2">
+              <p className="text-sm font-medium text-muted-foreground">{t("admin.openReports")}</p>
+              <Flag
+                className="w-5 h-5"
+                style={{ color: reports.length > 0 ? "var(--red-c)" : "var(--muted-c)" }}
+              />
+            </div>
+            <div
+              className="text-3xl font-bold tabular-nums"
+              style={{ color: reports.length > 0 ? "var(--red-c)" : "var(--ink)" }}
+            >
+              {reports.length}
+            </div>
+          </div>
         </div>
 
-        <Tabs defaultValue="verifications">
-          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-muted/50 p-1 border-0">
+        {/* ── Tabs (6 grouped) ─────────────────────────────────────────── */}
+        <Tabs defaultValue="moderation">
+          <TabsList className="flex-wrap h-auto w-full justify-start gap-1 rounded-xl bg-muted/50 p-1 border-0">
+            {/* Moderation */}
             <TabsTrigger
-              value="verifications"
-              data-testid="tab-verifications"
-              className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent"
-            >
-              <CheckSquare className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">{t("admin.verifications")}</span>
-              <span
-                className={cn(
-                  "ml-0.5 text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums",
-                  pendingUsers.length > 0
-                    ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400"
-                    : "bg-muted text-muted-foreground"
-                )}
-              >
-                {pendingUsers.length}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="reports"
-              data-testid="tab-reports"
-              className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent"
-            >
-              <Flag className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">{t("admin.reports")}</span>
-              <span
-                className={cn(
-                  "ml-0.5 text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums",
-                  reports.length > 0
-                    ? "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400"
-                    : "bg-muted text-muted-foreground"
-                )}
-              >
-                {reports.length}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="suspicious"
-              data-testid="tab-suspicious"
-              className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent"
+              value="moderation"
+              data-testid="tab-moderation"
+              className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-primary"
             >
               <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">{t("admin.flagged")}</span>
-              <span
-                className={cn(
-                  "ml-0.5 text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums",
-                  suspiciousFlags.length > 0
-                    ? "bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400"
-                    : "bg-muted text-muted-foreground"
-                )}
-              >
-                {suspiciousFlags.length}
-              </span>
+              <span className="hidden sm:inline">{t("admin.moderation", "Moderation")}</span>
+              {moderationBadgeCount > 0 && (
+                <span className="ml-0.5 text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+                  {moderationBadgeCount}
+                </span>
+              )}
             </TabsTrigger>
-            <TabsTrigger value="health" data-testid="tab-health" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
-              <Activity className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">{t("admin.health")}</span>
-            </TabsTrigger>
-            <TabsTrigger value="system-events" data-testid="tab-system-events" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
-              <Cpu className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">{t("admin.events")}</span>
-            </TabsTrigger>
-            <TabsTrigger value="feature-flags" data-testid="tab-feature-flags" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
-              <ToggleLeft className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">{t("admin.featureFlags")}</span>
-            </TabsTrigger>
-            <TabsTrigger value="edit-history" data-testid="tab-edit-history" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
-              <History className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">{t("admin.editHistory")}</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" data-testid="tab-users" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
+
+            {/* Users */}
+            <TabsTrigger
+              value="users"
+              data-testid="tab-users"
+              className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-primary"
+            >
               <Users className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden sm:inline">{t("admin.usersTab")}</span>
               <span className="ml-0.5 bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">
                 {allUsers.length}
               </span>
             </TabsTrigger>
-            <TabsTrigger value="orders" data-testid="tab-orders" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
-              <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">{t("admin.ordersTab")}</span>
-              <span className="ml-0.5 bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">
-                {orders.length}
-              </span>
+
+            {/* Operations */}
+            <TabsTrigger
+              value="operations"
+              data-testid="tab-operations"
+              className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-primary"
+            >
+              <Activity className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.operations", "Operations")}</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" data-testid="tab-analytics" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
+
+            {/* Listings & Orders */}
+            <TabsTrigger
+              value="listings-orders"
+              data-testid="tab-listings-orders"
+              className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-primary"
+            >
+              <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t("admin.listingsOrders", "Listings & Orders")}</span>
+              {orders.length > 0 && (
+                <span className="ml-0.5 bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">
+                  {orders.length}
+                </span>
+              )}
+            </TabsTrigger>
+
+            {/* Analytics */}
+            <TabsTrigger
+              value="analytics"
+              data-testid="tab-analytics"
+              className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-primary"
+            >
               <Brain className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden sm:inline">{t("admin.aiAnalytics")}</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" data-testid="tab-settings" className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-accent">
+
+            {/* Settings */}
+            <TabsTrigger
+              value="settings"
+              data-testid="tab-settings"
+              className="gap-1.5 rounded-lg text-xs sm:text-sm data-[state=active]:text-primary"
+            >
               <Settings className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden sm:inline">{t("admin.settingsTab")}</span>
             </TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="verifications" className="mt-6">
-            {loadingUsers ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : pendingUsers.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">
+
+          {/* ── MODERATION (Verifications + Reports + Suspicious) ───────── */}
+          <TabsContent value="moderation" className="mt-6 space-y-8">
+
+            {/* Verifications section */}
+            <section>
+              <h2 className="font-display font-bold text-lg text-foreground mb-4 flex items-center gap-2">
+                <CheckSquare className="w-5 h-5" style={{ color: "var(--v-700)" }} />
+                {t("admin.verifications")}
+                {pendingUsers.length > 0 && (
+                  <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-700">{pendingUsers.length}</span>
+                )}
+              </h2>
+              {loadingUsers ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : pendingUsers.length === 0 ? (
+                <div className="gp-card p-4 sm:p-6 text-center text-muted-foreground">
                   {t("admin.noPendingVerifications")}
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {pendingUsers.map((u: any) => (
-                  <Card key={u.id}>
-                    <CardContent className="py-4">
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingUsers.map((u: any) => (
+                    <div key={u.id} className="gp-card p-4 sm:p-6">
                       <div className="flex items-start gap-4">
                         <Avatar className="w-12 h-12">
                           <AvatarImage src={u.profileImageUrl || undefined} />
                           <AvatarFallback>{u.firstName?.[0]}{u.lastName?.[0]}</AvatarFallback>
                         </Avatar>
-                        
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-bold">{u.firstName} {u.lastName}</h3>
                             <Badge variant="secondary">{u.userType}</Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">{u.email}</p>
-                          
                           <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
                             {u.idDocumentUrl && (
                               <a href={u.idDocumentUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">
@@ -590,17 +583,16 @@ export default function Admin() {
                             )}
                           </div>
                         </div>
-                        
                         <div className="flex gap-2">
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-green-600 border-green-200"
+                            style={{ color: "var(--emerald)" }}
                             onClick={() => verifyUserMutation.mutate({ userId: u.id, status: "verified" })}
                             disabled={verifyUserMutation.isPending}
                             data-testid={`button-approve-${u.id}`}
                           >
-                            <CheckCircle className="w-4 h-4 mr-1" />
+                            {verifyUserMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1" />}
                             {t("admin.approve")}
                           </Button>
                           <Button
@@ -611,34 +603,38 @@ export default function Admin() {
                             disabled={verifyUserMutation.isPending}
                             data-testid={`button-reject-${u.id}`}
                           >
-                            <XCircle className="w-4 h-4 mr-1" />
+                            {verifyUserMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
                             {t("admin.reject")}
                           </Button>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="reports" className="mt-6">
-            {loadingReports ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : reports.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Reports section */}
+            <section>
+              <h2 className="font-display font-bold text-lg text-foreground mb-4 flex items-center gap-2">
+                <Flag className="w-5 h-5" style={{ color: "var(--red-c)" }} />
+                {t("admin.reports")}
+                {reports.length > 0 && (
+                  <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold bg-red-100 text-red-700">{reports.length}</span>
+                )}
+              </h2>
+              {loadingReports ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : reports.length === 0 ? (
+                <div className="gp-card p-4 sm:p-6 text-center text-muted-foreground">
                   {t("admin.noOpenReports")}
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {reports.map((r: any) => (
-                  <Card key={r.id}>
-                    <CardContent className="py-4">
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reports.map((r: any) => (
+                    <div key={r.id} className="gp-card p-4 sm:p-6">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -668,9 +664,7 @@ export default function Admin() {
                               {r.createdAt ? format(new Date(r.createdAt), "MMM d, yyyy") : ""}
                             </span>
                           </div>
-
                           <p className="font-medium mb-2 text-sm">{r.reason}</p>
-
                           <div className="text-xs text-muted-foreground space-y-1">
                             {r.reporter && (
                               <p>
@@ -701,7 +695,6 @@ export default function Admin() {
                             )}
                           </div>
                         </div>
-                        
                         <Button
                           size="sm"
                           variant="outline"
@@ -710,269 +703,41 @@ export default function Admin() {
                           data-testid={`button-resolve-${r.id}`}
                           className="shrink-0"
                         >
+                          {resolveReportMutation.isPending && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}
                           {t("admin.markResolved")}
                         </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
 
-          <TabsContent value="system-events" className="mt-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 flex-wrap">
-                <Select value={eventTypeFilter} onValueChange={(v) => { setEventTypeFilter(v); setEventsPage(0); }}>
-                  <SelectTrigger className="w-[200px]" data-testid="select-event-type-filter">
-                    <SelectValue placeholder={t("admin.filterByType")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("admin.allEvents")}</SelectItem>
-                    <SelectItem value="verification_changed">{t("admin.verificationChanged")}</SelectItem>
-                    <SelectItem value="admin_action">{t("admin.adminAction")}</SelectItem>
-                    <SelectItem value="listing_completed">{t("admin.listingCompleted")}</SelectItem>
-                    <SelectItem value="user_banned">{t("admin.userBanned")}</SelectItem>
-                    <SelectItem value="listing_removed">{t("admin.listingRemoved")}</SelectItem>
-                    <SelectItem value="suspicious_flag_resolved">{t("admin.flagResolved")}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <span className="text-sm text-muted-foreground" data-testid="text-events-total">
-                  {systemEventsData?.total ?? 0} {t("admin.totalEvents")}
-                </span>
-              </div>
-
-              {loadingEvents ? (
+            {/* Suspicious section */}
+            <section>
+              <h2 className="font-display font-bold text-lg text-foreground mb-4 flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-destructive" />
+                {t("admin.flagged")}
+                {(suspiciousFlags as any[]).length > 0 && (
+                  <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold bg-orange-100 text-orange-700">{(suspiciousFlags as any[]).length}</span>
+                )}
+              </h2>
+              {loadingFlags ? (
                 <div className="flex justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                 </div>
-              ) : !systemEventsData?.events?.length ? (
-                <Card>
-                  <CardContent className="py-12 text-center text-muted-foreground">
-                    {t("admin.noEventsFound")}
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-2">
-                  {systemEventsData.events.map((evt: any) => (
-                    <Card key={evt.id}>
-                      <CardContent className="py-3">
-                        <div className="flex items-start justify-between gap-2 flex-wrap">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <ScrollText className="w-4 h-4 text-muted-foreground shrink-0" />
-                            <Badge variant="outline" data-testid={`badge-sys-event-type-${evt.id}`}>
-                              {evt.eventType.replace(/_/g, " ")}
-                            </Badge>
-                            {evt.actorId && (
-                              <span className="text-sm text-muted-foreground" data-testid={`text-sys-event-actor-${evt.id}`}>
-                                {t("admin.actor")}: {evt.actorId.substring(0, 12)}...
-                              </span>
-                            )}
-                            {evt.metadata && (
-                              <span className="text-xs text-muted-foreground" data-testid={`text-sys-event-meta-${evt.id}`}>
-                                {JSON.stringify(evt.metadata).substring(0, 80)}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap" data-testid={`text-sys-event-time-${evt.id}`}>
-                            {evt.createdAt ? format(new Date(evt.createdAt), "MMM d, yyyy HH:mm:ss") : ""}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-
-                  <div className="flex items-center justify-between gap-2 pt-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={eventsPage === 0}
-                      onClick={() => setEventsPage(p => Math.max(0, p - 1))}
-                      data-testid="button-events-prev"
-                    >
-                      <ChevronLeft className="w-4 h-4 mr-1" />
-                      {t("admin.previous")}
-                    </Button>
-                    <span className="text-sm text-muted-foreground" data-testid="text-events-page">
-                      {t("admin.page")} {eventsPage + 1} {t("admin.of")} {Math.max(1, Math.ceil((systemEventsData?.total ?? 0) / eventsPerPage))}
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={(eventsPage + 1) * eventsPerPage >= (systemEventsData?.total ?? 0)}
-                      onClick={() => setEventsPage(p => p + 1)}
-                      data-testid="button-events-next"
-                    >
-                      {t("admin.next")}
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="health" className="mt-6">
-            {loadingHealth ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : !healthData ? (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">
-                  {t("admin.unableToLoadHealth")}
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("admin.database")}</CardTitle>
-                      <Database className="w-4 h-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-3 h-3 rounded-full ${healthData.database?.status === "ok" ? "bg-green-500" : "bg-red-500"}`}
-                          data-testid="status-database"
-                        />
-                        <span className="text-lg font-semibold" data-testid="text-db-status">
-                          {healthData.database?.status === "ok" ? t("admin.connected") : t("admin.error")}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1" data-testid="text-db-latency">
-                        {t("admin.latency")}: {healthData.database?.latencyMs ?? 0}ms
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("admin.api")}</CardTitle>
-                      <Server className="w-4 h-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-3 h-3 rounded-full ${healthData.status === "healthy" ? "bg-green-500" : "bg-yellow-500"}`}
-                          data-testid="status-api"
-                        />
-                        <span className="text-lg font-semibold" data-testid="text-api-status">
-                          {healthData.status === "healthy" ? t("admin.healthy") : t("admin.degraded")}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1" data-testid="text-api-response">
-                        {t("admin.responseTime")}: {healthData.api?.responseTimeMs ?? 0}ms
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("admin.activeUsers")}</CardTitle>
-                      <Users className="w-4 h-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold" data-testid="text-active-users">
-                        {healthData.activeUsers24h ?? 0}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                      <CardTitle className="text-sm font-medium">{t("admin.uptime")}</CardTitle>
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold" data-testid="text-uptime">
-                        {healthData.api?.uptimeFormatted ?? "N/A"}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between gap-1">
-                    <CardTitle className="text-base font-semibold">{t("admin.emailQueue")}</CardTitle>
-                    <Mail className="w-4 h-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-6 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" data-testid="badge-email-pending">
-                          {t("admin.pending")}: {healthData.emailQueue?.pending ?? 0}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={healthData.emailQueue?.failed > 0 ? "destructive" : "secondary"} data-testid="badge-email-failed">
-                          {t("admin.failed")}: {healthData.emailQueue?.failed ?? 0}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between gap-1">
-                    <CardTitle className="text-base font-semibold">{t("admin.recentEvents")}</CardTitle>
-                    <Activity className="w-4 h-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-3" data-testid="text-event-count">
-                      {healthData.recentSystemEventCount ?? 0} {t("admin.eventsInLast24h")}
-                    </p>
-                    {healthData.recentSystemEvents && healthData.recentSystemEvents.length > 0 ? (
-                      <div className="space-y-3">
-                        {healthData.recentSystemEvents.map((evt: any) => (
-                          <div key={evt.id} className="flex items-start justify-between gap-2 border-b pb-2 last:border-b-0 last:pb-0">
-                            <div>
-                              <Badge variant="outline" data-testid={`badge-event-type-${evt.id}`}>
-                                {evt.eventType}
-                              </Badge>
-                              {evt.actorId && (
-                                <span className="text-sm text-muted-foreground ml-2" data-testid={`text-event-actor-${evt.id}`}>
-                                  {t("listing.by")} {evt.actorId}
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap" data-testid={`text-event-time-${evt.id}`}>
-                              {evt.createdAt ? format(new Date(evt.createdAt), "MMM d, HH:mm") : ""}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">{t("admin.noRecentEvents")}</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="suspicious" className="mt-6">
-            {loadingFlags ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : suspiciousFlags.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">
+              ) : (suspiciousFlags as any[]).length === 0 ? (
+                <div className="gp-card p-4 sm:p-6 text-center text-muted-foreground">
                   {t("admin.noSuspiciousActivity")}
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {suspiciousFlags.map((flag: any) => (
-                  <Card key={flag.id}>
-                    <CardContent className="py-4">
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {(suspiciousFlags as any[]).map((flag: any) => (
+                    <div key={flag.id} className="gp-card p-4 sm:p-6">
                       <div className="flex items-start gap-4">
                         <div className="flex items-center justify-center w-10 h-10 rounded-md bg-destructive/10">
                           <ShieldAlert className="w-5 h-5 text-destructive" />
                         </div>
-
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <Badge variant="destructive" data-testid={`badge-flag-type-${flag.id}`}>
@@ -995,7 +760,6 @@ export default function Admin() {
                           </div>
                           <p className="text-sm text-muted-foreground" data-testid={`text-flag-details-${flag.id}`}>{flag.details}</p>
                         </div>
-
                         <div className="flex gap-2">
                           <Button
                             size="sm"
@@ -1004,7 +768,7 @@ export default function Admin() {
                             disabled={dismissFlagMutation.isPending || banUserMutation.isPending}
                             data-testid={`button-dismiss-flag-${flag.id}`}
                           >
-                            <CheckCircle className="w-4 h-4 mr-1" />
+                            {dismissFlagMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1" />}
                             {t("admin.dismiss")}
                           </Button>
                           <Button
@@ -1014,72 +778,23 @@ export default function Admin() {
                             disabled={dismissFlagMutation.isPending || banUserMutation.isPending}
                             data-testid={`button-ban-user-${flag.id}`}
                           >
-                            <Ban className="w-4 h-4 mr-1" />
+                            {banUserMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Ban className="w-4 h-4 mr-1" />}
                             {t("admin.ban")}
                           </Button>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </TabsContent>
 
-          <TabsContent value="feature-flags" className="mt-6">
-            {loadingFeatureFlags ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : featureFlags.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">
-                  {t("admin.noFeatureFlags")}
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {featureFlags.map((flag: any) => (
-                  <Card key={flag.id}>
-                    <CardContent className="py-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <ToggleLeft className="w-5 h-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium" data-testid={`text-flag-key-${flag.key}`}>{flag.key.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}</p>
-                            <p className="text-sm text-muted-foreground" data-testid={`text-flag-code-${flag.key}`}>{flag.key}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Badge variant={flag.enabled ? "default" : "secondary"} data-testid={`badge-flag-status-${flag.key}`}>
-                            {flag.enabled ? t("admin.enabled") : t("admin.disabled")}
-                          </Badge>
-                          <Switch
-                            checked={flag.enabled}
-                            onCheckedChange={(checked) =>
-                              toggleFeatureFlagMutation.mutate({ key: flag.key, enabled: checked })
-                            }
-                            disabled={toggleFeatureFlagMutation.isPending}
-                            data-testid={`switch-flag-${flag.key}`}
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="edit-history" className="mt-6">
-            <EditHistoryTab />
-          </TabsContent>
-
-          {/* ── Users Tab ─────────────────────────────────────────────────── */}
+          {/* ── USERS Tab ───────────────────────────────────────────────── */}
           <TabsContent value="users" className="mt-6 space-y-4">
             {/* Search + Filters */}
-            <div className="flex flex-wrap gap-3 items-center">
-              <div className="relative flex-1 min-w-[200px]">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1 min-w-0">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   className="pl-9"
@@ -1089,27 +804,29 @@ export default function Admin() {
                   data-testid="input-user-search"
                 />
               </div>
-              <Select value={userTypeFilter} onValueChange={setUserTypeFilter}>
-                <SelectTrigger className="w-36" data-testid="select-user-type-filter">
-                  <SelectValue placeholder={t("admin.typeFilter")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("admin.allTypes")}</SelectItem>
-                  <SelectItem value="individual">{t("profile.individual")}</SelectItem>
-                  <SelectItem value="vendor">{t("profile.vendor")}</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={userStatusFilter} onValueChange={setUserStatusFilter}>
-                <SelectTrigger className="w-40" data-testid="select-user-status-filter">
-                  <SelectValue placeholder={t("admin.statusFilter")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("admin.allStatuses")}</SelectItem>
-                  <SelectItem value="verified">{t("profile.verified")}</SelectItem>
-                  <SelectItem value="pending">{t("profile.pending")}</SelectItem>
-                  <SelectItem value="rejected">{t("profile.rejected")}</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-3">
+                <Select value={userTypeFilter} onValueChange={setUserTypeFilter}>
+                  <SelectTrigger className="w-36" data-testid="select-user-type-filter">
+                    <SelectValue placeholder={t("admin.typeFilter")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("admin.allTypes")}</SelectItem>
+                    <SelectItem value="individual">{t("profile.individual")}</SelectItem>
+                    <SelectItem value="vendor">{t("profile.vendor")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={userStatusFilter} onValueChange={setUserStatusFilter}>
+                  <SelectTrigger className="w-40" data-testid="select-user-status-filter">
+                    <SelectValue placeholder={t("admin.statusFilter")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("admin.allStatuses")}</SelectItem>
+                    <SelectItem value="verified">{t("profile.verified")}</SelectItem>
+                    <SelectItem value="pending">{t("profile.pending")}</SelectItem>
+                    <SelectItem value="rejected">{t("profile.rejected")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {loadingAllUsers ? (
@@ -1126,7 +843,7 @@ export default function Admin() {
               });
 
               if (filtered.length === 0) return (
-                <Card><CardContent className="py-12 text-center text-muted-foreground">{t("admin.noUsersMatch")}</CardContent></Card>
+                <div className="gp-card p-4 sm:p-6 text-center text-muted-foreground">{t("admin.noUsersMatch")}</div>
               );
 
               const UserRoleBadge = ({ u }: { u: any }) => u.isPrimaryOwner ? (
@@ -1139,31 +856,77 @@ export default function Admin() {
                 <Badge variant="secondary" className="text-xs">{t("admin.roleUser")}</Badge>
               );
 
+              // Compact user action row: primary ban/unban + overflow ⋮ menu
               const UserActions = ({ u }: { u: any }) => u.isPrimaryOwner ? (
                 <span className="text-xs text-muted-foreground italic">{t("admin.primaryOwnerLabel")}</span>
               ) : (
-                <div className="flex items-center gap-1 flex-wrap">
-                  {!u.isAdmin ? (
-                    <Button size="sm" variant="outline" className="h-7 text-xs text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950" disabled={changeRoleMutation.isPending} onClick={() => changeRoleMutation.mutate({ userId: u.id, role: "admin" })} data-testid={`button-make-admin-${u.id}`}>
-                      <Shield className="w-3 h-3 mr-1" />{t("admin.makeAdmin")}
-                    </Button>
-                  ) : (
-                    <Button size="sm" variant="outline" className="h-7 text-xs text-destructive border-destructive/30 hover:bg-destructive/10" disabled={changeRoleMutation.isPending} onClick={() => changeRoleMutation.mutate({ userId: u.id, role: "user" })} data-testid={`button-remove-admin-${u.id}`}>
-                      <ShieldOff className="w-3 h-3 mr-1" />{t("admin.removeAdmin")}
-                    </Button>
-                  )}
-                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setActivityUserId(u.id)} data-testid={`button-activity-${u.id}`}>
-                    <Eye className="w-3 h-3 mr-1" />{t("admin.viewActivity")}
+                <div className="flex items-center gap-1.5">
+                  {/* Primary action: Ban / Unban */}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    style={{ color: u.isDisabled ? "var(--emerald)" : "var(--amber-c)" }}
+                    disabled={disableUserMutation.isPending}
+                    onClick={() => setBanUserId(u.id)}
+                    data-testid={`button-ban-${u.id}`}
+                  >
+                    {disableUserMutation.isPending && banUserId === u.id
+                      ? <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      : <Ban className="w-3 h-3 mr-1" />}
+                    {u.isDisabled ? t("admin.unbanUser") : t("admin.banUser")}
                   </Button>
-                  <Button size="sm" variant="outline" className={`h-7 text-xs ${u.isDisabled ? "text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950" : "text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950"}`} disabled={disableUserMutation.isPending} onClick={() => disableUserMutation.mutate(u.id)} data-testid={`button-ban-${u.id}`}>
-                    <Ban className="w-3 h-3 mr-1" />{u.isDisabled ? t("admin.unbanUser") : t("admin.banUser")}
-                  </Button>
-                  <Button size="sm" variant="outline" className="h-7 text-xs text-blue-600 border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950" disabled={resetUserMutation.isPending} onClick={() => resetUserMutation.mutate(u.id)} data-testid={`button-reset-${u.id}`}>
-                    <RotateCcw className="w-3 h-3 mr-1" />{t("admin.resetUser")}
-                  </Button>
-                  <Button size="sm" variant="outline" className="h-7 text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => setDeleteUserId(u.id)} data-testid={`button-delete-${u.id}`}>
-                    <Trash2 className="w-3 h-3 mr-1" />{t("admin.deleteUser")}
-                  </Button>
+
+                  {/* Overflow menu */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" data-testid={`button-more-${u.id}`}>
+                        <MoreVertical className="w-4 h-4" />
+                        <span className="sr-only">More actions</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {!u.isAdmin ? (
+                        <DropdownMenuItem
+                          onClick={() => changeRoleMutation.mutate({ userId: u.id, role: "admin" })}
+                          data-testid={`button-make-admin-${u.id}`}
+                        >
+                          <Shield className="w-4 h-4 mr-2" style={{ color: "var(--emerald)" }} />
+                          {t("admin.makeAdmin")}
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem
+                          onClick={() => changeRoleMutation.mutate({ userId: u.id, role: "user" })}
+                          data-testid={`button-remove-admin-${u.id}`}
+                        >
+                          <ShieldOff className="w-4 h-4 mr-2" />
+                          {t("admin.removeAdmin")}
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        onClick={() => setActivityUserId(u.id)}
+                        data-testid={`button-activity-${u.id}`}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        {t("admin.viewActivity")}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setResetUserId(u.id)}
+                        data-testid={`button-reset-${u.id}`}
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        {t("admin.resetUser")}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => setDeleteUserId(u.id)}
+                        data-testid={`button-delete-${u.id}`}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {t("admin.deleteUser")}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               );
 
@@ -1176,43 +939,41 @@ export default function Admin() {
                   {/* Mobile: card layout */}
                   <div className="md:hidden space-y-3">
                     {filtered.map((u: any) => (
-                      <Card key={u.id} data-testid={`row-user-${u.id}`}>
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3 mb-3">
-                            <Avatar className="w-10 h-10 shrink-0">
-                              <AvatarImage src={u.profileImageUrl || undefined} />
-                              <AvatarFallback className="text-sm">{u.firstName?.[0]}{u.lastName?.[0]}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="font-semibold text-sm" data-testid={`text-user-name-${u.id}`}>
-                                  {u.firstName} {u.lastName}
-                                  {u.isPrimaryOwner && <Crown className="inline ml-1 w-3 h-3 text-amber-500" />}
-                                </span>
-                                {u.isDisabled && <Badge className="text-[10px] py-0 bg-gray-500">{t("admin.banned")}</Badge>}
-                              </div>
-                              <p className="text-xs text-muted-foreground truncate mt-0.5" data-testid={`text-user-email-${u.id}`}>{u.email || "—"}</p>
-                              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                                <UserRoleBadge u={u} />
-                                <Badge variant={u.verificationStatus === "verified" ? "default" : u.verificationStatus === "rejected" ? "destructive" : "secondary"} className="text-xs" data-testid={`badge-user-status-${u.id}`}>
-                                  {u.verificationStatus}
-                                </Badge>
-                                <span className="text-xs text-muted-foreground" data-testid={`text-user-joined-${u.id}`}>
-                                  {u.createdAt ? format(new Date(u.createdAt), "MMM d, yyyy") : "—"}
-                                </span>
-                              </div>
+                      <div key={u.id} className="gp-card p-4" data-testid={`row-user-${u.id}`}>
+                        <div className="flex items-start gap-3 mb-3">
+                          <Avatar className="w-10 h-10 shrink-0">
+                            <AvatarImage src={u.profileImageUrl || undefined} />
+                            <AvatarFallback className="text-sm">{u.firstName?.[0]}{u.lastName?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-semibold text-sm" data-testid={`text-user-name-${u.id}`}>
+                                {u.firstName} {u.lastName}
+                                {u.isPrimaryOwner && <Crown className="inline ml-1 w-3 h-3 text-amber-500" />}
+                              </span>
+                              {u.isDisabled && <Badge className="text-[10px] py-0 bg-gray-500">{t("admin.banned")}</Badge>}
+                            </div>
+                            <p className="text-xs text-muted-foreground truncate mt-0.5" data-testid={`text-user-email-${u.id}`}>{u.email || "—"}</p>
+                            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                              <UserRoleBadge u={u} />
+                              <Badge variant={u.verificationStatus === "verified" ? "default" : u.verificationStatus === "rejected" ? "destructive" : "secondary"} className="text-xs" data-testid={`badge-user-status-${u.id}`}>
+                                {u.verificationStatus}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground" data-testid={`text-user-joined-${u.id}`}>
+                                {u.createdAt ? format(new Date(u.createdAt), "MMM d, yyyy") : "—"}
+                              </span>
                             </div>
                           </div>
-                          <div className="pt-2 border-t border-border/50">
-                            <UserActions u={u} />
-                          </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                        <div className="pt-2 border-t border-border/50">
+                          <UserActions u={u} />
+                        </div>
+                      </div>
                     ))}
                   </div>
 
                   {/* Desktop: table layout */}
-                  <div className="hidden md:block overflow-x-auto rounded-lg border">
+                  <div className="hidden md:block overflow-x-auto rounded-xl border border-border">
                     <table className="w-full text-sm">
                       <thead className="bg-muted/50">
                         <tr>
@@ -1263,25 +1024,267 @@ export default function Admin() {
             })()}
           </TabsContent>
 
-          {/* ── Orders Tab ────────────────────────────────────────────────── */}
-          <TabsContent value="orders" className="mt-6">
-            {loadingOrders ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          {/* ── OPERATIONS (Health + System Events + Edit History) ───────── */}
+          <TabsContent value="operations" className="mt-6 space-y-8">
+
+            {/* Health section */}
+            <section>
+              <h2 className="font-display font-bold text-lg text-foreground mb-4 flex items-center gap-2">
+                <Activity className="w-5 h-5" style={{ color: "var(--v-700)" }} />
+                {t("admin.health")}
+              </h2>
+              {loadingHealth ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : !healthData ? (
+                <div className="gp-card p-4 sm:p-6 text-center text-muted-foreground">
+                  {t("admin.unableToLoadHealth")}
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="gp-card p-4">
+                      <div className="flex items-center justify-between gap-1 pb-2">
+                        <p className="text-sm font-medium">{t("admin.database")}</p>
+                        <Database className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ background: healthData.database?.status === "ok" ? "var(--emerald)" : "var(--red-c)" }}
+                          data-testid="status-database"
+                        />
+                        <span className="text-lg font-semibold" data-testid="text-db-status">
+                          {healthData.database?.status === "ok" ? t("admin.connected") : t("admin.error")}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1" data-testid="text-db-latency">
+                        {t("admin.latency")}: {healthData.database?.latencyMs ?? 0}ms
+                      </p>
+                    </div>
+
+                    <div className="gp-card p-4">
+                      <div className="flex items-center justify-between gap-1 pb-2">
+                        <p className="text-sm font-medium">{t("admin.api")}</p>
+                        <Server className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ background: healthData.status === "healthy" ? "var(--emerald)" : "var(--amber-c)" }}
+                          data-testid="status-api"
+                        />
+                        <span className="text-lg font-semibold" data-testid="text-api-status">
+                          {healthData.status === "healthy" ? t("admin.healthy") : t("admin.degraded")}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1" data-testid="text-api-response">
+                        {t("admin.responseTime")}: {healthData.api?.responseTimeMs ?? 0}ms
+                      </p>
+                    </div>
+
+                    <div className="gp-card p-4">
+                      <div className="flex items-center justify-between gap-1 pb-2">
+                        <p className="text-sm font-medium">{t("admin.activeUsers")}</p>
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <div className="text-2xl font-bold" data-testid="text-active-users">
+                        {healthData.activeUsers24h ?? 0}
+                      </div>
+                    </div>
+
+                    <div className="gp-card p-4">
+                      <div className="flex items-center justify-between gap-1 pb-2">
+                        <p className="text-sm font-medium">{t("admin.uptime")}</p>
+                        <Clock className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <div className="text-2xl font-bold" data-testid="text-uptime">
+                        {healthData.api?.uptimeFormatted ?? "N/A"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="gp-card p-4 sm:p-6">
+                    <div className="flex items-center justify-between gap-1 mb-4">
+                      <p className="font-semibold text-base">{t("admin.emailQueue")}</p>
+                      <Mail className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex items-center gap-6 flex-wrap">
+                      <Badge variant="secondary" data-testid="badge-email-pending">
+                        {t("admin.pending")}: {healthData.emailQueue?.pending ?? 0}
+                      </Badge>
+                      <Badge variant={healthData.emailQueue?.failed > 0 ? "destructive" : "secondary"} data-testid="badge-email-failed">
+                        {t("admin.failed")}: {healthData.emailQueue?.failed ?? 0}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="gp-card p-4 sm:p-6">
+                    <div className="flex items-center justify-between gap-1 mb-4">
+                      <p className="font-semibold text-base">{t("admin.recentEvents")}</p>
+                      <Activity className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3" data-testid="text-event-count">
+                      {healthData.recentSystemEventCount ?? 0} {t("admin.eventsInLast24h")}
+                    </p>
+                    {healthData.recentSystemEvents && healthData.recentSystemEvents.length > 0 ? (
+                      <div className="space-y-3">
+                        {healthData.recentSystemEvents.map((evt: any) => (
+                          <div key={evt.id} className="flex items-start justify-between gap-2 border-b pb-2 last:border-b-0 last:pb-0">
+                            <div>
+                              <Badge variant="outline" data-testid={`badge-event-type-${evt.id}`}>
+                                {evt.eventType}
+                              </Badge>
+                              {evt.actorId && (
+                                <span className="text-sm text-muted-foreground ml-2" data-testid={`text-event-actor-${evt.id}`}>
+                                  {t("listing.by")} {evt.actorId}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap" data-testid={`text-event-time-${evt.id}`}>
+                              {evt.createdAt ? format(new Date(evt.createdAt), "MMM d, HH:mm") : ""}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{t("admin.noRecentEvents")}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* System Events section */}
+            <section>
+              <h2 className="font-display font-bold text-lg text-foreground mb-4 flex items-center gap-2">
+                <Cpu className="w-5 h-5" style={{ color: "var(--v-700)" }} />
+                {t("admin.events")}
+              </h2>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Select value={eventTypeFilter} onValueChange={(v) => { setEventTypeFilter(v); setEventsPage(0); }}>
+                    <SelectTrigger className="w-[200px]" data-testid="select-event-type-filter">
+                      <SelectValue placeholder={t("admin.filterByType")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t("admin.allEvents")}</SelectItem>
+                      <SelectItem value="verification_changed">{t("admin.verificationChanged")}</SelectItem>
+                      <SelectItem value="admin_action">{t("admin.adminAction")}</SelectItem>
+                      <SelectItem value="listing_completed">{t("admin.listingCompleted")}</SelectItem>
+                      <SelectItem value="user_banned">{t("admin.userBanned")}</SelectItem>
+                      <SelectItem value="listing_removed">{t("admin.listingRemoved")}</SelectItem>
+                      <SelectItem value="suspicious_flag_resolved">{t("admin.flagResolved")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground" data-testid="text-events-total">
+                    {systemEventsData?.total ?? 0} {t("admin.totalEvents")}
+                  </span>
+                </div>
+
+                {loadingEvents ? (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : !systemEventsData?.events?.length ? (
+                  <div className="gp-card p-4 sm:p-6 text-center text-muted-foreground">
+                    {t("admin.noEventsFound")}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {systemEventsData.events.map((evt: any) => (
+                      <div key={evt.id} className="gp-card p-3">
+                        <div className="flex items-start justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <ScrollText className="w-4 h-4 text-muted-foreground shrink-0" />
+                            <Badge variant="outline" data-testid={`badge-sys-event-type-${evt.id}`}>
+                              {evt.eventType.replace(/_/g, " ")}
+                            </Badge>
+                            {evt.actorId && (
+                              <span className="text-sm text-muted-foreground" data-testid={`text-sys-event-actor-${evt.id}`}>
+                                {t("admin.actor")}: {evt.actorId.substring(0, 12)}...
+                              </span>
+                            )}
+                            {evt.metadata && (
+                              <span className="text-xs text-muted-foreground" data-testid={`text-sys-event-meta-${evt.id}`}>
+                                {JSON.stringify(evt.metadata).substring(0, 80)}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap" data-testid={`text-sys-event-time-${evt.id}`}>
+                            {evt.createdAt ? format(new Date(evt.createdAt), "MMM d, yyyy HH:mm:ss") : ""}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="flex items-center justify-between gap-2 pt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={eventsPage === 0}
+                        onClick={() => setEventsPage(p => Math.max(0, p - 1))}
+                        data-testid="button-events-prev"
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        {t("admin.previous")}
+                      </Button>
+                      <span className="text-sm text-muted-foreground" data-testid="text-events-page">
+                        {t("admin.page")} {eventsPage + 1} {t("admin.of")} {Math.max(1, Math.ceil((systemEventsData?.total ?? 0) / eventsPerPage))}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={(eventsPage + 1) * eventsPerPage >= (systemEventsData?.total ?? 0)}
+                        onClick={() => setEventsPage(p => p + 1)}
+                        data-testid="button-events-next"
+                      >
+                        {t("admin.next")}
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
-            ) : orders.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">{t("admin.noParticipations")}</CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-3">
-                {orders.map((order: any) => (
-                  <Card key={order.id} data-testid={`card-order-${order.id}`}>
-                    <CardContent className="py-4">
+            </section>
+
+            {/* Edit History section */}
+            <section>
+              <h2 className="font-display font-bold text-lg text-foreground mb-4 flex items-center gap-2">
+                <History className="w-5 h-5" style={{ color: "var(--v-700)" }} />
+                {t("admin.editHistory")}
+              </h2>
+              <EditHistoryTab />
+            </section>
+          </TabsContent>
+
+          {/* ── LISTINGS & ORDERS (Orders + Feature Flags) ──────────────── */}
+          <TabsContent value="listings-orders" className="mt-6 space-y-8">
+
+            {/* Orders section */}
+            <section>
+              <h2 className="font-display font-bold text-lg text-foreground mb-4 flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5" style={{ color: "var(--v-700)" }} />
+                {t("admin.ordersTab")}
+                {orders.length > 0 && (
+                  <span className="ml-1 text-xs px-1.5 py-0.5 rounded-full font-semibold bg-muted text-muted-foreground">{orders.length}</span>
+                )}
+              </h2>
+              {loadingOrders ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="gp-card p-4 sm:p-6 text-center text-muted-foreground">{t("admin.noParticipations")}</div>
+              ) : (
+                <div className="space-y-3">
+                  {orders.map((order: any) => (
+                    <div key={order.id} className="gp-card p-4 sm:p-6" data-testid={`card-order-${order.id}`}>
                       <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div className="flex items-start gap-3">
-                          <div className="flex items-center justify-center w-10 h-10 rounded-md bg-primary/10 shrink-0">
-                            <ShoppingBag className="w-5 h-5 text-primary" />
+                          <div className="flex items-center justify-center w-10 h-10 rounded-md shrink-0" style={{ background: "var(--v-100)" }}>
+                            <ShoppingBag className="w-5 h-5" style={{ color: "var(--v-700)" }} />
                           </div>
                           <div>
                             <p className="font-medium" data-testid={`text-order-listing-${order.id}`}>
@@ -1302,12 +1305,12 @@ export default function Admin() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-green-600 border-green-200"
+                            style={{ color: "var(--emerald)" }}
                             onClick={() => approveOrderMutation.mutate(order.id)}
                             disabled={approveOrderMutation.isPending || rejectOrderMutation.isPending}
                             data-testid={`button-approve-order-${order.id}`}
                           >
-                            <CheckCircle className="w-4 h-4 mr-1" />
+                            {approveOrderMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1" />}
                             {t("admin.approveBtn")}
                           </Button>
                           <Button
@@ -1318,70 +1321,116 @@ export default function Admin() {
                             disabled={approveOrderMutation.isPending || rejectOrderMutation.isPending}
                             data-testid={`button-reject-order-${order.id}`}
                           >
-                            <XCircle className="w-4 h-4 mr-1" />
+                            {rejectOrderMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
                             {t("admin.rejectBtn")}
                           </Button>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Feature Flags section */}
+            <section>
+              <h2 className="font-display font-bold text-lg text-foreground mb-4 flex items-center gap-2">
+                <ToggleLeft className="w-5 h-5" style={{ color: "var(--v-700)" }} />
+                {t("admin.featureFlags")}
+              </h2>
+              {loadingFeatureFlags ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : featureFlags.length === 0 ? (
+                <div className="gp-card p-4 sm:p-6 text-center text-muted-foreground">
+                  {t("admin.noFeatureFlags")}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {featureFlags.map((flag: any) => (
+                    <div key={flag.id} className="gp-card p-4 sm:p-6">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <ToggleLeft className="w-5 h-5 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium" data-testid={`text-flag-key-${flag.key}`}>{flag.key.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}</p>
+                            <p className="text-sm text-muted-foreground" data-testid={`text-flag-code-${flag.key}`}>{flag.key}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Badge variant={flag.enabled ? "default" : "secondary"} data-testid={`badge-flag-status-${flag.key}`}>
+                            {flag.enabled ? t("admin.enabled") : t("admin.disabled")}
+                          </Badge>
+                          <Switch
+                            checked={flag.enabled}
+                            onCheckedChange={(checked) =>
+                              toggleFeatureFlagMutation.mutate({ key: flag.key, enabled: checked })
+                            }
+                            disabled={toggleFeatureFlagMutation.isPending}
+                            data-testid={`switch-flag-${flag.key}`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </TabsContent>
 
-          {/* ── AI Analytics Tab ──────────────────────────────────────────── */}
+          {/* ── ANALYTICS Tab ───────────────────────────────────────────── */}
           <TabsContent value="analytics" className="mt-6">
             <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <Users className="w-4 h-4 text-muted-foreground" /> {t("admin.totalUsersAnalytics")}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold" data-testid="text-analytics-users">{allUsers.length}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {allUsers.filter((u: any) => u.verificationStatus === "verified").length} {t("admin.verified")}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <ShoppingBag className="w-4 h-4 text-muted-foreground" /> {t("admin.ordersTab")}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold" data-testid="text-analytics-orders">{orders.length}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {t("admin.activeListings")}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-muted-foreground" /> {t("admin.openReports")}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold" data-testid="text-analytics-issues">{(reports as any[]).length + (suspiciousFlags as any[]).length}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {(reports as any[]).length} {t("admin.reports")}, {(suspiciousFlags as any[]).length} {t("admin.flagged")}
-                    </p>
-                  </CardContent>
-                </Card>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="gp-card p-4 sm:p-6">
+                  <div className="flex items-center gap-2 pb-2">
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <p className="text-sm font-medium text-muted-foreground">{t("admin.totalUsersAnalytics")}</p>
+                  </div>
+                  <div className="text-3xl font-bold" data-testid="text-analytics-users">{allUsers.length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {allUsers.filter((u: any) => u.verificationStatus === "verified").length} {t("admin.verified")}
+                  </p>
+                </div>
+                <div className="gp-card p-4 sm:p-6">
+                  <div className="flex items-center gap-2 pb-2">
+                    <ShoppingBag className="w-4 h-4 text-muted-foreground" />
+                    <p className="text-sm font-medium text-muted-foreground">{t("admin.ordersTab")}</p>
+                  </div>
+                  <div className="text-3xl font-bold" data-testid="text-analytics-orders">{orders.length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("admin.activeListings")}
+                  </p>
+                </div>
+                <div className="gp-card p-4 sm:p-6">
+                  <div className="flex items-center gap-2 pb-2">
+                    <AlertTriangle className="w-4 h-4 text-muted-foreground" />
+                    <p className="text-sm font-medium text-muted-foreground">{t("admin.openReports")}</p>
+                  </div>
+                  <div className="text-3xl font-bold" data-testid="text-analytics-issues">{(reports as any[]).length + (suspiciousFlags as any[]).length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {(reports as any[]).length} {t("admin.reports")}, {(suspiciousFlags as any[]).length} {t("admin.flagged")}
+                  </p>
+                </div>
+                <div className="gp-card p-4 sm:p-6">
+                  <div className="flex items-center gap-2 pb-2">
+                    <Activity className="w-4 h-4 text-muted-foreground" />
+                    <p className="text-sm font-medium text-muted-foreground">{t("admin.health")}</p>
+                  </div>
+                  <div className="text-3xl font-bold" style={{ color: headerHealthy ? "var(--emerald)" : "var(--amber-c)" }}>
+                    {headerHealthy ? t("admin.healthy") : t("admin.degraded")}
+                  </div>
+                </div>
               </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+              <div className="gp-card p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Brain className="w-5 h-5 text-primary" />
+                    <h2 className="font-display font-bold text-lg flex items-center gap-2">
+                      <Brain className="w-5 h-5" style={{ color: "var(--v-700)" }} />
                       {t("admin.aiAnalytics")}
-                    </CardTitle>
+                    </h2>
                     <p className="text-sm text-muted-foreground mt-1">
                       {t("admin.analysisDesc")}
                     </p>
@@ -1397,24 +1446,23 @@ export default function Admin() {
                       <><Brain className="w-4 h-4 mr-2" /> {t("admin.analyze")}</>
                     )}
                   </Button>
-                </CardHeader>
+                </div>
                 {aiAnalysis && (
-                  <CardContent>
-                    <div className="rounded-lg bg-muted/50 p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Badge variant="outline" data-testid="badge-ai-model">{aiAnalysis.model}</Badge>
-                        <span className="text-xs text-muted-foreground">{t("admin.aiAnalytics")}</span>
-                      </div>
-                      <pre className="whitespace-pre-wrap text-sm leading-relaxed font-sans" data-testid="text-ai-analysis">
-                        {aiAnalysis.analysis}
-                      </pre>
+                  <div className="rounded-lg bg-muted/50 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Badge variant="outline" data-testid="badge-ai-model">{aiAnalysis.model}</Badge>
+                      <span className="text-xs text-muted-foreground">{t("admin.aiAnalytics")}</span>
                     </div>
-                  </CardContent>
+                    <pre className="whitespace-pre-wrap text-sm leading-relaxed font-sans" data-testid="text-ai-analysis">
+                      {aiAnalysis.analysis}
+                    </pre>
+                  </div>
                 )}
-              </Card>
+              </div>
             </div>
           </TabsContent>
 
+          {/* ── SETTINGS Tab ────────────────────────────────────────────── */}
           <TabsContent value="settings" className="mt-6">
             {loadingSettings ? (
               <div className="flex justify-center py-12">
@@ -1423,14 +1471,12 @@ export default function Admin() {
             ) : (
               <div className="space-y-6">
                 {/* Branding */}
-                <Card data-testid="card-branding-settings">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Palette className="w-4 h-4 text-primary" />
-                      {t("admin.brandingSettings")}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+                <div className="gp-card p-4 sm:p-6" data-testid="card-branding-settings">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Palette className="w-4 h-4" style={{ color: "var(--v-700)" }} />
+                    <h2 className="font-display font-bold text-base">{t("admin.brandingSettings")}</h2>
+                  </div>
+                  <div className="space-y-4">
                     <div className="space-y-1">
                       <label className="text-sm font-medium">{t("admin.siteName")}</label>
                       <Input
@@ -1449,18 +1495,16 @@ export default function Admin() {
                         placeholder="USD"
                       />
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
                 {/* System */}
-                <Card data-testid="card-system-settings">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Sliders className="w-4 h-4 text-primary" />
-                      {t("admin.systemSettings")}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+                <div className="gp-card p-4 sm:p-6" data-testid="card-system-settings">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sliders className="w-4 h-4" style={{ color: "var(--v-700)" }} />
+                    <h2 className="font-display font-bold text-base">{t("admin.systemSettings")}</h2>
+                  </div>
+                  <div className="space-y-4">
                     <div className="space-y-1">
                       <label className="text-sm font-medium">{t("admin.commissionPct")}</label>
                       <Input
@@ -1495,8 +1539,8 @@ export default function Admin() {
                         placeholder="100"
                       />
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
                 <div className="flex justify-end">
                   <Button
@@ -1586,6 +1630,68 @@ export default function Admin() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Ban / Unban Confirmation Dialog */}
+      <Dialog open={!!banUserId} onOpenChange={(open) => { if (!open) setBanUserId(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {banUserId && allUsers.find((u: any) => u.id === banUserId)?.isDisabled
+                ? t("admin.confirmUnban", "Unban this user?")
+                : t("admin.confirmBan", "Ban this user?")}
+            </DialogTitle>
+            <DialogDescription>
+              {banUserId && allUsers.find((u: any) => u.id === banUserId)?.isDisabled
+                ? t("admin.confirmUnbanDesc", "The user will regain access to the platform.")
+                : t("admin.confirmBanDesc", "The user will be prevented from accessing the platform.")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setBanUserId(null)} data-testid="button-cancel-ban">
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={disableUserMutation.isPending}
+              onClick={() => banUserId && disableUserMutation.mutate(banUserId)}
+              data-testid="button-confirm-ban"
+            >
+              {disableUserMutation.isPending
+                ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                : <Ban className="w-4 h-4 mr-2" />}
+              {banUserId && allUsers.find((u: any) => u.id === banUserId)?.isDisabled
+                ? t("admin.unbanUser")
+                : t("admin.banUser")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Confirmation Dialog */}
+      <Dialog open={!!resetUserId} onOpenChange={(open) => { if (!open) setResetUserId(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t("admin.confirmReset", "Reset this user?")}</DialogTitle>
+            <DialogDescription>{t("admin.confirmResetDesc", "This will reset the user's data. This action cannot be undone.")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setResetUserId(null)} data-testid="button-cancel-reset">
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={resetUserMutation.isPending}
+              onClick={() => resetUserId && resetUserMutation.mutate(resetUserId)}
+              data-testid="button-confirm-reset"
+            >
+              {resetUserMutation.isPending
+                ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                : <RotateCcw className="w-4 h-4 mr-2" />}
+              {t("admin.resetUser")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
@@ -1624,54 +1730,50 @@ function EditHistoryTab() {
 
   if (history.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center text-muted-foreground">
-          <History className="w-12 h-12 mx-auto mb-4 opacity-20" />
-          {t("admin.noEditHistoryRecorded")}
-        </CardContent>
-      </Card>
+      <div className="gp-card p-4 sm:p-6 text-center text-muted-foreground">
+        <History className="w-12 h-12 mx-auto mb-4 opacity-20" />
+        {t("admin.noEditHistoryRecorded")}
+      </div>
     );
   }
 
   return (
     <div className="space-y-4" data-testid="admin-edit-history-list">
       {history.map((entry: any) => (
-        <Card key={entry.id} data-testid={`admin-edit-history-entry-${entry.id}`}>
-          <CardContent className="py-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <Badge variant="outline">
-                    {t("admin.listingId")} #{entry.listingId}
-                  </Badge>
-                  {entry.listing?.title && (
-                    <span className="text-sm font-medium">{entry.listing.title}</span>
-                  )}
-                  <span className="text-sm text-muted-foreground">
-                    {format(new Date(entry.createdAt), "MMM d, yyyy HH:mm")}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  {t("admin.editedBy")}: {entry.editor?.firstName} {entry.editor?.lastName || ""} ({entry.editorId})
-                </p>
-                <div className="space-y-1">
-                  {Object.entries(entry.changes as Record<string, { old: any; new: any }>).map(([field, change]) => (
-                    <div key={field} className="text-sm flex flex-wrap items-center gap-2">
-                      <span className="font-medium">{formatFieldName(field)}:</span>
-                      <span className="text-muted-foreground line-through">
-                        {change.old !== null && change.old !== undefined ? String(change.old).substring(0, 60) : "—"}
-                      </span>
-                      <span className="text-muted-foreground">&rarr;</span>
-                      <span>
-                        {change.new !== null && change.new !== undefined ? String(change.new).substring(0, 60) : "—"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+        <div key={entry.id} className="gp-card p-4 sm:p-6" data-testid={`admin-edit-history-entry-${entry.id}`}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <Badge variant="outline">
+                  {t("admin.listingId")} #{entry.listingId}
+                </Badge>
+                {entry.listing?.title && (
+                  <span className="text-sm font-medium">{entry.listing.title}</span>
+                )}
+                <span className="text-sm text-muted-foreground">
+                  {format(new Date(entry.createdAt), "MMM d, yyyy HH:mm")}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-2">
+                {t("admin.editedBy")}: {entry.editor?.firstName} {entry.editor?.lastName || ""} ({entry.editorId})
+              </p>
+              <div className="space-y-1">
+                {Object.entries(entry.changes as Record<string, { old: any; new: any }>).map(([field, change]) => (
+                  <div key={field} className="text-sm flex flex-wrap items-center gap-2">
+                    <span className="font-medium">{formatFieldName(field)}:</span>
+                    <span className="text-muted-foreground line-through">
+                      {change.old !== null && change.old !== undefined ? String(change.old).substring(0, 60) : "—"}
+                    </span>
+                    <span className="text-muted-foreground">&rarr;</span>
+                    <span>
+                      {change.new !== null && change.new !== undefined ? String(change.new).substring(0, 60) : "—"}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
     </div>
   );
