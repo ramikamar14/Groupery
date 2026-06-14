@@ -25,6 +25,7 @@ import { ProfileContactInfo } from "@/components/profile/ProfileContactInfo";
 import { ProfileListingsSection } from "@/components/profile/ProfileListingsSection";
 import { ProfileReviewsSection } from "@/components/profile/ProfileReviewsSection";
 import { SavingsSummary } from "@/components/profile/SavingsSummary";
+import { NotificationPreferences } from "@/components/profile/NotificationPreferences";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -727,6 +728,7 @@ export default function Profile() {
           loading={loadingReviews}
           avgRating={(user as any).rating ?? 0}
         />
+        <NotificationPreferences currentPrefs={(user as any).notificationPreferences} />
       </div>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
