@@ -1,9 +1,18 @@
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
-import { Clock } from "lucide-react";
+import { Clock, Share2 } from "lucide-react";
 import { differenceInHours, formatDistanceToNowStrict } from "date-fns";
 import type { DiscoverCardListing } from "./mapListing";
 import { fillRatio } from "./mapListing";
+
+function shareListingUrl(id: number, title: string) {
+  const url = `${window.location.origin}/listings/${id}`;
+  if (navigator.share) {
+    navigator.share({ title, url }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url).catch(() => {});
+  }
+}
 
 interface Props {
   listing: DiscoverCardListing;
@@ -185,16 +194,27 @@ export function DiscoverListingCard({ listing, compact = false, joinLabel }: Pro
               <span style={{ fontSize: 11, fontWeight: 700, color: "var(--emerald)" }}>✓</span>
             )}
           </div>
-          <Link href={`/listings/${listing.id}`}>
-            <button style={{
-              background: "var(--v-700)", color: "#fff", border: "none", borderRadius: 999,
-              padding: "5px 13px", fontSize: 12, fontWeight: 700, cursor: "pointer",
-              boxShadow: "0 4px 10px -4px rgba(109,40,217,.5)",
-              fontFamily: "inherit",
-            }}>
-              {joinLabel}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); shareListingUrl(listing.id, listing.title); }}
+              style={{ background: "none", border: "1px solid var(--line)", borderRadius: 999, padding: "4px 7px", cursor: "pointer", display: "flex", alignItems: "center", color: "var(--muted-c)" }}
+              aria-label="Share"
+              data-testid={`button-share-card-${listing.id}`}
+            >
+              <Share2 style={{ width: 12, height: 12 }} />
             </button>
-          </Link>
+            <Link href={`/listings/${listing.id}`}>
+              <button style={{
+                background: "var(--v-700)", color: "#fff", border: "none", borderRadius: 999,
+                padding: "5px 13px", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                boxShadow: "0 4px 10px -4px rgba(109,40,217,.5)",
+                fontFamily: "inherit",
+              }}>
+                {joinLabel}
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
