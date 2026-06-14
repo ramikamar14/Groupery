@@ -40,7 +40,7 @@ export function Layout({ children, mainClassName }: LayoutProps) {
               aria-label={themeResolved === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               data-testid="mobile-toggle-theme"
             >
-              {themeResolved === "dark" ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
+              {themeResolved === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
             <LanguageSwitcher />
           </div>
