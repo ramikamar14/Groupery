@@ -30,6 +30,16 @@ if (Capacitor.isNativePlatform()) {
 // Register PWA service worker in production web builds
 if (!Capacitor.isNativePlatform() && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    navigator.serviceWorker
+      // updateViaCache:'none' → browser ALWAYS re-fetches sw.js over the network,
+      // bypassing HTTP cache (Cloudflare, disk cache, etc.).  Without this, the
+      // browser may serve the old sw.js from cache and never see our version bump.
+      .register("/sw.js", { updateViaCache: "none" })
+      .then((reg) => {
+        // Force an immediate update check so an already-installed SW doesn't
+        // linger until the next page load.
+        reg.update().catch(() => {});
+      })
+      .catch(() => {});
   });
 }

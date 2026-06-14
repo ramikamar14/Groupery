@@ -1,4 +1,4 @@
-const CACHE_VERSION = "grouperry-v3";
+const CACHE_VERSION = "grouperry-v4";
 const SHELL = ["/", "/manifest.json", "/favicon.svg", "/favicon.png"];
 
 self.addEventListener("install", (e) => {

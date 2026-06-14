@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grouperry — Clearing cache…</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #faf9fc; color: #191320; }
+    .card { background: #fff; border: 1px solid #ede9fe; border-radius: 20px; padding: 40px 32px; max-width: 380px; width: 90%; text-align: center; box-shadow: 0 8px 40px -12px rgba(109,40,217,0.18); }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    p { font-size: 14px; color: #736c80; line-height: 1.6; margin-bottom: 24px; }
+    .status { font-size: 13px; font-weight: 600; color: #6d28d9; min-height: 20px; margin-bottom: 20px; }
+    a { display: inline-block; background: #6d28d9; color: #fff; font-weight: 700; font-size: 15px; padding: 12px 32px; border-radius: 999px; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">🧹</div>
+    <h1>Clearing old cache…</h1>
+    <p>This page removes the old service worker and cached files so you see the latest design.</p>
+    <div class="status" id="status">Working…</div>
+    <a href="/" id="homeBtn" style="display:none">Go to Grouperry →</a>
+  </div>
+
+  <script>
+    async function clearAll() {
+      const status = document.getElementById('status');
+      const btn = document.getElementById('homeBtn');
+      let done = 0;
+      const steps = [];
+
+      // 1. Unregister every service worker
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of regs) {
+          await reg.unregister();
+          done++;
+        }
+        steps.push(regs.length + ' SW unregistered');
+      }
+
+      // 2. Delete every cache
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (const key of keys) {
+          await caches.delete(key);
+          done++;
+        }
+        steps.push(keys.length + ' caches cleared');
+      }
+
+      // 3. Clear localStorage / sessionStorage
+      try { localStorage.clear(); sessionStorage.clear(); steps.push('storage cleared'); } catch(e) {}
+
+      status.textContent = done > 0
+        ? '✅ Done — ' + steps.join(', ')
+        : '✅ Nothing to clear — you are already up to date';
+
+      btn.style.display = 'inline-block';
+
+      // Auto-redirect after 2s
+      setTimeout(() => { window.location.href = '/'; }, 2000);
+    }
+
+    clearAll().catch(function(e) {
+      document.getElementById('status').textContent = '⚠️ Error: ' + e.message;
+      document.getElementById('homeBtn').style.display = 'inline-block';
+    });
+  </script>
+</body>
+</html>
