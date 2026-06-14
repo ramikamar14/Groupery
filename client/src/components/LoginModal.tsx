@@ -197,6 +197,14 @@ export function LoginModal({ open, onClose, returnTo }: LoginModalProps) {
               <Button type="submit" className="w-full" disabled={emailLoading}>
                 {emailLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : emailMode === "login" ? "Sign in" : "Create account"}
               </Button>
+              {emailMode === "login" && (
+                <p className="text-center text-xs text-muted-foreground">
+                  Forgot your password?{" "}
+                  <a href="/contact" className="underline hover:text-foreground transition-colors" onClick={() => onClose()}>
+                    Contact support
+                  </a>
+                </p>
+              )}
             </form>
           </TabsContent>
 

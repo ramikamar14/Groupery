@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header, Hero, Stats, HowItWorks, Categories, Trust, CTA, Footer } from "@/components/landing-v2";
+import { NewsletterSection } from "@/components/landing-v2/newsletter-section";
 
 export default function Landing() {
   // Capture ?ref=userId from the URL and store for post-registration claim
@@ -23,6 +24,7 @@ export default function Landing() {
         <HowItWorks />
         <Categories />
         <Trust />
+        <NewsletterSection />
         <CTA />
       </main>
       <Footer />
