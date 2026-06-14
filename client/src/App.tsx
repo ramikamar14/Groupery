@@ -34,6 +34,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ListingContextProvider } from "@/hooks/use-listing-context";
 import { AIChatWidget } from "@/components/AIChatWidget";
 import { CookieConsent } from "@/components/CookieConsent";
+import { useTheme } from "@/hooks/use-theme";
 
 function PrivateRoute({ component: Component }: { component: React.ComponentType }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -181,6 +182,8 @@ function RTLProvider({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  useTheme(); // initializes theme from localStorage on mount
+
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     // Android hardware back button — go back in history, or exit if at root

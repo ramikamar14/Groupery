@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, LayoutDashboard, PlusSquare, Users, User, LogOut, Bell, Bookmark, ShieldAlert, Clock, CheckCircle, ChevronRight, Tag } from "lucide-react";
+import { Home, LayoutDashboard, PlusSquare, Users, User, LogOut, Bell, Bookmark, ShieldAlert, Clock, CheckCircle, ChevronRight, Tag, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import { LogoIcon } from "./Logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTheme } from "@/hooks/use-theme";
 
 export function BottomNav() {
   const [location] = useLocation();
@@ -93,6 +94,7 @@ export function Sidebar() {
   const [location] = useLocation();
   const { logout, isAuthenticated, user } = useAuth();
   const { t } = useTranslation();
+  const { resolved: themeResolved, toggle: toggleTheme } = useTheme();
 
   const { data: notifications = [] } = useQuery<Array<{ id: number; isRead: boolean }>>({
     queryKey: ["/api/notifications"],
@@ -240,6 +242,16 @@ export function Sidebar() {
           <span className="text-xs text-muted-foreground font-medium">{t("nav.language")}</span>
           <LanguageSwitcher />
         </div>
+        <button
+          onClick={toggleTheme}
+          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-muted-foreground hover:bg-secondary/80 hover:text-foreground transition-all duration-150 text-sm group"
+          data-testid="button-toggle-theme"
+        >
+          {themeResolved === "dark"
+            ? <Sun style={{ width: "1.0625rem", height: "1.0625rem" }} strokeWidth={1.75} />
+            : <Moon style={{ width: "1.0625rem", height: "1.0625rem" }} strokeWidth={1.75} />}
+          <span>{themeResolved === "dark" ? "Light mode" : "Dark mode"}</span>
+        </button>
         <button
           onClick={() => logout()}
           className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-muted-foreground hover:bg-destructive/8 hover:text-destructive transition-all duration-150 text-sm group"
