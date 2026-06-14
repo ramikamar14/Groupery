@@ -6,6 +6,8 @@ import { LogoIcon } from "./Logo";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "@/hooks/use-theme";
+import { Sun, Moon } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -15,6 +17,7 @@ interface LayoutProps {
 
 export function Layout({ children, mainClassName }: LayoutProps) {
   const { t } = useTranslation();
+  const { resolved: themeResolved, toggle: toggleTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -29,7 +32,18 @@ export function Layout({ children, mainClassName }: LayoutProps) {
               {t("landing.brandName")}
             </span>
           </Link>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              aria-label={themeResolved === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              data-testid="mobile-toggle-theme"
+            >
+              {themeResolved === "dark" ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
+            </button>
+            <LanguageSwitcher />
+          </div>
         </div>
       </div>
 
