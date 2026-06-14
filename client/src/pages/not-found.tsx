@@ -1,35 +1,36 @@
 import { Link } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
+import { Layout } from "@/components/Layout";
+import { Home, Search } from "lucide-react";
 
 export default function NotFound() {
   const { t } = useTranslation();
 
   return (
     <Layout>
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Card className="w-full max-w-md mx-auto">
-          <CardContent className="pt-6">
-            <div className="flex mb-4 gap-2">
-              <AlertCircle className="h-8 w-8 text-destructive shrink-0" />
-              <h1 className="text-2xl font-bold text-foreground">{t("notFound.title")}</h1>
-            </div>
-
-            <p className="mt-4 text-sm text-muted-foreground">{t("notFound.description")}</p>
-
-            <div className="mt-6 flex flex-wrap gap-3 justify-end">
-              <Button variant="outline" asChild>
-                <Link href="/">{t("notFound.browse")}</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/">{t("notFound.home")}</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex min-h-[65vh] items-center justify-center">
+        <div className="text-center space-y-6 max-w-sm mx-auto px-6">
+          <div className="text-8xl font-black font-display text-primary/20 select-none">404</div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold font-display">{t("notFound.title")}</h1>
+            <p className="text-muted-foreground text-sm leading-relaxed">{t("notFound.description")}</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button asChild>
+              <Link href="/">
+                <Home className="w-4 h-4 mr-2" />
+                {t("notFound.home")}
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/">
+                <Search className="w-4 h-4 mr-2" />
+                {t("notFound.browse")}
+              </Link>
+            </Button>
+          </div>
+        </div>
       </div>
     </Layout>
   );

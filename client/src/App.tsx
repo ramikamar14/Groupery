@@ -34,6 +34,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ListingContextProvider } from "@/hooks/use-listing-context";
 import { AIChatWidget } from "@/components/AIChatWidget";
 import { CookieConsent } from "@/components/CookieConsent";
+import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 import { useTheme } from "@/hooks/use-theme";
 
 function PrivateRoute({ component: Component }: { component: React.ComponentType }) {
@@ -207,6 +208,7 @@ function App() {
               <Router />
               <AIChatWidget />
               <CookieConsent />
+              <PWAInstallBanner />
             </ErrorBoundary>
           </RTLProvider>
         </ListingContextProvider>
