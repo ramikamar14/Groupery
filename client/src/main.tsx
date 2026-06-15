@@ -29,6 +29,16 @@ if (Capacitor.isNativePlatform()) {
 
 // Register PWA service worker in production web builds
 if (!Capacitor.isNativePlatform() && "serviceWorker" in navigator) {
+  // Nuke all old caches immediately from page context — does NOT wait for SW
+  // to activate. This kills the "grouperry-v4" cache that had the initial
+  // design stored, even if the old SW is still the active controller.
+  const CURRENT_CACHE = "grouperry-v6";
+  if ("caches" in window) {
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CURRENT_CACHE).map((k) => caches.delete(k)))
+    ).catch(() => {});
+  }
+
   // When a new SW takes control, reload immediately so users always get
   // the latest JS/CSS without any manual cache-clearing step.
   const hadController = !!navigator.serviceWorker.controller;
@@ -44,6 +54,8 @@ if (!Capacitor.isNativePlatform() && "serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("/sw.js", { updateViaCache: "none" })
       .then((reg) => {
+        // Force immediate check for new SW — bypasses browser HTTP cache.
+        // Cloudflare sees the no-cache header on /sw.js and revalidates.
         reg.update().catch(() => {});
       })
       .catch(() => {});
