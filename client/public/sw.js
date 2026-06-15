@@ -1,4 +1,4 @@
-const CACHE_VERSION = "grouperry-v4";
+const CACHE_VERSION = "grouperry-v5";
 const SHELL = ["/", "/manifest.json", "/favicon.svg", "/favicon.png"];
 
 self.addEventListener("install", (e) => {
@@ -32,13 +32,16 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Hashed assets (filename contains content hash) — cache-first, immutable
-  // These are safe because the filename changes whenever content changes
-  if (url.pathname.match(/\/assets\/.*\.[a-f0-9]{8}\.(js|css)$/)) {
+  // Hashed assets — cache-first, immutable.
+  // Vite 7 uses base62 hashes like "Otfgh0QC" separated by "-", not "."
+  // Pattern: /assets/name-HASH.ext
+  if (url.pathname.match(/\/assets\/.+-[A-Za-z0-9_-]{6,}\.(js|css)$/)) {
     e.respondWith(
       caches.match(request).then((cached) => cached || fetch(request).then((res) => {
-        const clone = res.clone();
-        caches.open(CACHE_VERSION).then((c) => c.put(request, clone));
+        if (res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE_VERSION).then((c) => c.put(request, clone));
+        }
         return res;
       }))
     );
@@ -49,8 +52,10 @@ self.addEventListener("fetch", (e) => {
   e.respondWith(
     fetch(request)
       .then((res) => {
-        const clone = res.clone();
-        caches.open(CACHE_VERSION).then((c) => c.put(request, clone));
+        if (res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE_VERSION).then((c) => c.put(request, clone));
+        }
         return res;
       })
       .catch(() => caches.match(request).then((r) => r || caches.match("/")))
