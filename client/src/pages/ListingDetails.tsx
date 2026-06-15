@@ -716,20 +716,38 @@ export default function ListingDetails() {
               {/* Trust badge chips */}
               <TrustBadgeRow listing={listing} />
 
-              {/* Money protection strip */}
-              {isActive && (
-                <div className="mb-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 p-3 space-y-1.5" data-testid="panel-money-protection">
-                  <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    {t("listing.moneyProtected", "Your participation is protected")}
-                  </p>
-                  <div className="space-y-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400/70">
-                    <p>✓ {t("listing.protectionPoint1", "Funds are held until the deal completes")}</p>
-                    <p>✓ {t("listing.protectionPoint2", "Full refund if the group doesn't fill")}</p>
-                    <p>✓ {t("listing.protectionPoint3", "ID-verified creators · dispute window after delivery")}</p>
+              {/* Money protection strip — mode-aware */}
+              {isActive && (() => {
+                const isProtected = !!(listing as any).escrowEnabled;
+                if (isProtected) {
+                  return (
+                    <div className="mb-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 p-3 space-y-1.5" data-testid="panel-money-protection">
+                      <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        Protected Deal — funds held in escrow
+                      </p>
+                      <div className="space-y-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400/70">
+                        <p>✓ {t("listing.protectionPoint1", "Funds are held until the deal completes")}</p>
+                        <p>✓ {t("listing.protectionPoint2", "Full refund if the group doesn't fill")}</p>
+                        <p>✓ {t("listing.protectionPoint3", "ID-verified creators · dispute window after delivery")}</p>
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="mb-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-3 space-y-1.5" data-testid="panel-direct-deal">
+                    <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                      <Info className="w-3.5 h-3.5" />
+                      Direct Deal — settle directly with the organiser
+                    </p>
+                    <div className="space-y-0.5 text-[11px] text-amber-700/80 dark:text-amber-400/70">
+                      <p>• Payment is arranged between you and the organiser outside Grouperry.</p>
+                      <p>• Only commit if you trust the organiser. Check their verification status.</p>
+                      <p>• If something goes wrong, use our dispute window for support.</p>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* CTA buttons */}
               <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 mb-3">
@@ -2190,6 +2208,13 @@ function ShareRow({ listing }: { listing: any }) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
+  const slotsLeft = (listing.totalSlots ?? 0) - (listing.filledSlots ?? 0);
+  const isNearFull = listing.status === "active" && slotsLeft > 0 && slotsLeft <= 3;
+
+  const urgencyText = isNearFull
+    ? `Only ${slotsLeft} spot${slotsLeft === 1 ? "" : "s"} left in "${listing.title}" — grab yours before it fills!`
+    : `Join this group deal: ${window.location.href}`;
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
       setCopied(true);
@@ -2201,21 +2226,45 @@ function ShareRow({ listing }: { listing: any }) {
   };
 
   const handleWhatsApp = () => {
-    const url = `https://wa.me/?text=${encodeURIComponent("Join this group deal: " + window.location.href)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    const text = isNearFull
+      ? `${urgencyText} ${window.location.href}`
+      : `Join this group deal: ${window.location.href}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+  };
+
+  const handleXShare = () => {
+    const text = isNearFull
+      ? `🔥 ${urgencyText}`
+      : `Saving big on "${listing.title}" with a group buy on Grouperry 👇`;
+    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text + " " + window.location.href)}`, "_blank", "noopener,noreferrer");
   };
 
   return (
-    <div className="flex items-center gap-2 mb-4" data-testid="share-row">
-      <span className="text-xs text-muted-foreground font-medium">Share:</span>
-      <Button size="sm" variant="outline" onClick={handleCopyLink} data-testid="button-copy-link" className="h-7 px-2.5 text-xs gap-1">
-        {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-        {copied ? "Copied!" : "Copy Link"}
-      </Button>
-      <Button size="sm" variant="outline" onClick={handleWhatsApp} data-testid="button-whatsapp-share" className="h-7 px-2.5 text-xs gap-1">
-        <Share2 className="w-3.5 h-3.5 text-green-600" />
-        WhatsApp
-      </Button>
+    <div className="mb-4" data-testid="share-row">
+      {isNearFull && (
+        <div
+          className="mb-2 rounded-xl px-3 py-2 text-xs font-semibold flex items-center gap-2"
+          style={{ background: "linear-gradient(90deg,#fef3c7,#fde68a)", color: "#92400e", border: "1px solid #fcd34d" }}
+          data-testid="share-urgency-banner"
+        >
+          🔥 Only {slotsLeft} spot{slotsLeft === 1 ? "" : "s"} left — share to help this deal fill!
+        </div>
+      )}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs text-muted-foreground font-medium">Share:</span>
+        <Button size="sm" variant="outline" onClick={handleCopyLink} data-testid="button-copy-link" className="h-7 px-2.5 text-xs gap-1">
+          {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? "Copied!" : "Copy Link"}
+        </Button>
+        <Button size="sm" variant="outline" onClick={handleWhatsApp} data-testid="button-whatsapp-share" className="h-7 px-2.5 text-xs gap-1">
+          <Share2 className="w-3.5 h-3.5 text-green-600" />
+          WhatsApp
+        </Button>
+        <Button size="sm" variant="outline" onClick={handleXShare} data-testid="button-x-share" className="h-7 px-2.5 text-xs gap-1">
+          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          Post
+        </Button>
+      </div>
     </div>
   );
 }
@@ -2226,10 +2275,15 @@ function TrustBadgeRow({ listing }: { listing: any }) {
 
   return (
     <div className="flex flex-wrap gap-2 mb-4" data-testid="trust-badge-row">
-      {isEscrowEnabled && (
+      {isEscrowEnabled ? (
         <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" data-testid="badge-escrow">
           <Shield className="w-3 h-3" />
           Escrow Protected
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400" data-testid="badge-direct-deal">
+          <RefreshCcw className="w-3 h-3" />
+          Direct Deal
         </span>
       )}
       {isOrganizerVerified && (
@@ -2238,9 +2292,9 @@ function TrustBadgeRow({ listing }: { listing: any }) {
           Organiser Verified
         </span>
       )}
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400" data-testid="badge-money-back">
-        <RefreshCcw className="w-3 h-3" />
-        Money-back if cancelled
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400" data-testid="badge-dispute-window">
+        <ShieldCheck className="w-3 h-3" />
+        Dispute Window
       </span>
     </div>
   );

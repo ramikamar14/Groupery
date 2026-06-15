@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DiscoverDealOfTheDay } from "@/components/discover/DiscoverDealOfTheDay";
 import { DiscoverDiscoverySection } from "@/components/discover/DiscoverDiscoverySection";
 import { DiscoverListingCard } from "@/components/discover/DiscoverListingCard";
+import { RecentlyCompletedSection } from "@/components/discover/RecentlyCompletedSection";
 import { mapListingForDiscover } from "@/components/discover/mapListing";
 import type { ListingWithCreator } from "@shared/schema";
 import { api } from "@shared/routes";
@@ -245,6 +246,7 @@ export default function Discover() {
             listings={nearCompletionCards}
             joinLabel={joinLabel}
           />
+          <RecentlyCompletedSection />
           <ActivityFeedSection />
         </div>
       ) : null}
