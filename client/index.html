@@ -53,6 +53,25 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+    // Inline SW reset — runs before React, breaks old-design cache loop on Safari iOS.
+    // Build token: v6. Runs once per session via sessionStorage guard.
+    (function(){
+      var BUILD='v6',KEY='gp_sw_reset';
+      if(sessionStorage.getItem(KEY)===BUILD)return;
+      sessionStorage.setItem(KEY,BUILD);
+      if('serviceWorker' in navigator){
+        navigator.serviceWorker.getRegistrations().then(function(rs){
+          rs.forEach(function(r){r.unregister();});
+        }).catch(function(){});
+      }
+      if('caches' in window){
+        caches.keys().then(function(ks){
+          ks.filter(function(k){return k!=='grouperry-v6';}).forEach(function(k){caches.delete(k);});
+        }).catch(function(){});
+      }
+    })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
