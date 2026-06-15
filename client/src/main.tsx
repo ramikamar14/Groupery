@@ -39,10 +39,18 @@ if (!Capacitor.isNativePlatform() && "serviceWorker" in navigator) {
     ).catch(() => {});
   }
 
-  // When a new SW takes control, reload immediately so users always get
-  // the latest JS/CSS without any manual cache-clearing step.
-  const hadController = !!navigator.serviceWorker.controller;
+  // Reload when the SW tells us to (SW's activate handler sends this after
+  // clients.claim() so even pages running old JS get a forced refresh).
   let reloading = false;
+  navigator.serviceWorker.addEventListener("message", (ev) => {
+    if (ev.data?.type === "SW_RELOAD" && !reloading) {
+      reloading = true;
+      window.location.reload();
+    }
+  });
+
+  // Also reload on controllerchange (works when new JS is already running).
+  const hadController = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (hadController && !reloading) {
       reloading = true;

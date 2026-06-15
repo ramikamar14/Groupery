@@ -8,11 +8,23 @@ self.addEventListener("install", (e) => {
 });
 
 self.addEventListener("activate", (e) => {
-  // Delete ALL old caches (any key that isn't the current version)
   e.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k)))
+      )
+      .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll({ type: "window" }))
+      .then((clients) => {
+        clients.forEach((client) => {
+          // Force-navigate the tab to itself — picks up the new SW on fresh HTML.
+          // client.navigate() is called from SW context so it works even if the
+          // page is running old JS with no message listener.
+          try { client.navigate(client.url); } catch (_) {}
+          // Fallback postMessage for browsers that don't support client.navigate()
+          try { client.postMessage({ type: "SW_RELOAD", version: CACHE_VERSION }); } catch (_) {}
+        });
+      })
   );
 });
 
