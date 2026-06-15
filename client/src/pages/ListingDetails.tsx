@@ -397,6 +397,28 @@ export default function ListingDetails() {
             <div className="p-6 md:p-8">
               <h1 className="text-3xl md:text-4xl font-display font-bold mb-3">{listing.title}</h1>
 
+              {/* Organiser recovery banner — expired without filling */}
+              {isExpired && isCreator && listing.filledSlots < listing.totalSlots && (
+                <div className="mb-4 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/30 p-4" data-testid="banner-expired-organiser">
+                  <p className="font-bold text-amber-900 dark:text-amber-100 text-sm mb-1">This deal expired without filling.</p>
+                  <p className="text-xs text-amber-700/80 dark:text-amber-300/70 mb-3">
+                    {listing.filledSlots} of {listing.totalSlots} slots filled. You can extend the deadline to give it more time, or share it to bring in the remaining members.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" className="border-amber-400 text-amber-800 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-200"
+                      onClick={() => { navigator.clipboard.writeText(window.location.href); toast({ title: "Link copied", description: "Share it to revive interest." }); }}
+                    >
+                      <Share2 className="w-3.5 h-3.5 mr-1.5" /> Share to revive
+                    </Button>
+                    <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white"
+                      onClick={() => document.querySelector<HTMLButtonElement>('[data-testid="button-extend-deadline"]')?.click()}
+                    >
+                      <RefreshCcw className="w-3.5 h-3.5 mr-1.5" /> Extend deadline
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Urgency badge — shown when very few slots or hours left */}
               {isActive && (() => {
                 const slotsLeft = listing.totalSlots - listing.filledSlots;
@@ -2220,6 +2242,7 @@ function ShareRow({ listing }: { listing: any }) {
       setCopied(true);
       toast({ title: "Copied!", description: "Link copied to clipboard." });
       setTimeout(() => setCopied(false), 2000);
+      track("deal_shared", { listingId: listing.id, channel: "copy", nearFull: isNearFull });
     }).catch(() => {
       toast({ title: "Error", description: "Could not copy link.", variant: "destructive" });
     });
@@ -2230,6 +2253,7 @@ function ShareRow({ listing }: { listing: any }) {
       ? `${urgencyText} ${window.location.href}`
       : `Join this group deal: ${window.location.href}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+    track("deal_shared", { listingId: listing.id, channel: "whatsapp", nearFull: isNearFull });
   };
 
   const handleXShare = () => {
@@ -2237,6 +2261,7 @@ function ShareRow({ listing }: { listing: any }) {
       ? `🔥 ${urgencyText}`
       : `Saving big on "${listing.title}" with a group buy on Grouperry 👇`;
     window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text + " " + window.location.href)}`, "_blank", "noopener,noreferrer");
+    track("deal_shared", { listingId: listing.id, channel: "x", nearFull: isNearFull });
   };
 
   return (

@@ -659,8 +659,13 @@ export default function CreateListing() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                            <SelectItem value="digital" data-testid="select-category-digital">
+                              <span className="flex items-center gap-2">
+                                {t("create.digitalProduct")}
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300">⭐ Recommended</span>
+                              </span>
+                            </SelectItem>
                             <SelectItem value="physical" data-testid="select-category-physical">{t("create.physicalItem")}</SelectItem>
-                            <SelectItem value="digital" data-testid="select-category-digital">{t("create.digitalProduct")}</SelectItem>
                             <SelectItem value="offer" data-testid="select-category-offer">{t("create.specialOffer")}</SelectItem>
                           </SelectContent>
                         </Select>

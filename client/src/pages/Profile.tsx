@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
-import { Calendar, User as UserIcon, Store, CheckCircle, Clock, XCircle, Settings, Loader2, Edit, Camera, Shield, Star, Award, Trophy, TrendingUp, Upload, Image, MapPin, Gift, Copy, Users, Zap, Phone, Banknote } from "lucide-react";
+import { Calendar, User as UserIcon, Store, CheckCircle, Clock, XCircle, Settings, Loader2, Edit, Camera, Shield, Star, Award, Trophy, TrendingUp, Upload, Image, MapPin, Gift, Copy, Users, Zap, Phone, Banknote, LogOut } from "lucide-react";
 import { PayoutOnboarding } from "@/components/billing/PayoutOnboarding";
 import { isStripeEnabledClient } from "@/lib/stripe";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,7 +28,7 @@ import { SavingsSummary } from "@/components/profile/SavingsSummary";
 import { NotificationPreferences } from "@/components/profile/NotificationPreferences";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -347,6 +347,17 @@ export default function Profile() {
             <Button variant="outline" size="sm" onClick={openEditDialog} data-testid="button-edit-profile">
               <Edit className="w-4 h-4 mr-2" />
               {t("common.edit")}
+            </Button>
+            {/* Logout — visible on mobile where the sidebar isn't shown */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => logout()}
+              data-testid="button-logout-profile"
+              className="md:hidden text-destructive border-destructive/30 hover:bg-destructive/10"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              {t("nav.logout", "Log out")}
             </Button>
           </div>
         </div>

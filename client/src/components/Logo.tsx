@@ -1,3 +1,21 @@
+const LOGO_KEY = "grouperry_admin_logo_url";
+
+function getCustomLogoUrl(): string {
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem(LOGO_KEY) || "";
+}
+
+export function setCustomLogoUrl(url: string) {
+  if (typeof window === "undefined") return;
+  if (url.trim()) {
+    localStorage.setItem(LOGO_KEY, url.trim());
+  } else {
+    localStorage.removeItem(LOGO_KEY);
+  }
+  // Dispatch storage event so other components re-render
+  window.dispatchEvent(new StorageEvent("storage", { key: LOGO_KEY }));
+}
+
 interface LogoIconProps {
   size?: number;
   className?: string;
@@ -69,6 +87,24 @@ export function LogoWordmark({
   className?: string;
   variant?: LogoIconProps["variant"];
 }) {
+  const customUrl = getCustomLogoUrl();
+
+  if (customUrl) {
+    return (
+      <div className={`flex items-center gap-2 ${className ?? ""}`}>
+        <img
+          src={customUrl}
+          alt="Grouperry"
+          style={{ height: 36, width: "auto", objectFit: "contain" }}
+          onError={(e) => {
+            // If custom URL fails, fall back to SVG
+            (e.currentTarget as HTMLImageElement).style.display = "none";
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={`flex items-center gap-2 ${className ?? ""}`}>
       <LogoIcon size={36} variant={variant} />
