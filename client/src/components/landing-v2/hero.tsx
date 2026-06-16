@@ -222,9 +222,9 @@ export function Hero({ activeListings, totalMembers }: HeroProps) {
               className="flex flex-wrap items-center gap-8 justify-center lg:justify-start"
             >
               {[
-                { value: "$2.4M", label: "saved by members" },
-                { value: "40%", label: "avg discount" },
-                { value: "12k+", label: "active savers" },
+                { value: activeListings ? `${activeListings}` : "20+", label: "live deals" },
+                { value: "30–60%", label: "avg savings on SaaS" },
+                { value: totalMembers ? `${totalMembers}+` : "100+", label: "members saving" },
               ].map((stat) => (
                 <div key={stat.label} className="text-center lg:text-left">
                   <div style={{ fontSize: "1.625rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>{stat.value}</div>

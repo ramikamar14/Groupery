@@ -18,6 +18,7 @@ import {
   Eye, Settings, Palette, Sliders, CheckSquare, Flag, Cpu, MoreVertical,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { setCustomLogoUrl } from "@/components/Logo";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import {
@@ -173,6 +174,10 @@ export default function Admin() {
   });
 
   const [settingsForm, setSettingsForm] = useState<Record<string, string>>({});
+  const [logoUrlInput, setLogoUrlInput] = useState(() =>
+    typeof window !== "undefined" ? localStorage.getItem("grouperry_admin_logo_url") || "" : ""
+  );
+  const [logoPreviewError, setLogoPreviewError] = useState(false);
 
   useEffect(() => {
     if (siteSettings) setSettingsForm(siteSettings);
@@ -1494,6 +1499,59 @@ export default function Admin() {
                         onChange={(e) => setSettingsForm(f => ({ ...f, currency: e.target.value }))}
                         placeholder="USD"
                       />
+                    </div>
+
+                    {/* Logo management */}
+                    <div className="space-y-2 pt-2 border-t border-border/60">
+                      <label className="text-sm font-medium flex items-center gap-1.5">
+                        <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                        Site Logo (URL)
+                      </label>
+                      <p className="text-[11px] text-muted-foreground">
+                        Paste a direct image URL (PNG/SVG/WebP). Leave blank to use the default Grouperry logo. Stored in browser — share the URL with other admins.
+                      </p>
+                      <Input
+                        data-testid="input-logo-url"
+                        value={logoUrlInput}
+                        onChange={(e) => { setLogoUrlInput(e.target.value); setLogoPreviewError(false); }}
+                        placeholder="https://example.com/logo.png"
+                      />
+                      {logoUrlInput && !logoPreviewError && (
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/60">
+                          <img
+                            src={logoUrlInput}
+                            alt="Logo preview"
+                            style={{ height: 40, width: "auto", objectFit: "contain", maxWidth: 160 }}
+                            onError={() => setLogoPreviewError(true)}
+                          />
+                          <span className="text-xs text-muted-foreground">Preview</span>
+                        </div>
+                      )}
+                      {logoPreviewError && (
+                        <p className="text-xs text-destructive">Could not load image — check the URL.</p>
+                      )}
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          data-testid="button-set-logo"
+                          onClick={() => {
+                            setCustomLogoUrl(logoUrlInput);
+                            toast({ title: logoUrlInput ? "Logo updated" : "Logo reset", description: logoUrlInput ? "Custom logo is now active." : "Default logo restored." });
+                          }}
+                        >
+                          {logoUrlInput ? "Apply Logo" : "Reset to Default"}
+                        </Button>
+                        {logoUrlInput && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => { setLogoUrlInput(""); setCustomLogoUrl(""); setLogoPreviewError(false); toast({ title: "Logo reset to default" }); }}
+                          >
+                            Clear
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

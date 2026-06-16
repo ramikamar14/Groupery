@@ -13,10 +13,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DiscoverDealOfTheDay } from "@/components/discover/DiscoverDealOfTheDay";
 import { DiscoverDiscoverySection } from "@/components/discover/DiscoverDiscoverySection";
 import { DiscoverListingCard } from "@/components/discover/DiscoverListingCard";
+import { RecentlyCompletedSection } from "@/components/discover/RecentlyCompletedSection";
 import { mapListingForDiscover } from "@/components/discover/mapListing";
 import type { ListingWithCreator } from "@shared/schema";
 import { api } from "@shared/routes";
-import { Loader2, TrendingUp, Clock, MapPin, Flame, PackageSearch } from "lucide-react";
+import { Loader2, TrendingUp, Clock, MapPin, Flame, PackageSearch, Monitor, ShoppingBag, Tag } from "lucide-react";
 
 function mapDiscoverListings(rows: unknown): ReturnType<typeof mapListingForDiscover>[] {
   if (!Array.isArray(rows)) return [];
@@ -40,6 +41,8 @@ export default function Discover() {
     clearAllFilters,
     search,
     userLocation,
+    setCategory,
+    category,
   } = explore;
 
   const { data: dealRaw, isLoading: dealLoading } = useQuery({
@@ -203,6 +206,41 @@ export default function Discover() {
         }
       />
 
+      {/* Category quick-filter pills — wedge spotlight */}
+      <div className="flex flex-wrap gap-2 mb-6" data-testid="category-quick-filter">
+        {[
+          { value: undefined, label: "All Deals", icon: <Tag className="w-3.5 h-3.5" /> },
+          { value: "digital" as const, label: "Digital & SaaS", icon: <Monitor className="w-3.5 h-3.5" />, badge: "⭐ Recommended" },
+          { value: "physical" as const, label: "Physical", icon: <ShoppingBag className="w-3.5 h-3.5" /> },
+          { value: "offer" as const, label: "Special Offers", icon: <Flame className="w-3.5 h-3.5" /> },
+        ].map((cat) => {
+          const isActive = category === cat.value;
+          return (
+            <button
+              key={String(cat.value)}
+              type="button"
+              onClick={() => { setCategory(cat.value as any); }}
+              data-testid={`filter-cat-${cat.value ?? "all"}`}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all"
+              style={{
+                background: isActive ? "var(--v-700)" : "var(--surface)",
+                color: isActive ? "#fff" : "var(--ink)",
+                borderColor: isActive ? "var(--v-700)" : "var(--line)",
+                boxShadow: isActive ? "0 4px 12px -4px rgba(109,40,217,0.4)" : "none",
+              }}
+            >
+              {cat.icon}
+              {cat.label}
+              {cat.badge && !isActive && (
+                <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300">
+                  {cat.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       {!isFiltering ? (
         <div className="mb-8 space-y-2">
           {dealLoading ? (
@@ -245,6 +283,7 @@ export default function Discover() {
             listings={nearCompletionCards}
             joinLabel={joinLabel}
           />
+          <RecentlyCompletedSection />
           <ActivityFeedSection />
         </div>
       ) : null}
