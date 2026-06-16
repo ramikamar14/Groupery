@@ -27,29 +27,34 @@ if (Capacitor.isNativePlatform()) {
   SplashScreen.hide().catch(() => {});
 }
 
-// Register PWA service worker in production web builds
+// Service worker management for production web builds.
+// The SW has been intentionally removed (sw.js is now a self-destruct script).
+// This block ensures any previously registered SW is cleaned up and does NOT
+// re-register a new one. Once the self-destruct SW activates and unregisters
+// itself, this origin will have no SW — which is the desired steady state.
 if (!Capacitor.isNativePlatform() && "serviceWorker" in navigator) {
-  // Nuke all old caches immediately from page context — does NOT wait for SW
-  // to activate. This kills the "grouperry-v4" cache that had the initial
-  // design stored, even if the old SW is still the active controller.
-  const CURRENT_CACHE = "grouperry-v6";
+  // Nuke all caches from page context immediately — runs before any SW
+  // update check completes, so it clears caches even if the old SW is still
+  // the active controller.
   if ("caches" in window) {
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CURRENT_CACHE).map((k) => caches.delete(k)))
+      Promise.all(keys.map((k) => caches.delete(k)))
     ).catch(() => {});
   }
 
-  // Reload when the SW tells us to (SW's activate handler sends this after
-  // clients.claim() so even pages running old JS get a forced refresh).
+  // The self-destruct sw.js sends SW_UNREGISTERED after it unregisters itself.
+  // Reload so the tab is running with no SW controller and gets a fresh network response.
   let reloading = false;
   navigator.serviceWorker.addEventListener("message", (ev) => {
-    if (ev.data?.type === "SW_RELOAD" && !reloading) {
+    if ((ev.data?.type === "SW_UNREGISTERED" || ev.data?.type === "SW_RELOAD") && !reloading) {
       reloading = true;
       window.location.reload();
     }
   });
 
-  // Also reload on controllerchange (works when new JS is already running).
+  // Reload on controllerchange too — fires when the self-destruct SW takes
+  // control (claim()) before unregistering. The subsequent reload runs without
+  // any SW controller.
   const hadController = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (hadController && !reloading) {
@@ -59,13 +64,15 @@ if (!Capacitor.isNativePlatform() && "serviceWorker" in navigator) {
   });
 
   window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/sw.js", { updateViaCache: "none" })
-      .then((reg) => {
-        // Force immediate check for new SW — bypasses browser HTTP cache.
-        // Cloudflare sees the no-cache header on /sw.js and revalidates.
+    // Check if an old SW registration still exists and trigger an update so
+    // it fetches the self-destruct sw.js. If no registration exists, do nothing
+    // — we intentionally do NOT call navigator.serviceWorker.register() here.
+    navigator.serviceWorker.getRegistration("/sw.js").then((reg) => {
+      if (reg) {
+        // Force the browser to fetch sw.js right now, bypassing the 24-hour
+        // update throttle. This delivers the self-destruct SW immediately.
         reg.update().catch(() => {});
-      })
-      .catch(() => {});
+      }
+    }).catch(() => {});
   });
 }

@@ -20,7 +20,7 @@
     <link rel="apple-touch-icon" href="/grouperry-icon-only.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#6d28d9" />
-    <!-- build:2026-06-15 -->
+    <!-- build:2026-06-16 -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Grouperry" />
@@ -54,20 +54,20 @@
   <body>
     <div id="root"></div>
     <script>
-    // Inline SW reset — runs before React, breaks old-design cache loop on Safari iOS.
-    // Build token: v6. Runs once per session via sessionStorage guard.
+    // Inline SW cleanup — runs before React on every page load.
+    // No sessionStorage guard: we want this to run every time until there are
+    // no more registrations and no more caches. Once both are empty it becomes
+    // a fast no-op (Promise resolves with empty arrays).
+    // This intentionally does NOT re-register a SW — the SW has been removed.
     (function(){
-      var BUILD='v6',KEY='gp_sw_reset';
-      if(sessionStorage.getItem(KEY)===BUILD)return;
-      sessionStorage.setItem(KEY,BUILD);
       if('serviceWorker' in navigator){
         navigator.serviceWorker.getRegistrations().then(function(rs){
-          rs.forEach(function(r){r.unregister();});
+          rs.forEach(function(r){ r.update().catch(function(){}); });
         }).catch(function(){});
       }
       if('caches' in window){
         caches.keys().then(function(ks){
-          ks.filter(function(k){return k!=='grouperry-v6';}).forEach(function(k){caches.delete(k);});
+          ks.forEach(function(k){ caches.delete(k); });
         }).catch(function(){});
       }
     })();
