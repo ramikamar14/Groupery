@@ -468,11 +468,55 @@ export default function CreateListing() {
   const needsVerification = currentUser && (!currentUser.phoneVerified || !currentUser.onboardingComplete);
 
   const STEPS = [
-    { label: "What", icon: FileText },
-    { label: "Details", icon: Sparkles },
-    { label: "Delivery", icon: Truck },
-    { label: "Review", icon: CheckCheck },
+    { label: t("create.stepWhat", "What"), icon: FileText },
+    { label: t("create.stepDetails", "Details"), icon: Sparkles },
+    { label: t("create.stepDelivery", "Delivery"), icon: Truck },
+    { label: t("create.stepReview", "Review"), icon: CheckCheck },
   ];
+
+  // Fields that must be valid before advancing past each step
+  const STEP_FIELDS: Record<number, (keyof InsertListing)[]> = {
+    1: ["title", "category", "totalSlots", "expiresAt"],
+    2: ["description"],
+    3: ["location"],
+  };
+
+  const goToNextStep = async () => {
+    const fields = STEP_FIELDS[step] ?? [];
+    const valid = await form.trigger(fields as any);
+    if (!valid) {
+      toast({
+        title: t("create.fixErrorsTitle", "Almost there"),
+        description: t("create.fixErrorsDesc", "Please fix the highlighted fields before continuing."),
+        variant: "destructive",
+      });
+      return;
+    }
+    if (step === 3 && distributionType === "pickup" && !distributionDetails.trim()) {
+      toast({
+        title: t("create.pickupDetailsRequired", "Pickup details required"),
+        description: t("create.pickupDetailsRequiredDesc", "Let members know where and when they can collect their items."),
+        variant: "destructive",
+      });
+      return;
+    }
+    setStep((s) => s + 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const clearDraft = () => {
+    try { localStorage.removeItem(draftKey); } catch {}
+    form.reset();
+    setTags([]);
+    setPricePerSlotDollars("");
+    setMarketPriceDollars("");
+    setDistributionType("pickup");
+    setDistributionDetails("");
+    setSelectedTemplateId(null);
+    setUploadedImages([]);
+    setStep(1);
+    toast({ title: t("create.draftCleared", "Draft cleared"), description: t("create.draftClearedDesc", "You're starting fresh.") });
+  };
 
   const savings =
     pricePerSlotDollars && marketPriceDollars &&
@@ -480,7 +524,17 @@ export default function CreateListing() {
       ? Math.round((1 - parseFloat(pricePerSlotDollars) / parseFloat(marketPriceDollars)) * 100)
       : 0;
 
-  const ImageUploadSection = () => (
+  const watchedSlots = Number(form.watch("totalSlots")) || 0;
+  const groupTotal =
+    pricePerSlotDollars && parseFloat(pricePerSlotDollars) > 0 && watchedSlots > 0
+      ? parseFloat(pricePerSlotDollars) * watchedSlots
+      : 0;
+  const savedPerPerson =
+    savings > 0 ? parseFloat(marketPriceDollars) - parseFloat(pricePerSlotDollars) : 0;
+
+  // Rendered as a plain function (not a JSX component) so React keeps the same
+  // element tree across re-renders — prevents the URL input losing focus.
+  const renderImageUploadSection = () => (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <FormLabel>{t("create.additionalImages", { max: MAX_IMAGES })}</FormLabel>
@@ -499,7 +553,7 @@ export default function CreateListing() {
                   {t("create.cover")}
                 </span>
               )}
-              <Button type="button" variant="secondary" size="icon" className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ visibility: "visible" }} onClick={() => removeImage(index)} data-testid={`button-remove-image-${index}`}>
+              <Button type="button" variant="secondary" size="icon" aria-label={t("create.removeImage", "Remove image {{num}}", { num: index + 1 })} className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity" style={{ visibility: "visible" }} onClick={() => removeImage(index)} data-testid={`button-remove-image-${index}`}>
                 <X className="w-4 h-4" />
               </Button>
             </div>
@@ -597,6 +651,8 @@ export default function CreateListing() {
                 <button
                   type="button"
                   onClick={() => done && setStep(num)}
+                  aria-current={active ? "step" : undefined}
+                  aria-label={`${t("create.stepOf", "Step {{num}} of {{total}}", { num, total: STEPS.length })}: ${s.label}`}
                   className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition-all ${active ? "bg-primary text-white shadow-md shadow-primary/30" : done ? "bg-primary/10 text-primary cursor-pointer hover:bg-primary/20" : "bg-muted/60 text-muted-foreground cursor-default"}`}
                   disabled={!done}
                   data-testid={`wizard-step-${num}`}
@@ -623,8 +679,8 @@ export default function CreateListing() {
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <Zap className="w-4 h-4 text-primary" />
-                      <p className="text-sm font-semibold">Start from a template</p>
-                      <span className="text-xs text-muted-foreground">(optional)</span>
+                      <p className="text-sm font-semibold">{t("create.templateHeading", "Start from a template")}</p>
+                      <span className="text-xs text-muted-foreground">{t("create.templateOptional", "(optional)")}</span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                       {DEAL_TEMPLATES.map((tpl) => {
@@ -644,7 +700,7 @@ export default function CreateListing() {
                     {selectedTemplateId && (
                       <p className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1">
                         <CheckCheck className="w-3 h-3 text-emerald-500" />
-                        Template applied — fill in the details marked with [brackets]
+                        {t("create.templateApplied", "Template applied — fill in the details marked with [brackets]")}
                       </p>
                     )}
                   </div>
@@ -742,7 +798,7 @@ export default function CreateListing() {
                       {tags.map((tag) => (
                         <Badge key={tag} variant="secondary" className="text-xs" data-testid={`tag-chip-${tag}`}>
                           {tag}
-                          <button type="button" onClick={() => removeTag(tag)} className="ml-1 rounded-full" data-testid={`button-remove-tag-${tag}`}><X className="w-3 h-3" /></button>
+                          <button type="button" aria-label={t("create.removeTag", "Remove tag {{tag}}", { tag })} onClick={() => removeTag(tag)} className="ml-1 rounded-full" data-testid={`button-remove-tag-${tag}`}><X className="w-3 h-3" /></button>
                         </Badge>
                       ))}
                       {tags.length < 10 && (
@@ -764,7 +820,7 @@ export default function CreateListing() {
                     )}
                   </div>
 
-                  <ImageUploadSection />
+                  {renderImageUploadSection()}
                 </>
               )}
 
@@ -790,9 +846,17 @@ export default function CreateListing() {
                       </div>
                     </div>
                     {savings > 0 ? (
-                      <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                        <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{t("create.pricingSavings", { pct: savings })}</p>
+                      <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-1.5" data-testid="panel-live-savings" aria-live="polite">
+                        <div className="flex items-center gap-2.5">
+                          <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{t("create.pricingSavings", { pct: savings })}</p>
+                        </div>
+                        <p className="text-xs text-emerald-700/80 dark:text-emerald-400/80 pl-6">
+                          {t("create.perPersonSavings", "Each member saves ${{amount}} vs buying solo", { amount: savedPerPerson.toFixed(2) })}
+                          {groupTotal > 0 && (
+                            <> · {t("create.groupPoolTotal", "{{slots}} members × ${{price}} = ${{total}} pooled", { slots: watchedSlots, price: parseFloat(pricePerSlotDollars).toFixed(2), total: groupTotal.toFixed(2) })}</>
+                          )}
+                        </p>
                       </div>
                     ) : pricePerSlotDollars && marketPriceDollars && parseFloat(pricePerSlotDollars) > 0 && parseFloat(marketPriceDollars) > 0 ? (
                       <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
@@ -891,6 +955,7 @@ export default function CreateListing() {
                       {pricePerSlotDollars && <><span className="text-muted-foreground">Group price</span><span className="font-medium text-violet-700">${pricePerSlotDollars}</span></>}
                       {marketPriceDollars && <><span className="text-muted-foreground">Market price</span><span className="font-medium line-through text-muted-foreground">${marketPriceDollars}</span></>}
                       {savings > 0 && <><span className="text-muted-foreground">Savings</span><span className="font-bold text-emerald-600">{savings}% OFF</span></>}
+                      {groupTotal > 0 && <><span className="text-muted-foreground">{t("create.totalPooled", "Total pooled")}</span><span className="font-medium">${groupTotal.toFixed(2)}</span></>}
                       <span className="text-muted-foreground">Distribution</span>
                       <span className="font-medium capitalize">{distributionType}</span>
                       {form.watch("location") && <><span className="text-muted-foreground">Location</span><span className="font-medium truncate">{form.watch("location")}</span></>}
@@ -925,15 +990,21 @@ export default function CreateListing() {
               )}
 
               {/* Navigation */}
-              <div className="flex items-center justify-between pt-2 border-t border-border/40">
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
                 {step > 1 ? (
-                  <Button type="button" variant="ghost" onClick={() => setStep(s => s - 1)} className="gap-1" data-testid="wizard-back">
-                    ← Back
+                  <Button type="button" variant="ghost" onClick={() => { setStep(s => s - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="gap-1" data-testid="wizard-back">
+                    ← {t("create.back", "Back")}
                   </Button>
-                ) : <span />}
+                ) : (
+                  (formValues.title || formValues.description) ? (
+                    <Button type="button" variant="ghost" className="text-muted-foreground text-xs" onClick={clearDraft} data-testid="wizard-clear-draft">
+                      {t("create.clearDraft", "Discard draft")}
+                    </Button>
+                  ) : <span />
+                )}
                 {step < 4 && (
-                  <Button type="button" onClick={() => setStep(s => s + 1)} className="gap-1 ml-auto" data-testid="wizard-next">
-                    Next →
+                  <Button type="button" onClick={goToNextStep} className="gap-1 ml-auto" data-testid="wizard-next">
+                    {t("create.next", "Next")} →
                   </Button>
                 )}
               </div>

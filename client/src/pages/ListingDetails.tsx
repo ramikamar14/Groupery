@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useRoute } from "wouter";
+import { useRoute, Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Layout } from "@/components/Layout";
@@ -63,7 +63,7 @@ export default function ListingDetails() {
   const { t } = useTranslation();
   const { setListingCtx } = useListingContext();
   
-  const { data: listing, isLoading } = useListing(id);
+  const { data: listing, isLoading, isError, refetch } = useListing(id);
   const { toast } = useToast();
   const joinMutation = useJoinListing();
   const leaveMutation = useLeaveListing();
@@ -349,14 +349,72 @@ export default function ListingDetails() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="flex justify-center items-center h-[50vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8" aria-busy="true" aria-label={t("common.loading", "Loading")} data-testid="listing-skeleton">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-card rounded-3xl overflow-hidden shadow-sm border border-border/50">
+              <div className="aspect-video bg-muted animate-pulse" />
+              <div className="p-6 md:p-8 space-y-4">
+                <div className="h-9 w-3/4 rounded-lg bg-muted animate-pulse" />
+                <div className="h-16 w-full rounded-xl bg-muted animate-pulse" />
+                <div className="flex gap-3">
+                  <div className="h-6 w-24 rounded-full bg-muted animate-pulse" />
+                  <div className="h-6 w-20 rounded-full bg-muted animate-pulse" />
+                  <div className="h-6 w-28 rounded-full bg-muted animate-pulse" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-4 w-full rounded bg-muted animate-pulse" />
+                  <div className="h-4 w-5/6 rounded bg-muted animate-pulse" />
+                  <div className="h-4 w-2/3 rounded bg-muted animate-pulse" />
+                </div>
+                <div className="h-5 w-full rounded-full bg-muted animate-pulse mt-4" />
+                <div className="h-12 w-full sm:w-64 rounded-full bg-muted animate-pulse" />
+              </div>
+            </div>
+          </div>
+          <div className="lg:col-span-1 space-y-4">
+            <div className="bg-card rounded-3xl shadow-sm border border-border/50 p-5 space-y-4">
+              <div className="h-5 w-32 rounded bg-muted animate-pulse" />
+              <div className="h-5 w-full rounded-full bg-muted animate-pulse" />
+              <div className="h-11 w-full rounded-full bg-muted animate-pulse" />
+            </div>
+            <div className="bg-card rounded-3xl shadow-sm border border-border/50 h-64 animate-pulse" />
+          </div>
         </div>
       </Layout>
     );
   }
 
-  if (!listing) return <Layout><div className="text-center py-10">{t("listing.notFound")}</div></Layout>;
+  if (isError || !listing) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center text-center py-20 px-6" data-testid="listing-not-found">
+          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+            <AlertCircle className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h1 className="text-xl font-bold font-display mb-1">
+            {isError ? t("listing.loadError", "Couldn't load this deal") : t("listing.notFound")}
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-sm mb-6">
+            {isError
+              ? t("listing.loadErrorDesc", "Something went wrong while loading. Check your connection and try again.")
+              : t("listing.notFoundDesc", "This deal may have been removed, expired, or the link is incorrect.")}
+          </p>
+          <div className="flex gap-3">
+            {isError && (
+              <Button onClick={() => refetch()} data-testid="button-retry-listing">
+                <RefreshCcw className="w-4 h-4 mr-1.5" />
+                {t("common.retry", "Retry")}
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => window.history.back()} data-testid="button-go-back">{t("common.back", "Back")}</Button>
+            <Button variant={isError ? "outline" : "default"} asChild data-testid="button-browse-deals">
+              <Link href="/explore">{t("listing.browseDeals", "Browse deals")}</Link>
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   const allImages = buildImageList(listing);
 
@@ -753,6 +811,10 @@ export default function ListingDetails() {
                         <p>✓ {t("listing.protectionPoint2", "Full refund if the group doesn't fill")}</p>
                         <p>✓ {t("listing.protectionPoint3", "ID-verified creators · dispute window after delivery")}</p>
                       </div>
+                      <Link href="/how-it-works" className="inline-flex items-center gap-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 hover:underline" data-testid="link-protection-how-it-works">
+                        {t("listing.howProtectionWorks", "How protection works")}
+                        <ChevronRight className="w-3 h-3" />
+                      </Link>
                     </div>
                   );
                 }
@@ -975,6 +1037,15 @@ export default function ListingDetails() {
                       </div>
                     ))}
                   </div>
+                  <Link
+                    href="/how-it-works"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline mt-3"
+                    data-testid="link-how-it-works"
+                  >
+                    <Info className="w-3.5 h-3.5" />
+                    {t("listing.firstTimeExplainer", "New to group buying? See how deals, escrow and refunds work")}
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
               )}
 
