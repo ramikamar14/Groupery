@@ -57,43 +57,6 @@ Sitemap: ${BASE_URL}/sitemap.xml
 Sitemap: ${BASE_URL}/llms.txt
 `;
 
-// ── sitemap.xml ───────────────────────────────────────────────────────────────
-const today = new Date().toISOString().split("T")[0];
-const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${BASE_URL}/</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>${BASE_URL}/listings</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>${BASE_URL}/how-it-works</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>${BASE_URL}/about</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>${BASE_URL}/contact</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-</urlset>
-`;
-
 // ── llms.txt ──────────────────────────────────────────────────────────────────
 const LLMS_TXT = `# ${SITE_NAME}
 
@@ -122,7 +85,7 @@ Each listing specifies a total number of slots, a price per slot, and an expiry 
 ## Pages
 
 - [Home](${BASE_URL}/): Landing page with featured and trending listings
-- [Browse Listings](${BASE_URL}/listings): Full searchable listing directory
+- [Browse Listings](${BASE_URL}/explore): Full searchable listing directory
 - [How It Works](${BASE_URL}/how-it-works): Step-by-step guide for new users
 - [About](${BASE_URL}/about): Company and mission information
 
@@ -506,7 +469,7 @@ ${SITE_DESCRIPTION}
 
 ## Browse Listings
 
-Visit [/listings](${BASE_URL}/listings) to browse all active group deals.
+Visit [/explore](${BASE_URL}/explore) to browse all active group deals.
 
 ## Categories
 
@@ -522,7 +485,7 @@ Visit [/listings](${BASE_URL}/listings) to browse all active group deals.
 
 ## Links
 
-- [Browse all listings](${BASE_URL}/listings)
+- [Browse all listings](${BASE_URL}/explore)
 - [How it works](${BASE_URL}/how-it-works)
 - [About Grouperry](${BASE_URL}/about)
 - [API documentation](${BASE_URL}/.well-known/openapi.json)
@@ -550,11 +513,6 @@ export function registerAgentReadyRoutes(app: Express): void {
   // ── robots.txt ──────────────────────────────────────────────────────────────
   app.get("/robots.txt", (_req: Request, res: Response) => {
     res.type("text/plain").send(ROBOTS_TXT);
-  });
-
-  // ── sitemap.xml ─────────────────────────────────────────────────────────────
-  app.get("/sitemap.xml", (_req: Request, res: Response) => {
-    res.type("application/xml").send(SITEMAP_XML);
   });
 
   // ── llms.txt ────────────────────────────────────────────────────────────────

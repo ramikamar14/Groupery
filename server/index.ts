@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { registerRoutes } from "./routes";
+import { registerSeoRoutes } from "./seo";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { env } from "./env";
@@ -119,6 +120,11 @@ app.get("/health", async (_req, res) => {
   } catch (e: any) {
     console.error("[startup] schema migration error:", e.message);
   }
+
+  // SEO routes (dynamic sitemap + per-listing OG meta) must be registered
+  // before the API routes' agent-ready handlers and the SPA static fallback
+  // so /sitemap.xml and HTML requests to /listings/:id are handled here.
+  registerSeoRoutes(app);
 
   await registerRoutes(httpServer, app);
 
