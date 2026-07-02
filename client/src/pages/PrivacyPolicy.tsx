@@ -34,6 +34,7 @@ export default function PrivacyPolicy() {
               <li><strong className="text-foreground">Account information:</strong> Name, email address, profile photo, and phone number, collected when you sign up via Replit Auth or a linked identity provider.</li>
               <li><strong className="text-foreground">Profile data:</strong> Country, language, user type (individual or vendor), and optional verification documents (ID photo and selfie) you voluntarily submit.</li>
               <li><strong className="text-foreground">Usage data:</strong> Groups you join, listings you create, messages you send, and searches you perform within the platform.</li>
+              <li><strong className="text-foreground">Payment data:</strong> When you join or organise an escrow-protected deal, payment and payout details are processed by our third-party payment provider. Grouperry does not store your full card number; we retain only the transaction records needed to manage your group buys, refunds, and payouts.</li>
               <li><strong className="text-foreground">Device and log data:</strong> IP address, browser type, pages visited, and timestamps of activity, collected automatically for security and performance purposes.</li>
             </ul>
           </CardContent>
@@ -49,6 +50,7 @@ export default function PrivacyPolicy() {
               <li>Provide, operate, and improve the Grouperry platform</li>
               <li>Authenticate your identity and maintain your account</li>
               <li>Connect you with group buying opportunities that match your interests</li>
+              <li>Process payments, hold funds in escrow, issue refunds, and pay out organisers</li>
               <li>Send notifications about groups you've joined or created</li>
               <li>Generate AI-powered recommendations to help you discover relevant deals</li>
               <li>Enforce our Terms & Conditions and protect against fraud or abuse</li>
@@ -83,6 +85,7 @@ export default function PrivacyPolicy() {
             <ul className="list-disc pl-6 space-y-2">
               <li><strong className="text-foreground">Other platform members:</strong> Your display name, profile photo, user type, verification status, and reliability score are visible to other users in the context of group listings you join or create. Your email address and phone number are never publicly displayed.</li>
               <li><strong className="text-foreground">AI processing:</strong> Anonymised usage data (your participation history, saved listings, and group activity) is processed by an AI model (Anthropic Claude) to generate personalised recommendations. No identifiable personal information is shared with the AI provider beyond what is necessary for this function.</li>
+              <li><strong className="text-foreground">Payment providers:</strong> To collect payments, hold funds in escrow, issue refunds, and pay out organisers, we share the necessary transaction details with our third-party payment processor, which handles your card data under its own security and privacy standards.</li>
               <li><strong className="text-foreground">Legal requirements:</strong> We may disclose your information if required by law or in response to valid legal process.</li>
             </ul>
           </CardContent>
