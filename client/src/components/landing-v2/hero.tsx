@@ -146,6 +146,12 @@ interface HeroProps {
 export function Hero({ activeListings, totalMembers }: HeroProps) {
   const { t } = useTranslation();
 
+  const heroStats = [
+    { value: activeListings ? `${activeListings}` : "20+", label: "live deals" },
+    { value: "30–60%", label: "avg savings on SaaS" },
+    { value: totalMembers ? `${totalMembers}+` : "100+", label: "members saving" },
+  ];
+
   return (
     <section className="relative overflow-hidden" style={{ background: "linear-gradient(160deg, #6d28d9 0%, #3b1379 100%)" }}>
       {/* Decorative circles */}
@@ -221,11 +227,7 @@ export function Hero({ activeListings, totalMembers }: HeroProps) {
               transition={{ delay: 0.5 }}
               className="flex flex-wrap items-center gap-8 justify-center lg:justify-start"
             >
-              {[
-                { value: activeListings ? `${activeListings}` : "20+", label: "live deals" },
-                { value: "30–60%", label: "avg savings on SaaS" },
-                { value: totalMembers ? `${totalMembers}+` : "100+", label: "members saving" },
-              ].map((stat) => (
+              {heroStats.map((stat) => (
                 <div key={stat.label} className="text-center lg:text-left">
                   <div style={{ fontSize: "1.625rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>{stat.value}</div>
                   <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>{stat.label}</div>
@@ -247,18 +249,12 @@ export function Hero({ activeListings, totalMembers }: HeroProps) {
           transition={{ delay: 0.75 }}
           className="lg:hidden flex items-center justify-center gap-4 mt-10"
         >
-          <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 16, padding: "10px 18px", textAlign: "center" }}>
-            <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#fff" }}>$2.4M</div>
-            <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.6)" }}>saved</div>
-          </div>
-          <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 16, padding: "10px 18px", textAlign: "center" }}>
-            <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#34d399" }}>40%</div>
-            <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.6)" }}>avg discount</div>
-          </div>
-          <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 16, padding: "10px 18px", textAlign: "center" }}>
-            <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#c4b5fd" }}>12k+</div>
-            <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.6)" }}>savers</div>
-          </div>
+          {heroStats.map((stat) => (
+            <div key={stat.label} style={{ background: "rgba(255,255,255,0.12)", borderRadius: 16, padding: "10px 18px", textAlign: "center" }}>
+              <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#fff" }}>{stat.value}</div>
+              <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.6)" }}>{stat.label}</div>
+            </div>
+          ))}
         </motion.div>
       </div>
 

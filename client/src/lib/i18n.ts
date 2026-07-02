@@ -963,7 +963,14 @@ const resources = {
         trustFullRefund: "Full refund if the group doesn't fill",
         howTagline: "Simple as 1-2-3",
         howTitle: "Split SaaS costs in 3 steps",
+        howSubtitle: "From joining a group to getting your seat — here's the whole flow.",
         howStep: "Step {{n}}",
+        howStep1Title: "Join or start a group",
+        howStep1Body: "Find a group splitting a SaaS plan, AI tool, or software license — or start your own. No charge yet, your spot is just reserved.",
+        howStep2Title: "Group fills, everyone pays their share",
+        howStep2Body: "Once enough people join, each member is charged their share of the plan. If the group doesn't fill, nobody is charged.",
+        howStep3Title: "Seats delivered, funds released",
+        howStep3Body: "The organiser distributes seats or license keys to the group, and funds are released. Didn't get access? You're refunded.",
         howVisualElectronics: "Electronics",
         howVisualHomeGarden: "Home & Garden",
         howGroupProgress: "Group Progress",
@@ -981,22 +988,10 @@ const resources = {
         trustF1Desc: "ID-verified creators build a reputation score. Check their badge before you commit.",
         trustF2Title: "Escrow Protection",
         trustF2Desc: "Funds held securely until you confirm delivery — full refund if the group doesn't fill.",
-        trustF3Title: "Vouchers & Offers",
-        trustF3Desc: "Some deals unlock discount codes, BOGO vouchers, or gift cards redeemable in-store or online.",
+        trustF3Title: "Founding Members",
+        trustF3Desc: "Grouperry is early — join now and help shape how the platform works.",
         trustF4Title: "Community First",
         trustF4Desc: "Built by shoppers, for shoppers — no hidden markups, ever.",
-        testimonial1Quote:
-          "Saved $400 on my new laptop by joining a group buy. This is the future of shopping!",
-        testimonial1Author: "Sarah M.",
-        testimonial1Role: "Tech enthusiast",
-        testimonial2Quote:
-          "Our office saves thousands every month on software subscriptions through Grouperry.",
-        testimonial2Author: "David K.",
-        testimonial2Role: "Startup founder",
-        testimonial3Quote:
-          "I love connecting with other parents to get bulk deals on kids essentials.",
-        testimonial3Author: "Maria L.",
-        testimonial3Role: "Mom of 3",
         secureBadge: "100% Secure",
         ctaTagline: "Ready to join?",
         ctaTitle: "Your next big save is one click away",
@@ -1057,7 +1052,7 @@ const resources = {
             id: "1",
             question: "What is Grouperry?",
             answer:
-              "Grouperry is a group buying platform that connects people to unlock bulk-style prices together. Deals can be commit-only (you coordinate payment directly with the organizer) or escrow-protected (funds held securely until delivery is confirmed). Business deals can also offer vouchers, BOGO deals, and gift cards when the group completes."
+              "Grouperry is a group buying platform that connects people to unlock team-plan pricing together — starting with SaaS, software, and digital tools. Deals can be commit-only (you coordinate payment directly with the organizer) or escrow-protected (funds held securely until delivery is confirmed, refunded if the group doesn't fill)."
           },
           {
             id: "2",

@@ -37,13 +37,21 @@ export function registerAuthRoutes(app: Express): void {
         }
         if (user) {
           if (!user.googleId) {
-            [user] = await db.update(users).set({ googleId: profile.id, authProvider: "google" }).where(eq(users.id, user.id)).returning();
+            // Email-match linking: only safe if the existing account's email is
+            // verified (or it was created via Google). Otherwise an attacker could
+            // pre-register with someone else's email and hijack their Google login.
+            if (!user.emailVerified && user.authProvider !== "google") {
+              return done(null, false, { message: "account_conflict" });
+            }
+            // Google verifies email ownership, so mark it verified on link.
+            [user] = await db.update(users).set({ googleId: profile.id, authProvider: "google", emailVerified: true }).where(eq(users.id, user.id)).returning();
           }
         } else {
           [user] = await db.insert(users).values({
             email,
             googleId: profile.id,
             authProvider: "google",
+            emailVerified: true, // Google verifies emails before issuing profiles
             firstName: profile.name?.givenName,
             lastName: profile.name?.familyName,
             profileImageUrl: profile.photos?.[0]?.value,
@@ -56,10 +64,22 @@ export function registerAuthRoutes(app: Express): void {
     }));
 
     app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
-    app.get("/api/auth/google/callback",
-      passport.authenticate("google", { failureRedirect: "/?login=true&error=google" }),
-      (_req, res) => res.redirect("/")
-    );
+    app.get("/api/auth/google/callback", (req: any, res, next) => {
+      passport.authenticate("google", (err: any, user: any, info: any) => {
+        if (err) return res.redirect("/?login=true&error=google");
+        if (!user) {
+          // account_conflict: an unverified password account already owns this
+          // email — the user must log in with their password and link Google
+          // from settings instead.
+          const error = info?.message === "account_conflict" ? "account_conflict" : "google";
+          return res.redirect(`/?login=true&error=${error}`);
+        }
+        req.login(user, (loginErr: any) => {
+          if (loginErr) return res.redirect("/?login=true&error=google");
+          res.redirect("/");
+        });
+      })(req, res, next);
+    });
   }
 
   // ── Get current user ──────────────────────────────────────────────────────
@@ -97,6 +117,8 @@ export function registerAuthRoutes(app: Express): void {
         email: normalizedEmail,
         passwordHash,
         authProvider: "local",
+        emailVerified: false, // no email verification flow yet — must stay false until proven
+
         firstName: firstName?.trim() || null,
         lastName: lastName?.trim() || null,
       }).returning();

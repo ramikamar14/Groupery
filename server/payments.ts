@@ -32,6 +32,13 @@ export async function chargeCompletedListing(listingId: number): Promise<void> {
   for (const order of orders) {
     if (order.chargeStatus === "paid" || order.chargeStatus === "refunded") continue;
     if (!order.stripePaymentMethodId) continue;
+    // Never charge an amount the buyer did not agree to at commit time. If the
+    // order has no recorded amount, skip it — do NOT fall back to the listing's
+    // current pricePerSlot (the organizer could have changed it since).
+    if (order.amountCents == null || order.amountCents <= 0) {
+      logger.warn("payments", `order ${order.id}: no agreed amountCents recorded, skipping charge`);
+      continue;
+    }
 
     const buyer = await authStorage.getUser(order.userId);
     if (!buyer?.stripeCustomerId) continue;
@@ -40,7 +47,7 @@ export async function chargeCompletedListing(listingId: number): Promise<void> {
       const { paymentIntentId, status } = await chargeOnCompletion({
         customerId: buyer.stripeCustomerId,
         paymentMethodId: order.stripePaymentMethodId,
-        amountCents: order.amountCents ?? listing.pricePerSlot,
+        amountCents: order.amountCents,
         destinationAccountId: organizer.stripeAccountId,
         description: `Groupery: ${listing.title}`,
         idempotencyKey: `charge-order-${order.id}`,

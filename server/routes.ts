@@ -204,8 +204,9 @@ export async function registerRoutes(
     // Reuse participants already loaded by getListing() — avoids a duplicate DB round-trip.
     const alreadyLoaded = Array.isArray((listing as any).participants) ? (listing as any).participants : null;
 
-    const [messages, images, updates, viewCount, tags, joinedToday, viewsToday, participants] = await Promise.all([
-      storage.getMessages(id),
+    // NOTE: messages are intentionally NOT included here — this endpoint is public.
+    // Group chat is only served via GET /api/listings/:id/messages (participant/owner guarded).
+    const [images, updates, viewCount, tags, joinedToday, viewsToday, participants] = await Promise.all([
       storage.getListingImages(id),
       storage.getListingUpdates(id),
       storage.getViewCount(id),
@@ -215,7 +216,7 @@ export async function registerRoutes(
       alreadyLoaded ? Promise.resolve(alreadyLoaded) : storage.getParticipationsByListing(id),
     ]);
 
-    const result = toPublicListing({ ...listing, participants, messages, images, updates, viewCount, tags, joinedToday, viewsToday });
+    const result = toPublicListing({ ...listing, participants, images, updates, viewCount, tags, joinedToday, viewsToday });
     cache.set(cacheKey, result, 15_000); // 15-second TTL — invalidated on join/leave/update
     res.json(result);
   });
@@ -333,6 +334,27 @@ export async function registerRoutes(
       const input = api.listings.update.input.parse(req.body);
       const userId = (req.user as any).claims.sub;
 
+      // Once anyone has committed (participants or orders), the terms are locked:
+      // the price cannot change (buyers agreed to a specific amount) and total
+      // slots cannot drop below the number already filled.
+      const wantsPriceChange = input.pricePerSlot !== undefined && input.pricePerSlot !== existing.pricePerSlot;
+      const wantsSlotReduction = input.totalSlots !== undefined && input.totalSlots < existing.filledSlots;
+      if (wantsPriceChange || wantsSlotReduction) {
+        const hasCommitments = existing.filledSlots > 0 || (await storage.getOrdersByListing(id)).length > 0;
+        if (hasCommitments) {
+          if (wantsPriceChange) {
+            return res.status(400).json({ message: "Price cannot be changed after participants have committed to this listing.", field: "pricePerSlot" });
+          }
+          return res.status(400).json({ message: "Total slots cannot be reduced below the number of already-filled slots.", field: "totalSlots" });
+        }
+      }
+
+      // A deal can only be marked completed once every slot is filled — otherwise
+      // completion would charge committed buyers for an unfilled group.
+      if (input.status === "completed" && existing.status !== "completed" && existing.filledSlots < existing.totalSlots) {
+        return res.status(400).json({ message: "Cannot complete an unfilled deal.", field: "status" });
+      }
+
       const updated = await storage.updateListing(id, input);
 
       const changedFields: string[] = [];
@@ -419,51 +441,52 @@ export async function registerRoutes(
         await storage.createSuspiciousFlag(userId, "rapid_joins", `User joined more than 10 listings in 1 hour`);
       }
 
-      const listingBefore = await storage.getListing(id);
-      const participation = await storage.joinListing(id, userId);
+      // joinListing atomically increments and returns the POST-join listing row,
+      // so all completion side effects branch on real state — no stale pre-read race.
+      const { participation, listing: listingAfter } = await storage.joinListing(id, userId);
 
-      if (listingBefore) {
-        const newFilled = listingBefore.filledSlots + 1;
-        const total = listingBefore.totalSlots;
-        const listingTitle = listingBefore.title;
+      const newFilled = listingAfter.filledSlots;
+      const total = listingAfter.totalSlots;
+      const listingTitle = listingAfter.title;
+      const prevFilled = newFilled - 1; // this join added exactly one slot
+      const justCompleted = newFilled >= total;
 
-        notifyWatchlistUsers(id, "Slot Filled", `Someone joined "${listingTitle}" (${newFilled}/${total} slots filled).`, userId);
+      notifyWatchlistUsers(id, "Slot Filled", `Someone joined "${listingTitle}" (${newFilled}/${total} slots filled).`, userId);
 
-        if (total > 0 && newFilled / total >= 0.75 && (listingBefore.filledSlots / total) < 0.75) {
-          notifyWatchlistUsers(id, "Almost Full", `"${listingTitle}" is almost full (${newFilled}/${total} slots filled). Join soon!`, userId);
+      if (total > 0 && newFilled / total >= 0.75 && (prevFilled / total) < 0.75) {
+        notifyWatchlistUsers(id, "Almost Full", `"${listingTitle}" is almost full (${newFilled}/${total} slots filled). Join soon!`, userId);
+      }
+
+      if (justCompleted) {
+        notifyWatchlistUsers(id, "Group Complete", `"${listingTitle}" is now complete! All ${total} slots are filled.`, userId);
+        // joinListing already set status=completed in-transaction; no redundant update here.
+        storage.createSystemEvent("listing_completed", null, { listingId: id, title: listingTitle, trigger: "auto_filled" });
+        triggerChargeCompletedListing(id);
+
+        const allParticipants = await storage.getParticipationsByListing(id);
+        for (const p of allParticipants) {
+          await authStorage.createNotification({
+            userId: p.userId,
+            type: "listing_update",
+            title: "Group Complete!",
+            message: `The group "${listingTitle}" is complete! All ${total} slots are filled.`,
+            relatedListingId: id,
+          });
+          try {
+            await storage.enqueueEmail(p.userId, "group_completion", { listingId: id, listingTitle });
+          } catch (_) {}
         }
-
-        if (newFilled >= total) {
-          notifyWatchlistUsers(id, "Group Complete", `"${listingTitle}" is now complete! All ${total} slots are filled.`, userId);
-          await storage.updateListing(id, { status: "completed" });
-          storage.createSystemEvent("listing_completed", null, { listingId: id, title: listingTitle, trigger: "auto_filled" });
-          triggerChargeCompletedListing(id);
-
-          const allParticipants = await storage.getParticipationsByListing(id);
-          for (const p of allParticipants) {
-            await authStorage.createNotification({
-              userId: p.userId,
-              type: "listing_update",
-              title: "Group Complete!",
-              message: `The group "${listingTitle}" is complete! All ${total} slots are filled.`,
-              relatedListingId: id,
-            });
-            try {
-              await storage.enqueueEmail(p.userId, "group_completion", { listingId: id, listingTitle });
-            } catch (_) {}
-          }
-          if (listingBefore.creatorId) {
-            await authStorage.createNotification({
-              userId: listingBefore.creatorId,
-              type: "listing_update",
-              title: "Group Complete!",
-              message: `Your group "${listingTitle}" is complete! All ${total} slots are filled.`,
-              relatedListingId: id,
-            });
-            try {
-              await storage.enqueueEmail(listingBefore.creatorId, "group_completion", { listingId: id, listingTitle });
-            } catch (_) {}
-          }
+        if (listingAfter.creatorId) {
+          await authStorage.createNotification({
+            userId: listingAfter.creatorId,
+            type: "listing_update",
+            title: "Group Complete!",
+            message: `Your group "${listingTitle}" is complete! All ${total} slots are filled.`,
+            relatedListingId: id,
+          });
+          try {
+            await storage.enqueueEmail(listingAfter.creatorId, "group_completion", { listingId: id, listingTitle });
+          } catch (_) {}
         }
       }
 
@@ -472,14 +495,12 @@ export async function registerRoutes(
       cache.invalidate(`listing:${id}`);
 
       try {
-        await storage.recordActivity("user_joined", userId, id, { listingTitle: listingBefore?.title });
-        if (listingBefore && listingBefore.filledSlots + 1 >= listingBefore.totalSlots) {
-          await storage.recordActivity("group_completed", userId, id, { listingTitle: listingBefore.title });
+        await storage.recordActivity("user_joined", userId, id, { listingTitle });
+        if (justCompleted) {
+          await storage.recordActivity("group_completed", userId, id, { listingTitle });
         }
       } catch (_) {}
 
-      const updatedListing = await storage.getListing(id);
-      const justCompleted = updatedListing && updatedListing.filledSlots >= updatedListing.totalSlots;
       res.json({ ...participation, justCompleted });
     } catch (e: any) {
       return res.status(400).json({ message: e.message || "Failed to join" });
@@ -552,9 +573,19 @@ export async function registerRoutes(
 
       // Also join the listing (atomic-style via existing join logic)
       const existingParticipation = await storage.getParticipation(id, userId);
-      if (!existingParticipation) {
+      const joinedNow = !existingParticipation;
+      if (joinedNow) {
         await storage.joinListing(id, userId);
       }
+
+      // Create the order FIRST — the orders_listing_user_unique index makes a
+      // concurrent duplicate commit fail atomically here, before any escrow
+      // transaction is created against a doomed order.
+      const order = await storage.createOrder({
+        listingId: id,
+        userId,
+        amountCents: listing.pricePerSlot ?? undefined,
+      });
 
       let escrowMeta: Record<string, string> = {};
       if (isEscrowConfigured() && listing.pricePerSlot && listing.pricePerSlot > 0) {
@@ -570,18 +601,21 @@ export async function registerRoutes(
               reference: `listing-${id}-user-${userId}`,
             });
             escrowMeta = { escrowId: escrowTx.id, escrowStatus: escrowTx.status };
+            await storage.updateOrder(order.id, { notes: JSON.stringify(escrowMeta) });
           }
         } catch (escrowErr: any) {
-          logger.error("Escrow creation failed (non-fatal):", escrowErr.message);
+          logger.error("Escrow creation failed, rolling back order:", escrowErr.message);
+          // Undo the commit so no unprotected order lingers: remove the order
+          // and, if this request created the participation, release the slot.
+          await storage.deleteOrder(order.id).catch((e: any) =>
+            logger.error("Failed to roll back order after escrow failure:", e?.message ?? e));
+          if (joinedNow) {
+            await storage.leaveListing(id, userId).catch((e: any) =>
+              logger.error("Failed to roll back join after escrow failure:", e?.message ?? e));
+          }
+          return res.status(502).json({ message: "Could not create the escrow transaction. Your commitment was not recorded — please try again." });
         }
       }
-
-      const order = await storage.createOrder({
-        listingId: id,
-        userId,
-        amountCents: listing.pricePerSlot ?? undefined,
-        notes: Object.keys(escrowMeta).length > 0 ? JSON.stringify(escrowMeta) : undefined,
-      });
 
       // Stripe: attach the buyer's saved card so they can be charged on completion
       let stripePending = false;
@@ -661,7 +695,13 @@ export async function registerRoutes(
       const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid order ID" });
       const { status } = req.body;
-      if (!["committed", "confirmed", "released", "refunded"].includes(status)) {
+      // "released" / "refunded" are money states — they must only be reached via
+      // the real money paths (escrow release/refund routes, /api/orders/:id/refund),
+      // never by a plain bookkeeping status update.
+      if (["released", "refunded"].includes(status)) {
+        return res.status(400).json({ message: "Cannot set released/refunded directly. Use the escrow release/refund or Stripe refund endpoints so funds actually move." });
+      }
+      if (!["committed", "confirmed"].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
       const order = await storage.getOrder(id);
@@ -718,20 +758,26 @@ export async function registerRoutes(
     if (isNaN(listingId)) return res.status(400).json({ message: "Invalid listing ID" });
     const orders = await storage.getOrdersByListing(listingId);
     const results: { orderId: number; status: string }[] = [];
+    let refunded = 0;
+    let failed = 0;
     for (const order of orders) {
       let escrowMeta: Record<string, string> = {};
       try { escrowMeta = order.notes ? JSON.parse(order.notes) : {}; } catch {}
       if (escrowMeta.escrowId) {
         try {
+          // Only mark the order refunded when the escrow cancel actually succeeded.
           await cancelEscrow(escrowMeta.escrowId);
           await storage.updateOrderStatus(order.id, "refunded");
           results.push({ orderId: order.id, status: "refunded" });
+          refunded++;
         } catch (e: any) {
           results.push({ orderId: order.id, status: `error: ${e.message}` });
+          failed++;
         }
       }
     }
-    res.json({ results });
+    // Surface partial failures explicitly so callers can't mistake this for a full refund.
+    res.status(failed > 0 ? 207 : 200).json({ results, refunded, failed, partialFailure: failed > 0 });
   });
 
   app.get("/api/admin/orders", requireAdmin, async (req, res) => {

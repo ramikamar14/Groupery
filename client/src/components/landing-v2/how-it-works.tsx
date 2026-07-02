@@ -3,26 +3,35 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 
-const STEPS = [
-  {
-    n: 1,
-    title: "Reserve your spot",
-    body: "Commit to a deal with no charge yet. Your spot is held while the group fills up.",
-  },
-  {
-    n: 2,
-    title: "Group hits the target",
-    body: "Each person who joins moves the meter. Watch it fill in real time.",
-  },
-  {
-    n: 3,
-    title: "Price unlocks — everyone saves",
-    body: "Hit the target and the wholesale price locks in. Funds release together.",
-  },
-];
-
 export function HowItWorks() {
   const { t } = useTranslation();
+
+  const STEPS = [
+    {
+      n: 1,
+      title: t("v2.howStep1Title", "Join or start a group"),
+      body: t(
+        "v2.howStep1Body",
+        "Find a group splitting a SaaS plan, AI tool, or software license — or start your own. No charge yet, your spot is just reserved."
+      ),
+    },
+    {
+      n: 2,
+      title: t("v2.howStep2Title", "Group fills, everyone pays their share"),
+      body: t(
+        "v2.howStep2Body",
+        "Once enough people join, each member is charged their share of the plan. If the group doesn't fill, nobody is charged."
+      ),
+    },
+    {
+      n: 3,
+      title: t("v2.howStep3Title", "Seats delivered, funds released"),
+      body: t(
+        "v2.howStep3Body",
+        "The organiser distributes seats or license keys to the group, and funds are released. Didn't get access? You're refunded."
+      ),
+    },
+  ];
 
   return (
     <section
@@ -61,7 +70,7 @@ export function HowItWorks() {
             }}
             data-testid="text-how-it-works"
           >
-            Three steps to wholesale
+            {t("v2.howTitle")}
           </h2>
           <p
             style={{
@@ -72,7 +81,7 @@ export function HowItWorks() {
               lineHeight: 1.55,
             }}
           >
-            Three simple steps between you and a better price.
+            {t("v2.howSubtitle", "From joining a group to getting your seat — here's the whole flow.")}
           </p>
         </motion.div>
 

@@ -21,28 +21,23 @@ const TRUST_ITEMS = [
   },
 ];
 
-const TESTIMONIALS = [
+const FOUNDING_POINTS = [
   {
-    quote: "Saved $200 on our office software budget in the first month. The group-buy model is genius.",
-    author: "Sarah Al-Rashidi",
-    role: "Operations lead, Dubai",
-    initials: "SA",
+    icon: "🚀",
+    title: "We're just getting started",
+    desc: "Grouperry is early. You'd be one of the first people splitting SaaS costs here — and your feedback directly shapes what we build next.",
   },
   {
-    quote: "We pooled a bulk order of kitchen appliances with 12 neighbours. Saved 35% each. Would never go back to buying alone.",
-    author: "Marco Trevisan",
-    role: "Home enthusiast, Milan",
-    initials: "MT",
+    icon: "💳",
+    title: "You're never charged upfront",
+    desc: "Join a group and your card isn't charged until the group actually fills. If it doesn't fill, nothing is taken — no risk in trying.",
   },
   {
-    quote: "Grouperry made it so easy to coordinate a software subscription split across our startup team.",
-    author: "Priya Nair",
-    role: "Founder, Bengaluru",
-    initials: "PN",
+    icon: "🛡️",
+    title: "Verified organisers, transparent deals",
+    desc: "Every deal host passes an ID check before they can post. You always see exactly what you're splitting and with how many people.",
   },
 ];
-
-const AVATAR_COLORS = ["#6d28d9", "#2563eb", "#059669"];
 
 export function Trust() {
   const { t } = useTranslation();
@@ -146,11 +141,11 @@ export function Trust() {
           </div>
         </motion.div>
 
-        {/* Testimonials grid */}
+        {/* Founding member / honesty cards */}
         <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
-          {TESTIMONIALS.map((testimonial, i) => (
+          {FOUNDING_POINTS.map((item, i) => (
             <motion.div
-              key={testimonial.author}
+              key={item.title}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -163,44 +158,26 @@ export function Trust() {
                 boxShadow: "0 2px 10px -4px rgba(109,40,217,0.10)",
               }}
             >
-              <p
+              <div
                 style={{
-                  fontSize: 13.5,
-                  color: "#3a3340",
-                  fontStyle: "italic",
-                  lineHeight: 1.55,
-                  marginBottom: 18,
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  background: "#f5f3ff",
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: 18,
+                  marginBottom: 14,
                 }}
               >
-                &ldquo;{testimonial.quote}&rdquo;
-              </p>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "50%",
-                    background: AVATAR_COLORS[i % AVATAR_COLORS.length],
-                    display: "grid",
-                    placeItems: "center",
-                    color: "#fff",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    flex: "none",
-                  }}
-                >
-                  {testimonial.initials}
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#191320" }}>{testimonial.author}</div>
-                  <div style={{ fontSize: 11.5, color: "#9b95a6" }}>{testimonial.role}</div>
-                </div>
-                <div style={{ marginLeft: "auto", display: "flex", gap: 1 }}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span key={star} style={{ color: "#fbbf24", fontSize: 13 }}>★</span>
-                  ))}
-                </div>
+                {item.icon}
               </div>
+              <div style={{ fontSize: 14.5, fontWeight: 700, color: "#191320", marginBottom: 6 }}>
+                {item.title}
+              </div>
+              <p style={{ fontSize: 13, color: "#736c80", lineHeight: 1.55, margin: 0 }}>
+                {item.desc}
+              </p>
             </motion.div>
           ))}
         </div>

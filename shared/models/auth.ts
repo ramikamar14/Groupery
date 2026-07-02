@@ -23,6 +23,10 @@ export const sessions = pgTable(
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
+  // True only when email ownership is proven (e.g. Google OAuth). Password
+  // registration leaves this false — unverified accounts must not be linkable
+  // by email match from OAuth providers (account pre-takeover protection).
+  emailVerified: boolean("email_verified").default(false),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),

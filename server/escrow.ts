@@ -5,7 +5,31 @@
  */
 import { env } from "./env";
 
-const ESCROW_BASE = "https://api.escrow-sandbox.com/2017-09-01";
+const ESCROW_BASE = process.env.ESCROW_API_BASE || "https://api.escrow-sandbox.com/2017-09-01";
+
+/**
+ * Fail closed in production: a sandbox base URL means escrow transactions would
+ * be fake — no real buyer protection. Pure function so it's unit-testable.
+ */
+export function isEscrowBaseUnsafeForEnv(base: string, nodeEnv: string | undefined): boolean {
+  return nodeEnv === "production" && base.includes("sandbox");
+}
+
+const ESCROW_DISABLED_UNSAFE_BASE = isEscrowBaseUnsafeForEnv(ESCROW_BASE, process.env.NODE_ENV);
+if (ESCROW_DISABLED_UNSAFE_BASE) {
+  // Prominent one-time warning at module load — escrow creation will throw.
+  console.error(
+    "[escrow] *** WARNING: NODE_ENV is 'production' but the escrow API base points at the sandbox " +
+    `(${ESCROW_BASE}). Set ESCROW_API_BASE to the live Escrow.com endpoint. ` +
+    "Escrow transaction creation is DISABLED until this is fixed. ***"
+  );
+}
+
+function assertEscrowUsableForEnv(): void {
+  if (ESCROW_DISABLED_UNSAFE_BASE) {
+    throw new Error("Escrow disabled: ESCROW_API_BASE not configured for production");
+  }
+}
 
 function authHeader(): string {
   const key = env.ESCROW_API_KEY;
@@ -65,6 +89,7 @@ export interface EscrowTransaction {
  * Returns the transaction object from the API.
  */
 export async function createEscrowTransaction(opts: CreateTransactionOptions): Promise<EscrowTransaction> {
+  assertEscrowUsableForEnv();
   const body = {
     currency: "usd",
     description: opts.description,

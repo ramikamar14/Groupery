@@ -1156,33 +1156,6 @@ export default function ListingDetails() {
               <PartyPopper className="w-8 h-8 text-emerald-500 mx-auto" />
               <h3 className="font-bold font-display text-base">{t("listing.dealDone", "This deal is done!")}</h3>
 
-              {/* Voucher claim section */}
-              {(listing as any).offerType && (listing as any).offerType !== "standard" && (
-                <div className="bg-white/80 dark:bg-black/20 rounded-xl border border-emerald-200/60 dark:border-emerald-700/40 p-4 text-left space-y-2" data-testid="section-voucher-claim">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{(listing as any).offerType === "voucher" ? "🎟️" : (listing as any).offerType === "bogo" ? "2️⃣" : (listing as any).offerType === "gift" ? "🎁" : "%"}</span>
-                    <div>
-                      <p className="font-bold text-sm text-emerald-800 dark:text-emerald-200">Your reward is ready!</p>
-                      <p className="text-xs text-muted-foreground capitalize">{(listing as any).offerType?.replace("_", " ")} deal unlocked</p>
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-2"
-                    onClick={() => {
-                      fetch(`/api/vouchers/claim/${listing.id}`, { method: "POST", credentials: "include" })
-                        .then(r => r.ok ? r.json() : Promise.reject())
-                        .then((v) => toast({ title: "Voucher claimed!", description: `Code: ${v.code || "Check your email"}` }))
-                        .catch(() => toast({ title: "Claim submitted", description: "Your voucher will be sent to your email shortly." }));
-                    }}
-                    data-testid="button-claim-voucher"
-                  >
-                    <Gift className="w-4 h-4" />
-                    Claim My Voucher / Code
-                  </Button>
-                </div>
-              )}
-
               <p className="text-xs text-muted-foreground">{t("listing.createNextDeal", "Ready to organize your own group buy?")}</p>
               <Button
                 size="sm"

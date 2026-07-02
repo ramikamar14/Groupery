@@ -30,7 +30,7 @@ export interface IStorage {
   deleteListing(id: number): Promise<void>;
 
   // Participations
-  joinListing(listingId: number, userId: string): Promise<Participation>;
+  joinListing(listingId: number, userId: string): Promise<{ participation: Participation; listing: Listing }>;
   leaveListing(listingId: number, userId: string): Promise<void>;
   getParticipation(listingId: number, userId: string): Promise<Participation | undefined>;
   getParticipationById(id: number): Promise<Participation | undefined>;
@@ -181,6 +181,7 @@ export interface IStorage {
   getOrdersByListing(listingId: number): Promise<(Order & { user?: any })[]>;
   updateOrderStatus(id: number, status: Order["status"]): Promise<Order>;
   updateOrder(id: number, updates: Partial<Order>): Promise<Order>;
+  deleteOrder(id: number): Promise<void>;
   getAllOrders(limit?: number): Promise<(Order & { listing?: any; user?: any })[]>;
 
   // Referrals
@@ -319,7 +320,7 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async joinListing(listingId: number, userId: string): Promise<Participation> {
+  async joinListing(listingId: number, userId: string): Promise<{ participation: Participation; listing: Listing }> {
     // Atomic transaction: increment filledSlots only if listing is active and not full.
     // Unique constraint on (listing_id, user_id) is the DB-level backstop for duplicate joins.
     return await db.transaction(async (tx) => {
@@ -330,20 +331,23 @@ export class DatabaseStorage implements IStorage {
       if (existing) throw new Error("Already participating in this listing");
 
       // Atomically check and increment in one SQL statement — no read-then-write race.
+      // Expired listings (past expiresAt) are not joinable; null expiresAt means no expiry.
       const updated = await tx.update(listings)
         .set({ filledSlots: sql`${listings.filledSlots} + 1` })
         .where(and(
           eq(listings.id, listingId),
           eq(listings.status, "active"),
-          sql`${listings.filledSlots} < ${listings.totalSlots}`
+          sql`${listings.filledSlots} < ${listings.totalSlots}`,
+          sql`(${listings.expiresAt} IS NULL OR ${listings.expiresAt} > now())`
         ))
         .returning();
 
       if (updated.length === 0) {
-        // Distinguish between not found, not active, and full
+        // Distinguish between not found, not active, expired, and full
         const [listing] = await tx.select().from(listings).where(eq(listings.id, listingId));
         if (!listing) throw new Error("Listing not found");
         if (listing.status !== "active") throw new Error("Listing is not active");
+        if (listing.expiresAt && new Date(listing.expiresAt) <= new Date()) throw new Error("Listing has expired");
         throw new Error("Listing is full");
       }
 
@@ -359,14 +363,18 @@ export class DatabaseStorage implements IStorage {
         throw err;
       }
 
-      // Mark completed if now full
+      // Mark completed if now full — capture the final row so callers branch on
+      // the post-update state (no stale pre-join read).
+      let finalListing: Listing = updated[0];
       if (updated[0].filledSlots >= updated[0].totalSlots) {
-        await tx.update(listings)
+        const [completed] = await tx.update(listings)
           .set({ status: "completed" })
-          .where(eq(listings.id, listingId));
+          .where(eq(listings.id, listingId))
+          .returning();
+        if (completed) finalListing = completed;
       }
 
-      return participation;
+      return { participation, listing: finalListing };
     });
   }
 
@@ -626,15 +634,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async removeParticipant(listingId: number, userId: string): Promise<void> {
-    await db.delete(participations).where(
-      and(
-        eq(participations.listingId, listingId),
-        eq(participations.userId, userId)
-      )
-    );
-    await db.update(listings)
-      .set({ filledSlots: sql`${listings.filledSlots} - 1` })
-      .where(eq(listings.id, listingId));
+    await db.transaction(async (tx) => {
+      const deleted = await tx.delete(participations).where(
+        and(
+          eq(participations.listingId, listingId),
+          eq(participations.userId, userId)
+        )
+      ).returning();
+      // Only decrement when a row was actually removed, and never below zero.
+      if (deleted.length > 0) {
+        await tx.update(listings)
+          .set({ filledSlots: sql`GREATEST(${listings.filledSlots} - 1, 0)` })
+          .where(eq(listings.id, listingId));
+      }
+    });
   }
 
   // Listing Images
@@ -1377,6 +1390,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(orders.id, id))
       .returning();
     return updated;
+  }
+
+  async deleteOrder(id: number): Promise<void> {
+    await db.delete(orders).where(eq(orders.id, id));
   }
 
   async updateOrder(id: number, updates: Partial<Order>): Promise<Order> {

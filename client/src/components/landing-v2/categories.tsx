@@ -4,12 +4,11 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 
 const CATEGORY_CHIPS = [
-  { name: "Software", emoji: "💻", deals: 156 },
-  { name: "Groceries", emoji: "🥑", deals: 189 },
-  { name: "Experiences", emoji: "🎭", deals: 95 },
-  { name: "Memberships", emoji: "🏋️", deals: 72 },
-  { name: "Electronics", emoji: "🎧", deals: 234 },
-  { name: "Home & Garden", emoji: "🏠", deals: 178 },
+  { name: "SaaS & AI tools", emoji: "🤖" },
+  { name: "Software licenses", emoji: "💻" },
+  { name: "Cloud & storage", emoji: "☁️" },
+  { name: "Courses & cohorts", emoji: "🎓" },
+  { name: "Physical goods", emoji: "📦" },
 ];
 
 export function Categories() {
@@ -104,15 +103,6 @@ export function Categories() {
                   }}
                 >
                   {cat.name}
-                </div>
-                <div
-                  style={{
-                    fontSize: 11.5,
-                    color: "#9b95a6",
-                    fontWeight: 600,
-                  }}
-                >
-                  {cat.deals} deals
                 </div>
               </div>
             </motion.a>

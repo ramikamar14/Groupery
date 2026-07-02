@@ -101,7 +101,13 @@ app.get("/health", async (_req, res) => {
       ALTER TABLE users
         ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR,
         ADD COLUMN IF NOT EXISTS stripe_account_id  VARCHAR,
-        ADD COLUMN IF NOT EXISTS stripe_payouts_enabled BOOLEAN DEFAULT FALSE
+        ADD COLUMN IF NOT EXISTS stripe_payouts_enabled BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE
+    `);
+    // Backfill: Google-created accounts have verified emails (Google verifies them).
+    await pool.query(`
+      UPDATE users SET email_verified = TRUE
+      WHERE email_verified IS NOT TRUE AND google_id IS NOT NULL
     `);
     await pool.query(`
       ALTER TABLE orders

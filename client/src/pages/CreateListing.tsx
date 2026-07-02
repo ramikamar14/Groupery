@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MapPin, Upload, X, Plus, Tag, Sparkles, DollarSign, FileText, Globe, Image as ImageIcon, Truck, Monitor, CheckCheck, Zap, ShoppingCart, Dumbbell, BookOpen, Cpu, ShieldAlert, TrendingDown, Gift } from "lucide-react";
+import { Loader2, MapPin, Upload, X, Plus, Tag, Sparkles, DollarSign, FileText, Globe, Image as ImageIcon, Truck, Monitor, CheckCheck, Zap, ShoppingCart, ShieldAlert, TrendingDown, Cloud, GraduationCap, Bot, KeyRound } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
@@ -108,64 +108,76 @@ interface UploadedImage {
 
 const DEAL_TEMPLATES = [
   {
-    id: "electronics",
-    label: "Electronics",
-    icon: Cpu,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-500/10 border-blue-400/30",
-    title: "Electronics Group Buy: ",
-    description: "Group buy for electronics. We're pooling together to get bulk pricing on high-quality tech products. Join us to unlock significant savings over retail price.\n\nWhat's included:\n- [Product name and model]\n- [Specifications]\n\nMinimum order: [X] units needed to unlock discount.",
-    category: "physical" as const,
-    totalSlots: 10,
-    tags: ["electronics", "tech", "gadgets"],
+    id: "saas-seats",
+    label: "SaaS Team Seats",
+    icon: Monitor,
+    color: "text-violet-600 dark:text-violet-400",
+    bg: "bg-violet-500/10 border-violet-400/30",
+    title: "SaaS Team Seats: ",
+    description: "Splitting a team-plan subscription for [tool name] across a group of solo users. The team plan costs [$X/mo total] for up to [Y] seats — split [Y] ways that's just [$X ÷ Y]/seat instead of paying full solo price.\n\nWhat's included:\n- [Tool name and plan tier]\n- [Number of seats: e.g. 5]\n- [Billing cycle: monthly/annual]\n\nEach member gets their own login under the team plan.",
+    category: "digital" as const,
+    totalSlots: 5,
+    tags: ["saas", "software", "team-plan"],
   },
   {
-    id: "groceries",
-    label: "Groceries",
+    id: "ai-credits",
+    label: "AI Tool Credits Pool",
+    icon: Bot,
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-500/10 border-blue-400/30",
+    title: "AI Tool Credits Pool: ",
+    description: "Pooling a bulk/team credit pack for [AI tool name] so everyone pays less per credit than the individual rate.\n\nWhat's included:\n- [AI tool name]\n- [Total credits or usage pool]\n- [How credits are split/tracked per member]\n\nMinimum group size needed to unlock the bulk rate: [X] members.",
+    category: "digital" as const,
+    totalSlots: 6,
+    tags: ["ai", "credits", "software"],
+  },
+  {
+    id: "cloud-split",
+    label: "Cloud Storage/Compute",
+    icon: Cloud,
+    color: "text-sky-600 dark:text-sky-400",
+    bg: "bg-sky-500/10 border-sky-400/30",
+    title: "Cloud Storage/Compute Split: ",
+    description: "Splitting a [cloud storage/compute] plan for [provider name] across a group — a shared plan costs [$X/mo] for [Y GB/units], which works out cheaper per person than individual plans.\n\nWhat's included:\n- [Provider and plan tier]\n- [Storage/compute allotted per member]\n- [Billing cycle]\n\nEach member gets their own account or allotted space.",
+    category: "digital" as const,
+    totalSlots: 5,
+    tags: ["cloud", "storage", "software"],
+  },
+  {
+    id: "course-cohort",
+    label: "Course Cohort",
+    icon: GraduationCap,
+    color: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-500/10 border-amber-400/30",
+    title: "Course Cohort: ",
+    description: "Group enrollment for [course/cohort name] — group or bulk pricing brings the per-person cost down from [$X solo] to [$Y/person] when we reach [Z] members.\n\nWhat's included:\n- [Course name and provider]\n- [Cohort start date/duration]\n- [What's covered]\n\nMinimum group size needed to unlock the group rate: [Z] members.",
+    category: "digital" as const,
+    totalSlots: 8,
+    tags: ["course", "education", "cohort"],
+  },
+  {
+    id: "software-license",
+    label: "Software License Volume Buy",
+    icon: KeyRound,
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-500/10 border-emerald-400/30",
+    title: "Software License Volume Buy: ",
+    description: "Buying a volume/multi-seat license for [software name] together — volume pricing brings each license down from [$X/seat solo] to [$Y/seat] when split across the group.\n\nWhat's included:\n- [Software name and version]\n- [License type: per seat / multi-use]\n- [Duration: annual/lifetime]\n\nEach person gets their own license key.",
+    category: "digital" as const,
+    totalSlots: 10,
+    tags: ["software", "license", "volume"],
+  },
+  {
+    id: "physical-goods",
+    label: "Physical Goods",
     icon: ShoppingCart,
     color: "text-green-600 dark:text-green-400",
     bg: "bg-green-500/10 border-green-400/30",
     title: "Bulk Order: ",
-    description: "Bulk grocery purchase for our neighbourhood. By ordering together we get wholesale pricing and split the delivery cost.\n\nItems in this order:\n- [Product and quantity]\n- [Product and quantity]\n\nDelivery: [Date/location]",
+    description: "Bulk purchase of [product] — by ordering together we get wholesale/bulk pricing and split the delivery cost.\n\nItems in this order:\n- [Product and quantity]\n- [Product and quantity]\n\nDelivery: [date/location]",
     category: "physical" as const,
     totalSlots: 8,
-    tags: ["groceries", "food", "bulk"],
-  },
-  {
-    id: "gym",
-    label: "Gym Membership",
-    icon: Dumbbell,
-    color: "text-orange-600 dark:text-orange-400",
-    bg: "bg-orange-500/10 border-orange-400/30",
-    title: "Gym Membership Deal: ",
-    description: "Group deal on gym membership — we're getting a corporate/group rate that's significantly cheaper than individual sign-up.\n\nIncludes:\n- [Gym name and location]\n- [Membership duration]\n- [Facilities included]\n\nMinimum group size required for this rate.",
-    category: "offer" as const,
-    totalSlots: 15,
-    tags: ["gym", "fitness", "health"],
-  },
-  {
-    id: "software",
-    label: "Software Bundle",
-    icon: Monitor,
-    color: "text-violet-600 dark:text-violet-400",
-    bg: "bg-violet-500/10 border-violet-400/30",
-    title: "Software Bundle: ",
-    description: "Group purchase for software licenses at a team/enterprise rate. Split the cost and get professional tools at a fraction of the individual price.\n\nWhat's included:\n- [Software name and version]\n- [License type: per seat / shared]\n- [Duration: annual/lifetime]\n\nEach person gets their own login/license.",
-    category: "digital" as const,
-    totalSlots: 10,
-    tags: ["software", "digital", "tools"],
-  },
-  {
-    id: "books",
-    label: "Book Club",
-    icon: BookOpen,
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-500/10 border-amber-400/30",
-    title: "Book Club Order: ",
-    description: "Group book order — buy together, save on shipping and sometimes get a volume discount.\n\nBooks in this order:\n- [Title by Author]\n\nEach person receives their own copy. Shipped to a common pick-up point or split delivery costs.",
-    category: "physical" as const,
-    totalSlots: 6,
-    tags: ["books", "reading", "education"],
+    tags: ["physical", "bulk"],
   },
 ];
 
@@ -188,8 +200,6 @@ export default function CreateListing() {
   const [distributionDetails, setDistributionDetails] = useState("");
   const [draftSaved, setDraftSaved] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
-  const [offerType, setOfferType] = useState<"standard" | "voucher" | "percent_off" | "bogo" | "gift">("standard");
-  const [voucherDiscountPct, setVoucherDiscountPct] = useState("");
   const draftKey = "grouperry-create-listing-draft";
 
   const applyTemplate = (tpl: typeof DEAL_TEMPLATES[number]) => {
@@ -442,8 +452,7 @@ export default function CreateListing() {
     const additionalImages = uploadedImages.slice(1).map(img => img.url);
     const pricePerSlot = pricePerSlotDollars ? Math.round(parseFloat(pricePerSlotDollars) * 100) : null;
     const marketPrice = marketPriceDollars ? Math.round(parseFloat(marketPriceDollars) * 100) : null;
-    const discountPct = voucherDiscountPct ? parseInt(voucherDiscountPct, 10) : null;
-    createListing.mutate({ ...data, additionalImages, tags, pricePerSlot, marketPrice, distributionType, distributionDetails, offerType: offerType !== "standard" ? offerType : undefined, voucherDiscountPct: discountPct } as any, {
+    createListing.mutate({ ...data, additionalImages, tags, pricePerSlot, marketPrice, distributionType, distributionDetails } as any, {
       onSuccess: (listing: { id?: number }) => {
         try { localStorage.removeItem(draftKey); } catch {}
         track("listing_created", { listingId: listing?.id ?? 0 });
@@ -460,7 +469,7 @@ export default function CreateListing() {
 
   const STEPS = [
     { label: "What", icon: FileText },
-    { label: "Offer", icon: Gift },
+    { label: "Details", icon: Sparkles },
     { label: "Delivery", icon: Truck },
     { label: "Review", icon: CheckCheck },
   ];
@@ -711,52 +720,6 @@ export default function CreateListing() {
               {/* ── STEP 2: Offer type + Description + Tags ── */}
               {step === 2 && (
                 <>
-                  <div>
-                    <div className="flex items-center gap-2.5 mb-4">
-                      <div style={{ width:32, height:32, borderRadius:10, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                        <Gift style={{ width:16, height:16, color:"#fff" }} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">Offer &amp; Reward Type</p>
-                        <p className="text-xs text-muted-foreground">How are participants rewarded when the group unlocks?</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2" data-testid="offer-type-selector">
-                      {([
-                        { id:"standard", emoji:"🤝", label:"Standard", desc:"Commit & pay" },
-                        { id:"voucher", emoji:"🎟️", label:"Voucher", desc:"Get a code" },
-                        { id:"percent_off", emoji:"%", label:"% Off", desc:"Discount pct" },
-                        { id:"bogo", emoji:"2️⃣", label:"BOGO", desc:"Buy 1 get 1" },
-                        { id:"gift", emoji:"🎁", label:"Gift Card", desc:"Gift code" },
-                      ] as const).map((opt) => (
-                        <button key={opt.id} type="button" onClick={() => setOfferType(opt.id)} data-testid={`offer-type-${opt.id}`}
-                          style={{ padding:"12px 8px", borderRadius:14, textAlign:"center", border: offerType === opt.id ? "2px solid #6d28d9" : "1.5px solid #e5e7eb", background: offerType === opt.id ? "#f5f3ff" : "#fff", cursor:"pointer", transition:"all 0.15s" }}>
-                          <div style={{ fontSize:20, marginBottom:4 }}>{opt.emoji}</div>
-                          <div style={{ fontSize:12, fontWeight:700, color: offerType === opt.id ? "#6d28d9" : "#191320" }}>{opt.label}</div>
-                          <div style={{ fontSize:10, color:"#9b95a6", marginTop:2 }}>{opt.desc}</div>
-                        </button>
-                      ))}
-                    </div>
-                    {offerType === "percent_off" && (
-                      <div className="mt-4">
-                        <label className="text-sm font-semibold text-muted-foreground block mb-1.5">Discount percentage (%)</label>
-                        <input type="number" min="1" max="99" value={voucherDiscountPct} onChange={(e) => setVoucherDiscountPct(e.target.value)} placeholder="e.g. 20" data-testid="input-voucher-discount-pct"
-                          className="w-full max-w-[180px] px-3 py-2 rounded-lg border border-input bg-muted/50 text-sm focus:outline-none focus:ring-1 focus:ring-ring" />
-                      </div>
-                    )}
-                    {offerType !== "standard" && (
-                      <div className="mt-3 p-3 bg-violet-50 dark:bg-violet-950/30 rounded-xl text-xs text-violet-700 dark:text-violet-300 flex items-start gap-2">
-                        <span className="shrink-0">✨</span>
-                        <span>
-                          {offerType === "voucher" && "Participants will receive a unique GRPY-XXXX voucher code when the group completes."}
-                          {offerType === "percent_off" && `Participants will receive a ${voucherDiscountPct || "X"}% off discount code when the group unlocks.`}
-                          {offerType === "bogo" && "Participants buy 1 and receive a free companion voucher when the group reaches its target."}
-                          {offerType === "gift" && "Participants receive a gift card / digital code after the group completes."}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
                   <FormField control={form.control} name="description" render={({ field }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
@@ -925,8 +888,6 @@ export default function CreateListing() {
                       <span className="font-medium capitalize">{form.watch("category") || "—"}</span>
                       <span className="text-muted-foreground">Group size</span>
                       <span className="font-medium">{form.watch("totalSlots")} slots</span>
-                      <span className="text-muted-foreground">Offer type</span>
-                      <span className="font-medium capitalize">{offerType.replace("_", " ")}</span>
                       {pricePerSlotDollars && <><span className="text-muted-foreground">Group price</span><span className="font-medium text-violet-700">${pricePerSlotDollars}</span></>}
                       {marketPriceDollars && <><span className="text-muted-foreground">Market price</span><span className="font-medium line-through text-muted-foreground">${marketPriceDollars}</span></>}
                       {savings > 0 && <><span className="text-muted-foreground">Savings</span><span className="font-bold text-emerald-600">{savings}% OFF</span></>}

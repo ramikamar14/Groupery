@@ -21,7 +21,6 @@ import Admin from "@/pages/Admin";
 import Notifications from "@/pages/Notifications";
 import SavedListings from "@/pages/SavedListings";
 import ExpiredListings from "@/pages/ExpiredListings";
-import Vouchers from "@/pages/Vouchers";
 import Terms from "@/pages/Terms";
 import FAQ from "@/pages/FAQ";
 import About from "@/pages/About";
@@ -135,9 +134,6 @@ function Router() {
       </Route>
       <Route path="/expired">
         {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <ExpiredListings />}
-      </Route>
-      <Route path="/vouchers">
-        {!isAuthenticated ? <Redirect to="/" /> : needsOnboarding ? <Redirect to="/onboarding" /> : <Vouchers />}
       </Route>
 
       {/* Footer pages - available to all users */}
