@@ -49,6 +49,11 @@ export function Footer() {
             <p className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3">{t("footer.support")}</p>
             <ul className="space-y-2">
               <li>
+                <Link href="/how-it-works" className="text-xs text-muted-foreground hover:text-primary transition-colors" data-testid="footer-link-how-it-works">
+                  {t("footer.howItWorks", "How it works")}
+                </Link>
+              </li>
+              <li>
                 <Link href="/faq" className="text-xs text-muted-foreground hover:text-primary transition-colors" data-testid="footer-link-faq">
                   {t("footer.faq")}
                 </Link>
