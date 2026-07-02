@@ -184,5 +184,9 @@ export async function cancelEscrow(transactionId: string): Promise<void> {
 }
 
 export function isEscrowConfigured(): boolean {
+  // Not "configured" if the base URL is unsafe for this environment (e.g. sandbox
+  // in production). This makes the commit flow SKIP escrow gracefully rather than
+  // calling createEscrowTransaction() and hitting the fail-closed throw → 502.
+  if (ESCROW_DISABLED_UNSAFE_BASE) return false;
   return Boolean(env.ESCROW_API_KEY);
 }
