@@ -146,11 +146,21 @@ interface HeroProps {
 export function Hero({ activeListings, totalMembers }: HeroProps) {
   const { t } = useTranslation();
 
+  // Honest stats only — real platform numbers when available, otherwise the
+  // no-risk facts that are true from day one. No invented figures.
+  const realStats = [
+    activeListings && activeListings > 0
+      ? { value: `${activeListings}`, label: t("v2.heroStatDeals", "live group deals") }
+      : null,
+    totalMembers && totalMembers > 0
+      ? { value: `${totalMembers}`, label: t("v2.heroStatMembers", "members") }
+      : null,
+  ].filter(Boolean) as { value: string; label: string }[];
   const heroStats = [
-    { value: activeListings ? `${activeListings}` : "20+", label: "live deals" },
-    { value: "30–60%", label: "avg savings on SaaS" },
-    { value: totalMembers ? `${totalMembers}+` : "100+", label: "members saving" },
-  ];
+    ...realStats,
+    { value: "$0", label: t("v2.heroStatUpfront", "charged until the group fills") },
+    { value: "100%", label: t("v2.heroStatRefund", "refund if it doesn't fill") },
+  ].slice(0, 3);
 
   return (
     <section className="relative overflow-hidden" style={{ background: "linear-gradient(160deg, #6d28d9 0%, #3b1379 100%)" }}>
@@ -247,10 +257,10 @@ export function Hero({ activeListings, totalMembers }: HeroProps) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.75 }}
-          className="lg:hidden flex items-center justify-center gap-4 mt-10"
+          className="lg:hidden flex flex-wrap items-stretch justify-center gap-3 mt-10"
         >
           {heroStats.map((stat) => (
-            <div key={stat.label} style={{ background: "rgba(255,255,255,0.12)", borderRadius: 16, padding: "10px 18px", textAlign: "center" }}>
+            <div key={stat.label} style={{ background: "rgba(255,255,255,0.12)", borderRadius: 16, padding: "10px 16px", textAlign: "center", minWidth: 96, maxWidth: 140 }}>
               <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#fff" }}>{stat.value}</div>
               <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.6)" }}>{stat.label}</div>
             </div>
@@ -268,7 +278,7 @@ export function Hero({ activeListings, totalMembers }: HeroProps) {
               { icon: "↩️", text: t("v2.trustFullRefund") },
             ].map((item) => (
               <span key={item.text} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.8125rem", color: "#3a3340", fontWeight: 600 }}>
-                <span>{item.icon}</span> {item.text}
+                <span aria-hidden>{item.icon}</span> {item.text}
               </span>
             ))}
           </div>

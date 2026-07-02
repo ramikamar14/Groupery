@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -9,6 +9,10 @@ import { ReferralBanner } from "@/components/explore/ReferralBanner";
 import { ActivityFeedSection } from "@/components/explore/ActivityFeedSection";
 import { useExploreListingsPage } from "@/hooks/use-explore-listings-page";
 import { ExploreFiltersToolbar } from "@/components/explore/ExploreFiltersToolbar";
+import { FirstVisitExplainer } from "@/components/discover/FirstVisitExplainer";
+import { SortControl } from "@/components/discover/SortControl";
+import { sortListings, type ListingSort } from "@/components/discover/sortListings";
+import { ListingGridSkeleton } from "@/components/discover/ListingGridSkeleton";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -106,13 +110,13 @@ function DealOfTheDay() {
             <Flame className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-bold font-display leading-none">Deal of the Day</h2>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Rotates in <span className="font-mono font-semibold text-orange-600 dark:text-orange-400">{timeLeft}</span></p>
+            <h2 className="text-lg font-bold font-display leading-none">{t("home.dealOfDay", "Deal of the Day")}</h2>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{t("home.rotatesIn", "Rotates in")} <span className="font-mono font-semibold text-orange-600 dark:text-orange-400">{timeLeft}</span></p>
           </div>
         </div>
         <Link href={`/listings/${deal.id}`}>
           <Button variant="ghost" size="sm" className="text-xs text-muted-foreground gap-1">
-            View deal <ChevronRight className="w-3.5 h-3.5" />
+            {t("home.viewDeal", "View deal")} <ChevronRight className="w-3.5 h-3.5" aria-hidden />
           </Button>
         </Link>
       </div>
@@ -140,16 +144,18 @@ function DealOfTheDay() {
             {/* Top badges */}
             <div className="absolute top-3 left-3 flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-md" data-testid="badge-deal-of-day">
-                <Star className="w-3 h-3" /> Deal of the Day
+                <Star className="w-3 h-3" aria-hidden /> {t("home.dealOfDay", "Deal of the Day")}
               </span>
               {savings !== null && savings > 0 && (
                 <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500 text-white shadow-md" data-testid="badge-savings">
-                  Save {savings}%
+                  {t("discover.savePct", { n: savings, defaultValue: "Save {{n}}%" })}
                 </span>
               )}
               {isUrgent && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-600 text-white shadow-md animate-pulse" data-testid="badge-urgent">
-                  🔥 {spotsLeft <= 3 ? `Only ${spotsLeft} left!` : "Almost full"}
+                  🔥 {spotsLeft <= 3
+                    ? t("home.onlyNLeft", { count: spotsLeft, defaultValue: "Only {{count}} left!" })
+                    : t("home.almostFull", "Almost full")}
                 </span>
               )}
             </div>
@@ -223,7 +229,7 @@ function DealOfTheDay() {
                 </p>
               </div>
               <Button size="sm" className="gap-1.5 shrink-0 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white border-0 shadow-sm" data-testid="button-view-deal">
-                <Zap className="w-3.5 h-3.5" /> Join Deal
+                <Zap className="w-3.5 h-3.5" aria-hidden /> {t("home.joinDeal", "Join Deal")}
               </Button>
             </div>
           </div>
@@ -340,10 +346,14 @@ export default function Home() {
     clearAllFilters,
   } = explore;
 
+  const [sort, setSort] = useState<ListingSort>("newest");
+  const sortedListings = useMemo(() => sortListings(allListings, sort), [allListings, sort]);
+
   return (
     <Layout>
       <AISuggestionsBanner />
       <ReferralBanner />
+      <FirstVisitExplainer />
 
       {/* Hero section — only shown when not filtering */}
       {!isFiltering && !user && (
@@ -421,35 +431,39 @@ export default function Home() {
       {isFiltering && (
         <>
           {isLoading && page === 1 ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-            </div>
+            <ListingGridSkeleton count={6} />
           ) : error ? (
-            <div className="text-center p-12 bg-destructive/5 rounded-2xl border border-destructive/20 text-destructive">
-              {t("common.error")}
+            <div className="text-center p-12 bg-destructive/5 rounded-2xl border border-destructive/20 space-y-3" data-testid="listings-error-state">
+              <p className="text-destructive font-medium">{t("common.error")}</p>
+              <p className="text-sm text-muted-foreground">{t("discover.errorHint", "We couldn't load deals right now. Check your connection and try again.")}</p>
+              <Button variant="outline" size="sm" className="rounded-full" onClick={() => window.location.reload()} data-testid="button-retry">
+                {t("discover.retry", "Try again")}
+              </Button>
             </div>
           ) : allListings.length === 0 ? (
             <div className="text-center py-16 bg-secondary/30 rounded-3xl border border-dashed border-border space-y-4" data-testid="no-results-state">
-              <PackageSearch className="w-14 h-14 mx-auto text-muted-foreground/40" />
-              <h3 className="text-xl font-bold font-display">{search ? t("home.noListings", "No deals found") : "No deals yet — be the first to start one!"}</h3>
+              <PackageSearch className="w-14 h-14 mx-auto text-muted-foreground/40" aria-hidden />
+              <h3 className="text-xl font-bold font-display">{search ? t("home.noListings", "No deals found") : t("home.noDealsYetFull", "No deals yet — be the first to start one!")}</h3>
               <p className="text-muted-foreground max-w-sm mx-auto">{search ? t("home.noListingsSearchHint", "Try different keywords or fewer filters.") : t("home.noListingsHint", "Try adjusting your search or filters.")}</p>
-              {search && (
-                <div className="text-sm text-muted-foreground space-y-0.5">
-                  <p className="font-medium">Try:</p>
-                  <ul className="list-none"><li>· Different or shorter keywords</li><li>· Removing some filters</li></ul>
-                </div>
-              )}
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                 <Button variant="outline" onClick={clearAllFilters} data-testid="button-clear-filters">
-                  Clear all filters
+                  {t("home.clearFilters", "Clear all filters")}
                 </Button>
-                <Link href="/create"><Button data-testid="button-create-deal-empty">Start a Group Buy</Button></Link>
+                <Link href="/create"><Button data-testid="button-create-deal-empty">{t("home.startGroupBuy", "Start a Group Buy")}</Button></Link>
               </div>
             </div>
           ) : (
             <>
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <p className="text-sm text-muted-foreground" data-testid="text-result-count" aria-live="polite">
+                  {allListings.length === 1
+                    ? t("discover.resultCountOne", "1 deal found")
+                    : t("discover.resultCount", { count: allListings.length, defaultValue: "{{count}} deals found" })}
+                </p>
+                <SortControl value={sort} onChange={setSort} />
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {allListings.map((listing: any) => (
+                {sortedListings.map((listing: any) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
               </div>
@@ -468,38 +482,28 @@ export default function Home() {
 
       {!isFiltering && (
         <div>
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
             <div>
               <h2 className="text-xl font-display font-bold tracking-tight">{t("home.allListings", "All Listings")}</h2>
               <p className="text-sm text-muted-foreground mt-0.5">{t("home.allListingsSubtitle", "Browse every open group deal")}</p>
             </div>
+            <SortControl value={sort} onChange={setSort} />
           </div>
           {isLoading && page === 1 ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-            </div>
+            <ListingGridSkeleton count={6} />
           ) : allListings.length === 0 ? (
             <div className="text-center py-16 bg-secondary/30 rounded-3xl border border-dashed border-border space-y-4" data-testid="no-results-state">
-              <PackageSearch className="w-14 h-14 mx-auto text-muted-foreground/40" />
-              <h3 className="text-xl font-bold font-display">{t("home.noListings", "No deals yet — be the first to start one!")}</h3>
-              <p className="text-muted-foreground max-w-sm mx-auto">{t("home.noListingsHint", "Try adjusting your search or filters.")}</p>
-              {search && (
-                <div className="text-sm text-muted-foreground space-y-0.5">
-                  <p className="font-medium">Try:</p>
-                  <ul className="list-none"><li>· Different or shorter keywords</li><li>· Removing some filters</li></ul>
-                </div>
-              )}
+              <PackageSearch className="w-14 h-14 mx-auto text-muted-foreground/40" aria-hidden />
+              <h3 className="text-xl font-bold font-display">{t("home.noDealsYet", "No deals yet")}</h3>
+              <p className="text-muted-foreground max-w-sm mx-auto">{t("home.noDealsYetHint", "Be the first to start one!")}</p>
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                <Button variant="outline" onClick={clearAllFilters} data-testid="button-clear-filters">
-                  Clear all filters
-                </Button>
-                <Link href="/create"><Button data-testid="button-create-deal-empty">Start a Group Buy</Button></Link>
+                <Link href="/create"><Button data-testid="button-create-deal-empty">{t("home.startGroupBuy", "Start a Group Buy")}</Button></Link>
               </div>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {allListings.map((listing: any) => (
+                {sortedListings.map((listing: any) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
               </div>

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -15,6 +15,10 @@ import { DiscoverDiscoverySection } from "@/components/discover/DiscoverDiscover
 import { DiscoverListingCard } from "@/components/discover/DiscoverListingCard";
 import { RecentlyCompletedSection } from "@/components/discover/RecentlyCompletedSection";
 import { mapListingForDiscover } from "@/components/discover/mapListing";
+import { FirstVisitExplainer } from "@/components/discover/FirstVisitExplainer";
+import { SortControl } from "@/components/discover/SortControl";
+import { sortListings, type ListingSort } from "@/components/discover/sortListings";
+import { ListingGridSkeleton } from "@/components/discover/ListingGridSkeleton";
 import type { ListingWithCreator } from "@shared/schema";
 import { api } from "@shared/routes";
 import { Loader2, TrendingUp, Clock, MapPin, Flame, PackageSearch, Monitor, ShoppingBag, Tag } from "lucide-react";
@@ -123,14 +127,21 @@ export default function Discover() {
 
   const joinLabel = t("discover.joinDeal");
 
+  const [sort, setSort] = useState<ListingSort>("newest");
+  const sortedListings = useMemo(() => sortListings(allListings, sort), [allListings, sort]);
+
   const grid = (
     <>
       {isLoading && page === 1 ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-        </div>
+        <ListingGridSkeleton count={6} />
       ) : error ? (
-        <div className="text-center p-12 bg-destructive/5 rounded-2xl border border-destructive/20 text-destructive">{t("common.error")}</div>
+        <div className="text-center p-12 bg-destructive/5 rounded-2xl border border-destructive/20 space-y-3" data-testid="listings-error-state">
+          <p className="text-destructive font-medium">{t("common.error")}</p>
+          <p className="text-sm text-muted-foreground">{t("discover.errorHint", "We couldn't load deals right now. Check your connection and try again.")}</p>
+          <Button variant="outline" size="sm" className="rounded-full" onClick={() => window.location.reload()} data-testid="button-retry">
+            {t("discover.retry", "Try again")}
+          </Button>
+        </div>
       ) : allListings.length === 0 ? (
         <div className="text-center py-16 bg-muted/30 rounded-3xl border border-dashed border-border/70 space-y-4 px-6" data-testid="no-results-state">
           <div className="w-16 h-16 rounded-2xl bg-muted mx-auto flex items-center justify-center">
@@ -166,7 +177,7 @@ export default function Discover() {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {allListings.map((listing: any) => (
+            {sortedListings.map((listing: any) => (
               <DiscoverListingCard key={listing.id} listing={mapListingForDiscover(listing as ListingWithCreator)} joinLabel={joinLabel} />
             ))}
           </div>
@@ -187,6 +198,7 @@ export default function Discover() {
     <Layout>
       <AISuggestionsBanner />
       <ReferralBanner />
+      <FirstVisitExplainer />
 
       <ExploreFiltersToolbar
         {...explore}
@@ -209,10 +221,10 @@ export default function Discover() {
       {/* Category quick-filter pills — wedge spotlight */}
       <div className="flex flex-wrap gap-2 mb-6" data-testid="category-quick-filter">
         {[
-          { value: undefined, label: "All Deals", icon: <Tag className="w-3.5 h-3.5" /> },
-          { value: "digital" as const, label: "Digital & SaaS", icon: <Monitor className="w-3.5 h-3.5" />, badge: "⭐ Recommended" },
-          { value: "physical" as const, label: "Physical", icon: <ShoppingBag className="w-3.5 h-3.5" /> },
-          { value: "offer" as const, label: "Special Offers", icon: <Flame className="w-3.5 h-3.5" /> },
+          { value: undefined, label: t("discover.catAll", "All Deals"), icon: <Tag className="w-3.5 h-3.5" aria-hidden /> },
+          { value: "digital" as const, label: t("discover.catDigital", "Digital & SaaS"), icon: <Monitor className="w-3.5 h-3.5" aria-hidden />, badge: t("discover.catRecommended", "⭐ Recommended") },
+          { value: "physical" as const, label: t("discover.catPhysical", "Physical"), icon: <ShoppingBag className="w-3.5 h-3.5" aria-hidden /> },
+          { value: "offer" as const, label: t("discover.catOffers", "Special Offers"), icon: <Flame className="w-3.5 h-3.5" aria-hidden /> },
         ].map((cat) => {
           const isActive = category === cat.value;
           return (
@@ -221,7 +233,8 @@ export default function Discover() {
               type="button"
               onClick={() => { setCategory(cat.value as any); }}
               data-testid={`filter-cat-${cat.value ?? "all"}`}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all"
+              aria-pressed={isActive}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
               style={{
                 background: isActive ? "var(--v-700)" : "var(--surface)",
                 color: isActive ? "#fff" : "var(--ink)",
@@ -288,17 +301,34 @@ export default function Discover() {
         </div>
       ) : null}
 
-      {isFiltering ? <div className="mb-10">{grid}</div> : null}
+      {isFiltering ? (
+        <div className="mb-10">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <p className="text-sm text-muted-foreground" data-testid="text-result-count" aria-live="polite">
+              {isLoading && page === 1
+                ? t("discover.searching", "Searching…")
+                : allListings.length === 1
+                ? t("discover.resultCountOne", "1 deal found")
+                : t("discover.resultCount", { count: allListings.length, defaultValue: "{{count}} deals found" })}
+            </p>
+            <SortControl value={sort} onChange={setSort} />
+          </div>
+          {grid}
+        </div>
+      ) : null}
 
       {!isFiltering ? (
         <div>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <h2 className="text-xl font-display font-bold">{t("discover.allDeals")}</h2>
-            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs" asChild>
-              <Link href="/create">
-                <span>+ {t("discover.createDeal", "Create a deal")}</span>
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <SortControl value={sort} onChange={setSort} />
+              <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs" asChild>
+                <Link href="/create">
+                  <span>+ {t("discover.createDeal", "Create a deal")}</span>
+                </Link>
+              </Button>
+            </div>
           </div>
           {grid}
         </div>

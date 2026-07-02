@@ -86,8 +86,8 @@ export function NewsletterSection() {
         >
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-widest mb-6">
-            <Users className="size-3.5" />
-            Join thousands of smart buyers
+            <Users className="size-3.5" aria-hidden />
+            Buy together, save together
           </div>
 
           {/* Headline */}
@@ -97,7 +97,7 @@ export function NewsletterSection() {
 
           {/* Subheadline */}
           <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-            Join thousands of smart buyers already saving with Grouperry — no solo markup, no wasted slots.
+            Split the cost of plans, licenses, and bulk orders with your community — you're only charged when the group fills.
           </p>
 
           {/* Primary CTAs */}
