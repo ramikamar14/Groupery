@@ -157,6 +157,22 @@ export function HowItWorks() {
             </div>
           ))}
         </div>
+
+        {/* Link to the full guide page */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          style={{ textAlign: "center", marginTop: 40 }}
+        >
+          <a
+            href="/how-it-works"
+            style={{ fontSize: 14, fontWeight: 700, color: "#6d28d9", textDecoration: "none" }}
+            data-testid="link-how-it-works-full"
+          >
+            {t("v2.howFullGuide", "Read the full guide →")}
+          </a>
+        </motion.div>
       </div>
     </section>
   );

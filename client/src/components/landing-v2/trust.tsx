@@ -3,44 +3,54 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 
-const TRUST_ITEMS = [
-  {
-    icon: "🔒",
-    title: "Funds held until delivery confirmed",
-    desc: "Your money is held in escrow until the group unlocks and delivery is confirmed.",
-  },
-  {
-    icon: "✅",
-    title: "ID-verified deal creators",
-    desc: "Every host passes identity checks before posting a deal.",
-  },
-  {
-    icon: "↩️",
-    title: "Full refund if group doesn't fill",
-    desc: "If a deal doesn't reach its target, you're refunded automatically.",
-  },
-];
-
-const FOUNDING_POINTS = [
-  {
-    icon: "🚀",
-    title: "We're just getting started",
-    desc: "Grouperry is early. You'd be one of the first people splitting SaaS costs here — and your feedback directly shapes what we build next.",
-  },
-  {
-    icon: "💳",
-    title: "You're never charged upfront",
-    desc: "Join a group and your card isn't charged until the group actually fills. If it doesn't fill, nothing is taken — no risk in trying.",
-  },
-  {
-    icon: "🛡️",
-    title: "Verified organisers, transparent deals",
-    desc: "Every deal host passes an ID check before they can post. You always see exactly what you're splitting and with how many people.",
-  },
-];
-
 export function Trust() {
   const { t } = useTranslation();
+
+  const TRUST_ITEMS = [
+    {
+      icon: "🔒",
+      title: t("v2.trustItem1Title", "Funds held until delivery confirmed"),
+      desc: t("v2.trustItem1Desc", "Your money is held in escrow until the group unlocks and delivery is confirmed."),
+    },
+    {
+      icon: "✅",
+      title: t("v2.trustItem2Title", "ID-verified deal creators"),
+      desc: t("v2.trustItem2Desc", "Every host passes identity checks before posting a deal."),
+    },
+    {
+      icon: "↩️",
+      title: t("v2.trustItem3Title", "Full refund if group doesn't fill"),
+      desc: t("v2.trustItem3Desc", "If a deal doesn't reach its target, you're refunded automatically."),
+    },
+  ];
+
+  // Honest founding-era points — no invented testimonials or numbers.
+  const FOUNDING_POINTS = [
+    {
+      icon: "🚀",
+      title: t("v2.foundingPoint1Title", "We're just getting started"),
+      desc: t(
+        "v2.foundingPoint1Desc",
+        "Grouperry is early. You'd be one of the first people splitting SaaS costs here — and your feedback directly shapes what we build next."
+      ),
+    },
+    {
+      icon: "💳",
+      title: t("v2.foundingPoint2Title", "You're never charged upfront"),
+      desc: t(
+        "v2.foundingPoint2Desc",
+        "Join a group and your card isn't charged until the group actually fills. If it doesn't fill, nothing is taken — no risk in trying."
+      ),
+    },
+    {
+      icon: "🛡️",
+      title: t("v2.foundingPoint3Title", "Verified organisers, transparent deals"),
+      desc: t(
+        "v2.foundingPoint3Desc",
+        "Every deal host passes an ID check before they can post. You always see exactly what you're splitting and with how many people."
+      ),
+    },
+  ];
 
   return (
     <section
@@ -108,6 +118,7 @@ export function Trust() {
                 style={{ display: "flex", gap: 14, alignItems: "flex-start" }}
               >
                 <span
+                  aria-hidden
                   style={{
                     flex: "none",
                     width: 40,
@@ -159,6 +170,7 @@ export function Trust() {
               }}
             >
               <div
+                aria-hidden
                 style={{
                   width: 40,
                   height: 40,

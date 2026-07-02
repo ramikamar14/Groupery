@@ -3,16 +3,18 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 
-const CATEGORY_CHIPS = [
-  { name: "SaaS & AI tools", emoji: "🤖" },
-  { name: "Software licenses", emoji: "💻" },
-  { name: "Cloud & storage", emoji: "☁️" },
-  { name: "Courses & cohorts", emoji: "🎓" },
-  { name: "Physical goods", emoji: "📦" },
-];
-
 export function Categories() {
   const { t } = useTranslation();
+
+  // SaaS-wedge first. Links target real /explore filters (category / q) so the
+  // chips actually work — no invented deal counts.
+  const CATEGORY_CHIPS = [
+    { name: t("v2.catSaas", "SaaS & AI tools"), emoji: "🤖", href: "/explore?category=digital" },
+    { name: t("v2.catLicenses", "Software licenses"), emoji: "💻", href: "/explore?q=license" },
+    { name: t("v2.catCloud", "Cloud & storage"), emoji: "☁️", href: "/explore?q=cloud" },
+    { name: t("v2.catCourses", "Courses & cohorts"), emoji: "🎓", href: "/explore?q=course" },
+    { name: t("v2.catPhysical", "Physical goods"), emoji: "📦", href: "/explore?category=physical" },
+  ];
 
   return (
     <section
@@ -50,7 +52,7 @@ export function Categories() {
             }}
             data-testid="text-categories-title"
           >
-            Browse by category
+            {t("v2.categoriesTitle", "Browse by category")}
           </h2>
         </motion.div>
 
@@ -70,7 +72,7 @@ export function Categories() {
           {CATEGORY_CHIPS.map((cat, i) => (
             <motion.a
               key={cat.name}
-              href={`/explore?category=${encodeURIComponent(cat.name)}`}
+              href={cat.href}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -92,7 +94,7 @@ export function Categories() {
               }}
               whileHover={{ y: -2, boxShadow: "0 6px 18px -4px rgba(109,40,217,0.22)" }}
             >
-              <span style={{ fontSize: 20 }}>{cat.emoji}</span>
+              <span style={{ fontSize: 20 }} aria-hidden>{cat.emoji}</span>
               <div>
                 <div
                   style={{
@@ -125,7 +127,7 @@ export function Categories() {
               textDecoration: "none",
             }}
           >
-            View all deals →
+            {t("v2.categoriesViewAll", "View all deals →")}
           </a>
         </motion.div>
       </div>

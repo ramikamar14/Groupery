@@ -24,7 +24,7 @@ function SlotMeter({ filled, total }: { filled: number; total: number }) {
   const cells = Math.min(total, 20);
   const filledCells = total > 20 ? Math.round((filled / total) * cells) : filled;
   return (
-    <div style={{ display: "flex", gap: total > 16 ? 3 : 4 }}>
+    <div style={{ display: "flex", gap: total > 16 ? 3 : 4 }} role="img" aria-label={`${filled} of ${total} spots filled`}>
       {Array.from({ length: cells }).map((_, i) => (
         <div
           key={i}
@@ -42,6 +42,7 @@ export function DiscoverListingCard({ listing, compact = false, joinLabel }: Pro
     listing.originalPrice > 0 && listing.groupPrice > 0
       ? Math.round((1 - listing.groupPrice / listing.originalPrice) * 100)
       : 0;
+  const saveAmount = savings > 0 ? listing.originalPrice - listing.groupPrice : 0;
   const slotsLeft = listing.spotsTotal - listing.spotsFilled;
   const isAlmostFull = slotsLeft > 0 && slotsLeft <= 3;
   const hoursLeft = differenceInHours(listing.endsAt, new Date());
@@ -172,6 +173,16 @@ export function DiscoverListingCard({ listing, compact = false, joinLabel }: Pro
           </span>
         </div>
 
+        {/* Savings preview — dollars saved per member vs. going solo */}
+        {saveAmount > 0 && (
+          <div
+            style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: "var(--emerald, #059669)" }}
+            data-testid={`savings-amount-discover-${listing.id}`}
+          >
+            {t("listing.saveVsSolo", { amount: saveAmount, defaultValue: "Save ${{amount}} vs. going solo" })}
+          </div>
+        )}
+
         {/* Seller + CTA row */}
         <div style={{
           marginTop: 10, paddingTop: 10,
@@ -199,7 +210,9 @@ export function DiscoverListingCard({ listing, compact = false, joinLabel }: Pro
               type="button"
               onClick={(e) => { e.preventDefault(); shareListingUrl(listing.id, listing.title); }}
               style={{ background: "none", border: "1px solid var(--line)", borderRadius: 999, padding: "4px 7px", cursor: "pointer", display: "flex", alignItems: "center", color: "var(--muted-c)" }}
-              aria-label="Share"
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label={t("listing.share", "Share deal")}
+              title={t("listing.share", "Share deal")}
               data-testid={`button-share-card-${listing.id}`}
             >
               <Share2 style={{ width: 12, height: 12 }} />

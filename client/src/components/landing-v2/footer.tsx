@@ -84,7 +84,7 @@ export function Footer() {
                 <Logo />
               </Link>
               <p className="mt-4 text-sm text-muted-foreground max-w-xs leading-relaxed">
-                Shop together, save together. Join thousands of smart buyers already winning with group deals.
+                Shop together, save together. Pool orders with your community and unlock group pricing — protected by escrow.
               </p>
 
               {/* Social links */}

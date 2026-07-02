@@ -51,8 +51,9 @@ export function DiscoverDiscoverySection({ title, icon, listings, joinLabel }: P
             type="button"
             onClick={() => scroll("left")}
             disabled={!canScrollLeft}
+            aria-label={`Scroll ${title} left`}
             className={cn(
-              "p-2 rounded-full border border-border transition-all",
+              "p-2 rounded-full border border-border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               canScrollLeft ? "hover:bg-secondary hover:border-primary/30" : "opacity-30 cursor-not-allowed",
             )}
           >
@@ -62,8 +63,9 @@ export function DiscoverDiscoverySection({ title, icon, listings, joinLabel }: P
             type="button"
             onClick={() => scroll("right")}
             disabled={!canScrollRight}
+            aria-label={`Scroll ${title} right`}
             className={cn(
-              "p-2 rounded-full border border-border transition-all",
+              "p-2 rounded-full border border-border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               canScrollRight ? "hover:bg-secondary hover:border-primary/30" : "opacity-30 cursor-not-allowed",
             )}
           >

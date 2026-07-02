@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { MapPin, Clock, Share2, Star, Bookmark, BookmarkCheck, CheckCircle, ShieldCheck, ShieldAlert, ShieldQuestion, Users } from "lucide-react";
+import { MapPin, Clock, Share2, Star, Bookmark, BookmarkCheck, CheckCircle, ShieldCheck, ShieldAlert, ShieldQuestion, Users, BadgePercent } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -37,7 +37,7 @@ function SlotMeter({ filled, total, big = false }: { filled: number; total: numb
   const gap = cells > 16 ? 3 : 4;
 
   return (
-    <div style={{ display: "flex", gap }}>
+    <div style={{ display: "flex", gap }} role="img" aria-label={`${filled} of ${total} spots filled`}>
       {Array.from({ length: cells }).map((_, i) => {
         const isFilled = i < filledCells;
         const isNext = i === filledCells;
@@ -78,6 +78,10 @@ export function ListingCard({ listing }: ListingCardProps) {
   const savingsPct =
     (listing as any).pricePerSlot && (listing as any).marketPrice && (listing as any).marketPrice > (listing as any).pricePerSlot
       ? Math.round((1 - (listing as any).pricePerSlot / (listing as any).marketPrice) * 100)
+      : null;
+  const savingsAmount =
+    savingsPct != null
+      ? Math.round(((listing as any).marketPrice - (listing as any).pricePerSlot) / 100)
       : null;
   const creatorVerified = (listing as any).creator?.verificationStatus === "verified";
   const reliabilityScore = (listing as any).creator?.reliabilityScore ?? 50;
@@ -180,13 +184,18 @@ export function ListingCard({ listing }: ListingCardProps) {
           <div className="absolute top-2 right-2 z-10 flex gap-1">
             {user && (
               <button onClick={handleSave}
-                className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 flex items-center justify-center transition-colors"
+                aria-label={isSaved ? t("listing.unsave", "Remove from saved") : t("listing.save", "Save deal")}
+                aria-pressed={isSaved}
+                title={isSaved ? t("listing.unsave", "Remove from saved") : t("listing.save", "Save deal")}
+                className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 data-testid={`button-save-${listing.id}`}>
                 {isSaved ? <BookmarkCheck className="w-3.5 h-3.5 text-white" /> : <Bookmark className="w-3.5 h-3.5 text-white" />}
               </button>
             )}
             <button onClick={handleShare}
-              className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 flex items-center justify-center transition-colors"
+              aria-label={t("listing.share", "Share deal")}
+              title={t("listing.share", "Share deal")}
+              className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
               data-testid={`button-share-${listing.id}`}>
               <Share2 className="w-3.5 h-3.5 text-white" />
             </button>
@@ -236,7 +245,9 @@ export function ListingCard({ listing }: ListingCardProps) {
           {isActive && slotsLeft > 0 && slotsLeft <= 3 && (
             <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:11.5, fontWeight:700, color:"#e23744", background:"#fff1f2", borderRadius:8, padding:"3px 8px", width:"fit-content" }}
               data-testid={`urgency-spots-${listing.id}`}>
-              🔥 Only {slotsLeft} spot{slotsLeft === 1 ? "" : "s"} left!
+              🔥 {slotsLeft === 1
+                ? t("listing.onlySpotLeft", "Only 1 spot left!")
+                : t("listing.onlySpotsLeft", { count: slotsLeft, defaultValue: "Only {{count}} spots left!" })}
             </div>
           )}
 
@@ -266,6 +277,17 @@ export function ListingCard({ listing }: ListingCardProps) {
               </span>
             )}
           </div>
+
+          {/* Savings preview — dollar amount per member vs. going solo */}
+          {isActive && savingsAmount != null && savingsAmount > 0 && (
+            <div
+              className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400"
+              data-testid={`savings-amount-${listing.id}`}
+            >
+              <BadgePercent className="w-3 h-3 flex-shrink-0" aria-hidden />
+              {t("listing.saveVsSolo", { amount: savingsAmount, defaultValue: "Save ${{amount}} vs. going solo" })}
+            </div>
+          )}
 
           {/* Viewer count + "ends soon" urgency chip row */}
           {isActive && ((listing as any).viewCount > 2 || (countdown.urgent && differenceInHours(new Date(listing.expiresAt), new Date()) < 6)) && (

@@ -1,8 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { ArrowRight } from "lucide-react";
 
 export function CTA() {
+  const { t } = useTranslation();
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 30 }}
@@ -21,7 +25,7 @@ export function CTA() {
           }}
           data-testid="text-cta-title"
         >
-          Save more when you shop together
+          {t("v2.ctaTitle", "Split the cost of the tools you already pay for")}
         </h2>
         <p
           style={{
@@ -32,27 +36,48 @@ export function CTA() {
           }}
           data-testid="text-cta-subtitle"
         >
-          Join thousands saving 30–60% on everyday purchases
+          {t("v2.ctaSubtitle", "Join a group for a SaaS plan, license, or subscription — you're only charged if enough people join.")}
         </p>
-        <a
-          href="/api/login"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            background: "#fff",
-            color: "#6d28d9",
-            fontWeight: 700,
-            fontSize: 16,
-            padding: "14px 32px",
-            borderRadius: 999,
-            textDecoration: "none",
-            boxShadow: "0 8px 30px rgba(0,0,0,0.25)",
-          }}
-          data-testid="button-cta"
-        >
-          Get started free →
-        </a>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <a
+            href="/api/login"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: "#fff",
+              color: "#6d28d9",
+              fontWeight: 700,
+              fontSize: 16,
+              padding: "14px 32px",
+              borderRadius: 999,
+              textDecoration: "none",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.25)",
+            }}
+            data-testid="button-cta"
+          >
+            {t("v2.ctaButton", "Get started free")}
+            <ArrowRight style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden />
+          </a>
+          <a
+            href="/how-it-works"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: 15,
+              padding: "13px 24px",
+              borderRadius: 999,
+              textDecoration: "none",
+              border: "1.5px solid rgba(255,255,255,0.3)",
+            }}
+            data-testid="button-cta-how"
+          >
+            {t("v2.seeHowItWorks", "See how it works")}
+          </a>
+        </div>
       </div>
     </motion.section>
   );
