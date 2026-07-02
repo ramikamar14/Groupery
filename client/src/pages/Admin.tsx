@@ -1505,10 +1505,10 @@ export default function Admin() {
                     <div className="space-y-2 pt-2 border-t border-border/60">
                       <label className="text-sm font-medium flex items-center gap-1.5">
                         <Eye className="w-3.5 h-3.5 text-muted-foreground" />
-                        Site Logo (URL)
+                        {t("admin.siteLogoLabel", "Site Logo (URL)")}
                       </label>
                       <p className="text-[11px] text-muted-foreground">
-                        Paste a direct image URL (PNG/SVG/WebP). Leave blank to use the default Grouperry logo. Stored in browser — share the URL with other admins.
+                        {t("admin.siteLogoHint", "Paste a direct image URL (PNG/SVG/WebP). Leave blank to use the default Grouperry logo. Stored in browser — share the URL with other admins.")}
                       </p>
                       <Input
                         data-testid="input-logo-url"
@@ -1524,11 +1524,11 @@ export default function Admin() {
                             style={{ height: 40, width: "auto", objectFit: "contain", maxWidth: 160 }}
                             onError={() => setLogoPreviewError(true)}
                           />
-                          <span className="text-xs text-muted-foreground">Preview</span>
+                          <span className="text-xs text-muted-foreground">{t("admin.logoPreview", "Preview")}</span>
                         </div>
                       )}
                       {logoPreviewError && (
-                        <p className="text-xs text-destructive">Could not load image — check the URL.</p>
+                        <p className="text-xs text-destructive">{t("admin.logoLoadError", "Could not load image — check the URL.")}</p>
                       )}
                       <div className="flex gap-2">
                         <Button
@@ -1537,18 +1537,18 @@ export default function Admin() {
                           data-testid="button-set-logo"
                           onClick={() => {
                             setCustomLogoUrl(logoUrlInput);
-                            toast({ title: logoUrlInput ? "Logo updated" : "Logo reset", description: logoUrlInput ? "Custom logo is now active." : "Default logo restored." });
+                            toast({ title: logoUrlInput ? t("admin.logoUpdated", "Logo updated") : t("admin.logoReset", "Logo reset"), description: logoUrlInput ? t("admin.logoActiveDesc", "Custom logo is now active.") : t("admin.logoDefaultDesc", "Default logo restored.") });
                           }}
                         >
-                          {logoUrlInput ? "Apply Logo" : "Reset to Default"}
+                          {logoUrlInput ? t("admin.applyLogo", "Apply Logo") : t("admin.resetToDefault", "Reset to Default")}
                         </Button>
                         {logoUrlInput && (
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => { setLogoUrlInput(""); setCustomLogoUrl(""); setLogoPreviewError(false); toast({ title: "Logo reset to default" }); }}
+                            onClick={() => { setLogoUrlInput(""); setCustomLogoUrl(""); setLogoPreviewError(false); toast({ title: t("admin.logoResetDefault", "Logo reset to default") }); }}
                           >
-                            Clear
+                            {t("admin.clearLogo", "Clear")}
                           </Button>
                         )}
                       </div>

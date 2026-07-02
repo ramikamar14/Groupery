@@ -26,6 +26,7 @@ import { ProfileListingsSection } from "@/components/profile/ProfileListingsSect
 import { ProfileReviewsSection } from "@/components/profile/ProfileReviewsSection";
 import { SavingsSummary } from "@/components/profile/SavingsSummary";
 import { NotificationPreferences } from "@/components/profile/NotificationPreferences";
+import { ProfileCompleteness } from "@/components/profile/ProfileCompleteness";
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -361,6 +362,14 @@ export default function Profile() {
             </Button>
           </div>
         </div>
+
+        {/* Profile completeness meter — nudges users to finish their profile */}
+        <ProfileCompleteness
+          user={user as any}
+          onEditProfile={openEditDialog}
+          onVerifyIdentity={() => setIsVerifyDialogOpen(true)}
+          onAddPhone={() => { setEditPhone((user as any).phone || ""); setIsPhoneDialogOpen(true); }}
+        />
 
         {/* Verification call-to-action banner */}
         {user.verificationStatus !== "verified" && user.verificationStatus !== "pending" && (
