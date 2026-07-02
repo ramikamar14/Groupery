@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { pageview } from "@/lib/analytics";
 import { queryClient } from "./lib/queryClient";
@@ -8,26 +8,29 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useTranslation } from "react-i18next";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
-import NotFound from "@/pages/not-found";
+// Kept static for instant first paint — one of these renders on "/".
 import Landing from "@/pages/Landing";
 import Discover from "@/pages/Discover";
-import Dashboard from "@/pages/Dashboard";
-import CreateListing from "@/pages/CreateListing";
-import ListingDetails from "@/pages/ListingDetails";
-import MyGroups from "@/pages/MyGroups";
-import Profile from "@/pages/Profile";
-import Onboarding from "@/pages/Onboarding";
-import Admin from "@/pages/Admin";
-import Notifications from "@/pages/Notifications";
-import SavedListings from "@/pages/SavedListings";
-import ExpiredListings from "@/pages/ExpiredListings";
-import Terms from "@/pages/Terms";
-import FAQ from "@/pages/FAQ";
-import HowItWorks from "@/pages/HowItWorks";
-import About from "@/pages/About";
-import Contact from "@/pages/Contact";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import ClearCache from "@/pages/ClearCache";
+import { PageLoader } from "@/components/PageLoader";
+// Everything else loads as its own chunk on first navigation.
+const NotFound = lazy(() => import("@/pages/not-found"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const CreateListing = lazy(() => import("@/pages/CreateListing"));
+const ListingDetails = lazy(() => import("@/pages/ListingDetails"));
+const MyGroups = lazy(() => import("@/pages/MyGroups"));
+const Profile = lazy(() => import("@/pages/Profile"));
+const Onboarding = lazy(() => import("@/pages/Onboarding"));
+const Admin = lazy(() => import("@/pages/Admin"));
+const Notifications = lazy(() => import("@/pages/Notifications"));
+const SavedListings = lazy(() => import("@/pages/SavedListings"));
+const ExpiredListings = lazy(() => import("@/pages/ExpiredListings"));
+const Terms = lazy(() => import("@/pages/Terms"));
+const FAQ = lazy(() => import("@/pages/FAQ"));
+const HowItWorks = lazy(() => import("@/pages/HowItWorks"));
+const About = lazy(() => import("@/pages/About"));
+const Contact = lazy(() => import("@/pages/Contact"));
+const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
+const ClearCache = lazy(() => import("@/pages/ClearCache"));
 import { useAuth } from "@/hooks/use-auth";
 import { LoginModal } from "@/components/LoginModal";
 import { Loader2 } from "lucide-react";
@@ -93,6 +96,7 @@ function Router() {
 
   return (
     <>
+    <Suspense fallback={<PageLoader />}>
     <Switch>
       <Route path="/">
         {isAuthenticated ? (needsOnboarding ? <Redirect to="/onboarding" /> : <Discover />) : <Landing />}
@@ -162,6 +166,7 @@ function Router() {
 
       <Route component={NotFound} />
     </Switch>
+    </Suspense>
     <LoginModal open={showLogin && !isAuthenticated} returnTo={returnTo} onClose={() => {
       setShowLogin(false);
       const url = new URL(window.location.href);
