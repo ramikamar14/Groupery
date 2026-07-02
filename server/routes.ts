@@ -18,7 +18,9 @@ import { toPublicListing, toParticipantListing, toPublicUser, toPublicParticipat
 import { cache } from "./cache";
 import { pool, db } from "./db";
 import { listings as listingsTable, listingImages as listingImagesTable, listingTags as listingTagsTable, emailQueue } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, ne } from "drizzle-orm";
+import { users as usersAuthTable } from "@shared/models/auth";
+import { toE164 } from "./phone";
 import { callAI } from "./ai";
 import { logger } from "./logger";
 import { sendOtp, verifyOtp } from "./sms";
@@ -1208,25 +1210,35 @@ export async function registerRoutes(
   });
 
   // User Profile Update
+  // Zod schema per self-updatable field — allowlist AND shape/length validation.
+  // Only real users-table columns; the old allowlist contained phantom fields
+  // (username, location, notificationPreferences) that don't exist in schema.
+  const boundedString = (max: number) => z.string().trim().max(max);
+  const profileUpdateSchema = z.object({
+    firstName: boundedString(60).optional(),
+    lastName: boundedString(60).optional(),
+    bio: boundedString(500).optional(),
+    profileImageUrl: z.string().trim().url().max(500).or(z.literal("")).optional(),
+    city: boundedString(120).optional(),
+    country: boundedString(60).optional(),
+    language: boundedString(10).optional(),
+    // KYC documents — submitted alongside verificationStatus="pending"
+    idDocumentUrl: z.string().trim().url().max(500).optional(),
+    selfieUrl: z.string().trim().url().max(500).optional(),
+  }).strip();
+
   app.patch("/api/user/profile", requireAuth, async (req, res) => {
     const userId = (req.user as any).claims.sub;
     const body = req.body;
 
-    // Strict allowlist — only fields a user is permitted to self-update
-    const ALLOWED_PROFILE_FIELDS = new Set([
-      "firstName", "lastName", "bio", "location", "username",
-      "profileImageUrl", "notificationPreferences", "preferredLanguage",
-      "city", "country", "language",
-      // KYC documents — submitted alongside verificationStatus="pending"
-      "idDocumentUrl", "selfieUrl",
-    ]);
-
-    const updates: Record<string, any> = {};
-    for (const key of Object.keys(body)) {
-      if (ALLOWED_PROFILE_FIELDS.has(key)) {
-        updates[key] = body[key];
-      }
+    const parsed = profileUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: parsed.error.issues[0]?.message || "Invalid profile data",
+        field: String(parsed.error.issues[0]?.path?.[0] ?? ""),
+      });
     }
+    const updates: Record<string, any> = { ...parsed.data };
 
     // onboardingComplete can only be set to true once required fields are present
     if (body.onboardingComplete === true) {
@@ -1248,21 +1260,6 @@ export async function registerRoutes(
   });
 
   // ── Phone OTP Verification ────────────────────────────────────────────────
-  /**
-   * Normalise any phone number to E.164 so Twilio accepts international numbers.
-   * Handles: +20..., 0020..., 020..., 20... → +20...
-   * Falls back to returning the input unchanged if it already starts with '+'.
-   */
-  function toE164(raw: string): string {
-    const s = raw.trim().replace(/[\s\-().]/g, "");
-    if (s.startsWith("+")) return s;           // already E.164
-    if (s.startsWith("00")) return "+" + s.slice(2); // 00201... → +201...
-    // Local format (leading 0) without country code — cannot reliably auto-prefix,
-    // so just prepend + and let Twilio reject with a clear error.
-    if (s.startsWith("0")) return "+" + s.slice(1);
-    return "+" + s;
-  }
-
   app.post("/api/user/phone/send-otp", requireAuth, otpLimiter, async (req, res) => {
     try {
       const userId = (req.user as any).claims.sub;
@@ -1293,6 +1290,14 @@ export async function registerRoutes(
       const approved = await verifyOtp(cleanPhone, String(otp).trim());
       if (!approved) {
         return res.status(400).json({ error: "Invalid or expired OTP" });
+      }
+
+      // A phone can only belong to one account — otherwise phone-OTP login
+      // would match an arbitrary row and sign the caller into someone else's.
+      const [owner] = await db.select({ id: usersAuthTable.id }).from(usersAuthTable)
+        .where(and(eq(usersAuthTable.phone, cleanPhone), ne(usersAuthTable.id, userId)));
+      if (owner) {
+        return res.status(409).json({ error: "This phone number is already linked to another account." });
       }
 
       const updated = await authStorage.updateUser(userId, { phone: cleanPhone, phoneVerified: true });
@@ -1814,12 +1819,16 @@ export async function registerRoutes(
     const cached = cache.get(cacheKey);
     if (cached) return res.json(cached);
     try {
-      const [listings, users] = await Promise.all([
-        storage.getListings({}),
-        authStorage.getAllUsers(),
+      // COUNT in SQL — this endpoint previously loaded every listing and every
+      // user row into memory just to count them.
+      const [listingCount, userCount] = await Promise.all([
+        pool.query(`SELECT count(*)::int AS n FROM listings WHERE status = 'active'`),
+        pool.query(`SELECT count(*)::int AS n FROM users`),
       ]);
-      const active = listings.filter((l: any) => l.status === "active").length;
-      const stats = { activeListings: active, totalMembers: users.length };
+      const stats = {
+        activeListings: listingCount.rows[0]?.n ?? 0,
+        totalMembers: userCount.rows[0]?.n ?? 0,
+      };
       cache.set(cacheKey, stats, 60_000);
       res.json(stats);
     } catch {
@@ -1883,7 +1892,7 @@ export async function registerRoutes(
       const review = await storage.createReview({ reviewerId: userId, reviewedUserId, listingId, rating, comment });
 
       const allReviews = await storage.getReviewsForUser(reviewedUserId);
-      const avgRating = Math.round(allReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / allReviews.length);
+      const avgRating = Math.round((allReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / allReviews.length) * 100) / 100;
       await authStorage.updateUser(reviewedUserId, { rating: avgRating, ratingCount: allReviews.length });
 
       res.status(201).json(review);
@@ -1987,14 +1996,12 @@ export async function registerRoutes(
   });
 
   app.post("/api/admin/expire-stale-listings", requireAdmin, async (_req, res) => {
-    const allListings = await storage.getListings();
-    const now = new Date();
+    // WHERE-filtered query instead of loading the entire listings table.
+    const stale = await storage.getExpiredActiveListings();
     let expiredCount = 0;
-    for (const listing of allListings) {
-      if (listing.status === "active" && listing.expiresAt && new Date(listing.expiresAt) < now) {
-        await storage.transitionListing(listing.id, "expired").catch(() => {});
-        expiredCount++;
-      }
+    for (const listing of stale) {
+      await storage.transitionListing(listing.id, "expired").catch(() => {});
+      expiredCount++;
     }
     if (expiredCount > 0) {
       cache.invalidatePrefix("discover:");
@@ -3096,31 +3103,29 @@ Return ONLY valid JSON with this structure:
   // ── Background cron: expire stale listings every 15 minutes ───────────────
   cron.schedule("*/15 * * * *", async () => {
     try {
-      const allListings = await storage.getListings();
-      const now = new Date();
+      // WHERE-filtered query — previously scanned every listing row in JS.
+      const stale = await storage.getExpiredActiveListings();
       let expiredCount = 0;
-      for (const listing of allListings) {
-        if (listing.status === "active" && listing.expiresAt && new Date(listing.expiresAt) < now) {
-          await storage.transitionListing(listing.id, "expired").catch(() => {});
-          expiredCount++;
+      for (const listing of stale) {
+        await storage.transitionListing(listing.id, "expired").catch(() => {});
+        expiredCount++;
 
-          // Auto-cancel any open escrow transactions for this expired listing
-          if (isEscrowConfigured()) {
-            try {
-              const listingOrders = await storage.getOrdersByListing(listing.id);
-              for (const order of listingOrders) {
-                if (order.status !== "refunded" && order.notes) {
-                  let meta: any = {};
-                  try { meta = JSON.parse(order.notes); } catch {}
-                  if (meta.escrowId) {
-                    await cancelEscrow(meta.escrowId).catch(() => {});
-                    await storage.updateOrderStatus(order.id, "refunded").catch(() => {});
-                  }
+        // Auto-cancel any open escrow transactions for this expired listing
+        if (isEscrowConfigured()) {
+          try {
+            const listingOrders = await storage.getOrdersByListing(listing.id);
+            for (const order of listingOrders) {
+              if (order.status !== "refunded" && order.notes) {
+                let meta: any = {};
+                try { meta = JSON.parse(order.notes); } catch {}
+                if (meta.escrowId) {
+                  await cancelEscrow(meta.escrowId).catch(() => {});
+                  await storage.updateOrderStatus(order.id, "refunded").catch(() => {});
                 }
               }
-            } catch (escrowErr: any) {
-              logger.error("Cron", `Escrow cancel failed for expired listing ${listing.id}`, { error: escrowErr.message });
             }
+          } catch (escrowErr: any) {
+            logger.error("Cron", `Escrow cancel failed for expired listing ${listing.id}`, { error: escrowErr.message });
           }
         }
       }

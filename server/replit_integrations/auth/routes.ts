@@ -10,6 +10,7 @@ import { db } from "../../db";
 import { users } from "@shared/models/auth";
 import { eq } from "drizzle-orm";
 import { sendOtp, verifyOtp } from "../../sms";
+import { toE164 } from "../../phone";
 import { logger } from "../../logger";
 
 const authLoginLimiter = rateLimit({ windowMs: 15 * 60_000, max: 10, standardHeaders: true, legacyHeaders: false, message: { message: "Too many login attempts. Please wait 15 minutes." } });
@@ -156,16 +157,17 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // ── Phone OTP Login — Send ────────────────────────────────────────────────
+  // No user row is created here: creating accounts for arbitrary unverified
+  // phone strings pollutes the users table and turns the endpoint into an
+  // SMS-pumping vector with a free account-creation side effect. The account
+  // is created (if new) only after the OTP is verified.
   app.post("/api/auth/login/send-otp", otpLoginLimiter, async (req, res) => {
     try {
       const { phone } = req.body;
-      if (!phone) return res.status(400).json({ message: "Phone number is required" });
-      const cleanPhone = phone.trim().replace(/\s+/g, "");
-
-      let [user] = await db.select().from(users).where(eq(users.phone, cleanPhone));
-      if (!user) {
-        [user] = await db.insert(users).values({ phone: cleanPhone, authProvider: "phone" }).returning();
+      if (!phone || typeof phone !== "string" || phone.trim().length < 7) {
+        return res.status(400).json({ message: "Phone number is required" });
       }
+      const cleanPhone = toE164(phone);
 
       const sent = await sendOtp(cleanPhone);
       if (!sent) return res.status(500).json({ message: "Failed to send OTP" });
@@ -182,15 +184,20 @@ export function registerAuthRoutes(app: Express): void {
     try {
       const { phone, otp } = req.body;
       if (!phone || !otp) return res.status(400).json({ message: "Phone and OTP are required" });
-      const cleanPhone = phone.trim().replace(/\s+/g, "");
+      const cleanPhone = toE164(phone);
 
       const approved = await verifyOtp(cleanPhone, String(otp).trim());
       if (!approved) return res.status(400).json({ message: "Invalid or expired OTP" });
 
+      // OTP proven — sign in the owning account, or create one now.
       let [user] = await db.select().from(users).where(eq(users.phone, cleanPhone));
-      if (!user) return res.status(400).json({ message: "Phone number not registered. Please request a code first." });
-
-      if (!user.phoneVerified) {
+      if (!user) {
+        [user] = await db.insert(users).values({
+          phone: cleanPhone,
+          phoneVerified: true,
+          authProvider: "phone",
+        }).returning();
+      } else if (!user.phoneVerified) {
         [user] = await db.update(users).set({ phoneVerified: true }).where(eq(users.id, user.id)).returning();
       }
 
@@ -205,8 +212,14 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // ── Logout ────────────────────────────────────────────────────────────────
-  app.get("/api/logout", (req: any, res) => {
+  // POST only: a GET logout is CSRF-able from any site (top-level navigations
+  // send cookies and no Origin header). The GET fallback below redirects home
+  // WITHOUT destroying the session so stale links/bookmarks are harmless.
+  app.post("/api/logout", (req: any, res) => {
     req.logout(() => res.json({ success: true }));
+  });
+  app.get("/api/logout", (_req, res) => {
+    res.redirect("/");
   });
 
   // ── Login redirect — open redirect protected ──────────────────────────────

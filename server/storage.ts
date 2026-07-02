@@ -31,6 +31,7 @@ export interface IStorage {
 
   // Participations
   joinListing(listingId: number, userId: string): Promise<{ participation: Participation; listing: Listing }>;
+  getExpiredActiveListings(): Promise<Listing[]>;
   leaveListing(listingId: number, userId: string): Promise<void>;
   getParticipation(listingId: number, userId: string): Promise<Participation | undefined>;
   getParticipationById(id: number): Promise<Participation | undefined>;
@@ -254,6 +255,14 @@ export class DatabaseStorage implements IStorage {
           conditions.push(sql`${listings.filledSlots}::float / ${listings.totalSlots}::float >= 0.5`);
         }
 
+        // Seller type in SQL — a JS post-filter after LIMIT/OFFSET broke
+        // pagination (filtered pages returned fewer rows than exist).
+        if (filters?.sellerType) {
+          conditions.push(
+            sql`${listings.creatorId} IN (SELECT id FROM users WHERE user_type = ${filters.sellerType})`
+          );
+        }
+
         return conditions.length > 0 ? and(...conditions) : undefined;
       },
       with: {
@@ -265,13 +274,16 @@ export class DatabaseStorage implements IStorage {
       limit: filters?.limit,
       offset: filters?.offset,
     });
-    
-    // Post-filter by seller type (creator's userType)
-    if (filters?.sellerType) {
-      return results.filter(listing => listing.creator?.userType === filters.sellerType);
-    }
-    
+
     return results;
+  }
+
+  /** Active listings whose deadline has passed — used by the expiry cron and
+   *  admin endpoint instead of scanning the whole table in JS. */
+  async getExpiredActiveListings(): Promise<Listing[]> {
+    return await db.select().from(listings).where(
+      and(eq(listings.status, "active"), sql`${listings.expiresAt} IS NOT NULL AND ${listings.expiresAt} < now()`)
+    );
   }
 
   async getListing(id: number): Promise<any> {

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, jsonb, pgTable, timestamp, varchar, text, pgEnum, boolean, integer } from "drizzle-orm/pg-core";
+import { index, jsonb, pgTable, timestamp, varchar, text, pgEnum, boolean, integer, real } from "drizzle-orm/pg-core";
 
 // Enums for user types, verification, and roles
 export const userTypeEnum = pgEnum("user_type", ["individual", "vendor"]);
@@ -44,7 +44,9 @@ export const users = pgTable("users", {
   isAdmin: boolean("is_admin").default(false),
   role: userRoleEnum("role").default("user").notNull(),
   isDisabled: boolean("is_disabled").default(false),
-  rating: integer("rating").default(0),
+  // Average review rating with 2dp precision (integer rounding made a 4.49
+  // organiser display as 4 and fed lossy values into trust-tier decisions).
+  rating: real("rating").default(0),
   ratingCount: integer("rating_count").default(0),
   reliabilityScore: integer("reliability_score").default(50),
   joinCount: integer("join_count").default(0),

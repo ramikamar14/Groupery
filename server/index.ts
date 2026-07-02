@@ -31,7 +31,16 @@ app.use(
 );
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
-const CAPACITOR_ORIGINS = ["capacitor://localhost", "http://localhost", "ionic://localhost"];
+// Native-app webview origins. Plain http://localhost is excluded in production:
+// any local dev server on a victim's machine could otherwise make credentialed
+// cross-origin requests (CSRF). Capacitor Android (androidScheme: https) uses
+// https://localhost, which stays allowed.
+const CAPACITOR_ORIGINS = [
+  "capacitor://localhost",
+  "https://localhost",
+  "ionic://localhost",
+  ...(env.NODE_ENV === "production" ? [] : ["http://localhost"]),
+];
 // Automatically allow www variant of APP_ORIGIN (e.g. https://www.grouperry.com)
 const wwwOrigin = env.APP_ORIGIN.replace("://", "://www.");
 const ALLOWED_ORIGINS = [...CAPACITOR_ORIGINS, env.APP_ORIGIN, wwwOrigin];
@@ -117,6 +126,22 @@ app.get("/health", async (_req, res) => {
         ADD COLUMN IF NOT EXISTS charge_status VARCHAR,
         ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP
     `);
+    // One phone = one account (phone-OTP login identifies accounts by phone).
+    // Deduplicate first so the index can build on legacy data: keep the oldest
+    // row's phone, null out the rest (those accounts keep email/Google login).
+    await pool.query(`
+      UPDATE users u SET phone = NULL, phone_verified = FALSE
+      WHERE phone IS NOT NULL AND EXISTS (
+        SELECT 1 FROM users older
+        WHERE older.phone = u.phone AND older.created_at < u.created_at
+      )
+    `);
+    await pool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS users_phone_unique
+      ON users (phone) WHERE phone IS NOT NULL
+    `);
+    // Ratings keep 2 decimal places (was a lossy integer — 4.49 displayed as 4).
+    await pool.query(`ALTER TABLE users ALTER COLUMN rating TYPE REAL`);
   } catch (e: any) {
     console.error("[startup] schema migration error:", e.message);
   }

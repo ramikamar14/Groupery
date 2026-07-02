@@ -29,7 +29,7 @@ export function useAuth() {
 
   const logoutMutation = useMutation({
     mutationFn: async (): Promise<void> => {
-      await fetch(apiUrl("/api/logout"), { credentials: "include" });
+      await fetch(apiUrl("/api/logout"), { method: "POST", credentials: "include" });
     },
     onSuccess: () => {
       queryClient.clear();
