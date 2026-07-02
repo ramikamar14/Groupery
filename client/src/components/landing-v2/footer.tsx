@@ -149,7 +149,7 @@ export function Footer() {
               {t("v2.footerMadeWith")} <Heart className="size-4 text-red-500 fill-red-500" aria-hidden />{" "}
               {t("v2.footerForShoppers")}
             </p>
-            <p className="text-xs text-muted-foreground/40" data-testid="build-version">v2 · {new Date("2026-06-03").toLocaleDateString()}</p>
+            <p className="text-xs text-muted-foreground/40" data-testid="build-version">v · {__BUILD_ID__}</p>
           </div>
         </div>
       </div>

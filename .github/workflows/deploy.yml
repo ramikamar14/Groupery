@@ -79,6 +79,6 @@ jobs:
           tar czf dist.tar.gz dist/ ecosystem.config.cjs script/apply-env.sh env-updates.txt
           sshpass -e scp -o StrictHostKeyChecking=no dist.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/rami/Groupery/
           sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            "cd /home/rami/Groupery && tar xzf dist.tar.gz && rm dist.tar.gz && \
+            "cd /home/rami/Groupery && rm -rf dist && tar xzf dist.tar.gz && rm dist.tar.gz && \
              sh script/apply-env.sh && \
              pm2 startOrReload ecosystem.config.cjs --update-env && echo '✅ Deployed at \$(date)'"

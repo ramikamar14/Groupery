@@ -7,6 +7,8 @@ import "./index.css";
 import "./lib/i18n";
 import { initAnalytics } from "./lib/analytics";
 
+console.info("Grouperry build", __BUILD_ID__);
+
 // Load analytics provider (no-op unless configured via env)
 initAnalytics();
 

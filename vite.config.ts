@@ -14,9 +14,14 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
-  // Capacitor requires relative asset paths so the app works from the
-  // native webview's file:// origin (no server involved for static assets).
-  base: "./",
+  // Web builds need absolute asset paths ("/assets/...") so deep routes like
+  // /listing/abc resolve assets correctly. Capacitor builds (CAP_BUILD=1) need
+  // relative paths so the app works from the native webview's file:// origin
+  // (no server involved for static assets).
+  base: process.env.CAP_BUILD ? "./" : "/",
+  define: {
+    __BUILD_ID__: JSON.stringify(process.env.GITHUB_SHA?.slice(0, 7) || "dev"),
+  },
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
